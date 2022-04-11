@@ -26,6 +26,7 @@ public class User implements UserDetails {
     private String first_name;
     private String last_name;
     private String password;
+    private String department;
     @Transient
     @JsonIgnore
     private Date create_dt;
@@ -33,11 +34,21 @@ public class User implements UserDetails {
     @JsonIgnore
     private Date update_dt;
 
-    @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany( fetch = FetchType.EAGER)
     @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+
+//    @OneToMany(cascade=CascadeType.ALL,mappedBy="user", fetch = FetchType.EAGER)
+//    private Set<UserRole> userRoles;
+//
+//    public Set<UserRole> getUserRoles() {
+//        return userRoles;
+//    }
+//
+//    public void setUserRoles(Set<UserRole> userRoles) {
+//        this.userRoles = userRoles;
+//    }
 
     public Set<Role> getRoles() {
         return roles;
@@ -57,6 +68,14 @@ public class User implements UserDetails {
 
     public String getUsername() {
         return username;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
     }
 
     @Override

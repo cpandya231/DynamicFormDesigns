@@ -33,7 +33,20 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-        User newUser = userService.saveUser(user);
+        Optional<User> existingUser = userService.getUserByUsername(user.getUsername());
+        User newUser;
+        if(existingUser.isEmpty())
+            newUser = userService.saveUser(user);
+        else {
+            existingUser.get().setDepartment(user.getDepartment());
+            existingUser.get().setPassword(user.getPassword());
+            existingUser.get().setEmail(user.getEmail());
+            existingUser.get().setFirst_name(user.getFirst_name());
+            existingUser.get().setLast_name(user.getLast_name());
+            existingUser.get().setRoles(user.getRoles());
+            userService.saveUser(existingUser.get());
+            newUser = existingUser.get();
+        }
         return new ResponseEntity<>(newUser,HttpStatus.CREATED);
     }
 }

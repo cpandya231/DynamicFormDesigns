@@ -18,7 +18,7 @@ create table role (
 	role VARCHAR(255) NOT NULL,
 	PRIMARY KEY (id),
 	CONSTRAINT UC_ROLE UNIQUE (role)
-)
+);
 
 
 create table user_role (
@@ -28,7 +28,20 @@ create table user_role (
 	PRIMARY KEY (id),
 	FOREIGN KEY (user_id) REFERENCES user(id),
 	FOREIGN KEY (role_id) REFERENCES role(id)
-)
+);
+
 
 create user 'logever'@'%' identified by 'logever'; -- Creates the user
 grant all on logever.* to 'logever'@'%'; --grant all access to user
+
+alter table role add column description VARCHAR(255) NOT NULL;
+
+alter table user add column department VARCHAR(255) NOT NULL after password;
+
+create table role_permission (
+	id INT NOT NULL AUTO_INCREMENT,
+	role_id INT NOT NULL,
+	permission VARCHAR(255),
+	PRIMARY KEY (id),
+	FOREIGN KEY (role_id) REFERENCES role(id)
+);

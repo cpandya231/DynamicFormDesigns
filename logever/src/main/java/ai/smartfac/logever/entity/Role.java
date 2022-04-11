@@ -11,6 +11,14 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String role;
+    private String description;
+
+    public Role() {
+    }
+
+    public Role(String role) {
+        this.role = role;
+    }
 
     public Integer getId() {
         return id;
@@ -26,5 +34,13 @@ public class Role {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
