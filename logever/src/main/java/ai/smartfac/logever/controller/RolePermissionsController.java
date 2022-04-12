@@ -46,7 +46,7 @@ public class RolePermissionsController {
 
     @Transactional
     @PostMapping("/save")
-    public ResponseEntity<?> registerUser(@RequestBody RolePermissionRequest request) {
+    public ResponseEntity<?> saveRolePermission(@RequestBody RolePermissionRequest request) {
         RolePermissionModel model = new RolePermissionModel(request);
         Role role = roleService.save(model.getRole());
         Iterable<RolePermission> rolePermissions = null;
