@@ -3,6 +3,7 @@ package ai.smartfac.logever.filter;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,16 +42,32 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                     JWTVerifier jwtVerifier = JWT.require(algo).build();
                     DecodedJWT decodedJWT = jwtVerifier.verify(token);
                     String username = decodedJWT.getSubject();
-                    String[] roles = decodedJWT.getClaim("role").asArray(String.class);
+                    Claim claimRoles = decodedJWT.getClaim("role");
+                    Claim claimAuthorities = decodedJWT.getClaim("authorities");
+
+                    String [] roles = {};
+                    String [] auths = {};
+                    if(claimRoles != null) {
+                        roles = claimRoles.asArray(String.class);
+                    }
+
+                    if(claimAuthorities != null) {
+                        auths = claimAuthorities.asArray(String.class);
+                    }
 
                     Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
                     stream(roles).forEach(role->{
                         authorities.add(new SimpleGrantedAuthority(role));
                     });
+                    stream(auths).forEach(auth->{
+                        authorities.add(new SimpleGrantedAuthority(auth));
+                    });
+
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username,null,authorities);
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     filterChain.doFilter(request,response);
                 } catch (Exception exception) {
+                    exception.printStackTrace();
                     System.out.println("Error logging in :"+exception.getMessage());
 
                     Map<String,String> error = new HashMap<>();

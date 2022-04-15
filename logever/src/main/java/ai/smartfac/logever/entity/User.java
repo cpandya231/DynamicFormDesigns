@@ -4,37 +4,44 @@ package ai.smartfac.logever.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.sql.Timestamp;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
 public class User implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
+    @Column(unique = true)
     private String username;
+    @Column(unique = true)
     private String email;
+    @Column(nullable=false)
     private String first_name;
     private String last_name;
+    @Column(nullable=false)
     private String password;
-    @Transient
+    @Column(nullable=false)
+    private String department;
     @JsonIgnore
-    private Date create_dt;
-    @Transient
+    @Column(name="create_dt")
+    @CreationTimestamp
+    private Timestamp createDt;
     @JsonIgnore
-    private Date update_dt;
+    @Column(name="update_dt")
+    @UpdateTimestamp
+    private Timestamp updateDt;
 
-    @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
@@ -57,6 +64,14 @@ public class User implements UserDetails {
 
     public String getUsername() {
         return username;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
     }
 
     @Override
@@ -109,7 +124,10 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getRoles().stream().map(role->new SimpleGrantedAuthority(role.getRole())).collect(Collectors.toList());
+        List<GrantedAuthority> grantedAuthorities = this.getRoles().stream().flatMap(role->role.getPermissions().stream())
+                .map(perm->new SimpleGrantedAuthority(perm.getPermission())).collect(Collectors.toList());
+        grantedAuthorities.addAll(this.getRoles().stream().map(role->new SimpleGrantedAuthority(role.getRole())).collect(Collectors.toList()));
+        return grantedAuthorities;
     }
 
     public String getPassword() {
@@ -120,19 +138,19 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public Date getCreate_dt() {
-        return create_dt;
+    public Timestamp getCreateDt() {
+        return createDt;
     }
 
-    public void setCreate_dt(Date create_dt) {
-        this.create_dt = create_dt;
+    public void setCreateDt(Timestamp createDt) {
+        this.createDt = createDt;
     }
 
-    public Date getUpdate_dt() {
-        return update_dt;
+    public Timestamp getUpdateDt() {
+        return updateDt;
     }
 
-    public void setUpdate_dt(Date update_dt) {
-        this.update_dt = update_dt;
+    public void setUpdateDt(Timestamp updateDt) {
+        this.updateDt = updateDt;
     }
 }
