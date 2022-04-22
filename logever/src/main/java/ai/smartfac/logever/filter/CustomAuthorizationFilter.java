@@ -31,37 +31,37 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if(request.getServletPath().equals("/login")) {
+        if(request.getServletPath().equals("/login") || request.getServletPath().equals("/token/refresh")) {
             filterChain.doFilter(request,response);
         } else {
             String authorizationHeader = request.getHeader(AUTHORIZATION);
             if(authorizationHeader!=null && authorizationHeader.startsWith("Bearer ")) {
                 try {
                     String token = authorizationHeader.substring("Bearer ".length());
-                    Algorithm algo = Algorithm.HMAC256("secret".getBytes());
+                    Algorithm algo = Algorithm.HMAC256("secret");
                     JWTVerifier jwtVerifier = JWT.require(algo).build();
                     DecodedJWT decodedJWT = jwtVerifier.verify(token);
                     String username = decodedJWT.getSubject();
                     Claim claimRoles = decodedJWT.getClaim("role");
-                    Claim claimAuthorities = decodedJWT.getClaim("authorities");
+                    Claim claimAuthorities = decodedJWT.getClaim("authority");
 
                     String [] roles = {};
                     String [] auths = {};
+                    Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
                     if(claimRoles != null) {
                         roles = claimRoles.asArray(String.class);
+                        stream(roles).forEach(role->{
+                            authorities.add(new SimpleGrantedAuthority(role));
+                        });
                     }
 
                     if(claimAuthorities != null) {
                         auths = claimAuthorities.asArray(String.class);
+                        stream(auths).forEach(auth->{
+                            authorities.add(new SimpleGrantedAuthority(auth));
+                        });
                     }
-
-                    Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                    stream(roles).forEach(role->{
-                        authorities.add(new SimpleGrantedAuthority(role));
-                    });
-                    stream(auths).forEach(auth->{
-                        authorities.add(new SimpleGrantedAuthority(auth));
-                    });
 
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username,null,authorities);
                     SecurityContextHolder.getContext().setAuthentication(authToken);
