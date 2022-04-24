@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -17,6 +18,9 @@ public class UserController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @GetMapping("/")
     public ResponseEntity<?> getUsers() {
@@ -35,11 +39,15 @@ public class UserController {
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         Optional<User> existingUser = userService.getUserByUsername(user.getUsername());
         User newUser;
-        if(existingUser.isEmpty())
+        if(existingUser.isEmpty()) {
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
             newUser = userService.saveUser(user);
+        }
         else {
             existingUser.get().setDepartment(user.getDepartment());
-            existingUser.get().setPassword(user.getPassword());
+            if(!bCryptPasswordEncoder.matches(user.getPassword(),existingUser.get().getPassword())) {
+                existingUser.get().setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            }
             existingUser.get().setEmail(user.getEmail());
             existingUser.get().setFirst_name(user.getFirst_name());
             existingUser.get().setLast_name(user.getLast_name());

@@ -6,6 +6,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class User implements UserDetails {
 
     @Id
@@ -32,10 +36,16 @@ public class User implements UserDetails {
     private String password;
     @Column(nullable=false)
     private String department;
+    @CreatedBy
+    @Column(name = "created_by")
+    private String createdBy;
     @JsonIgnore
     @Column(name="create_dt")
     @CreationTimestamp
     private Timestamp createDt;
+    @Column(name = "updated_by")
+    @LastModifiedBy
+    private String updatedBy;
     @JsonIgnore
     @Column(name="update_dt")
     @UpdateTimestamp
@@ -152,5 +162,21 @@ public class User implements UserDetails {
 
     public void setUpdateDt(Timestamp updateDt) {
         this.updateDt = updateDt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

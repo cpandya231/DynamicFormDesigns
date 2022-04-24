@@ -36,7 +36,6 @@ public class UserService {
     }
 
     public User saveUser(User newUser) {
-        newUser.setPassword(bCryptPasswordEncoder.encode(newUser.getPassword()));
         Set<Role> roles = new HashSet<>();
         newUser.getRoles().stream().forEach(role->roles.add(roleRepository.findById(role.getId()).get()));
         newUser.setRoles(roles);
