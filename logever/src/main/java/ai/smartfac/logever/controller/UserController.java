@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -44,7 +45,7 @@ public class UserController {
             newUser = userService.saveUser(user);
         }
         else {
-            throw new RuntimeException("User already exisis");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"User already exisis");
         }
         return new ResponseEntity<>(newUser,HttpStatus.CREATED);
     }
