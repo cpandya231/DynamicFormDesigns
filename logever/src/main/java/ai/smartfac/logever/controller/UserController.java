@@ -45,7 +45,7 @@ public class UserController {
             newUser = userService.saveUser(user);
         }
         else {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"User already exisis");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"User already exists!");
         }
         return new ResponseEntity<>(newUser,HttpStatus.CREATED);
     }
