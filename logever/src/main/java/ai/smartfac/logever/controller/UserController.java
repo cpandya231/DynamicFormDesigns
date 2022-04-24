@@ -44,16 +44,7 @@ public class UserController {
             newUser = userService.saveUser(user);
         }
         else {
-            existingUser.get().setDepartment(user.getDepartment());
-            if(!bCryptPasswordEncoder.matches(user.getPassword(),existingUser.get().getPassword())) {
-                existingUser.get().setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            }
-            existingUser.get().setEmail(user.getEmail());
-            existingUser.get().setFirst_name(user.getFirst_name());
-            existingUser.get().setLast_name(user.getLast_name());
-            existingUser.get().setRoles(user.getRoles());
-            userService.saveUser(existingUser.get());
-            newUser = existingUser.get();
+            throw new RuntimeException("User already exisis");
         }
         return new ResponseEntity<>(newUser,HttpStatus.CREATED);
     }
