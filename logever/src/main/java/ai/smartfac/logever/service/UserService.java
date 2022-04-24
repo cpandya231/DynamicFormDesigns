@@ -5,10 +5,13 @@ import ai.smartfac.logever.entity.User;
 import ai.smartfac.logever.repository.RoleRepository;
 import ai.smartfac.logever.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService {
+public class UserService implements ApplicationListener<AuthenticationSuccessEvent> {
 
     @Autowired
     UserRepository userRepository;
@@ -26,6 +29,16 @@ public class UserService {
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Override
+    public void onApplicationEvent(AuthenticationSuccessEvent event) {
+        String userName = ((User) event.getAuthentication().
+                getPrincipal()).getUsername();
+        User user = this.userRepository.findByUsername(userName).get();
+        user.setLastLoginDt(new Timestamp(System.currentTimeMillis()));
+        user.setUpdatedBy(user.getUsername());
+        this.saveUser(user);
+    }
 
     public Iterable<User> getAllUsers() {
         return userRepository.findAll();

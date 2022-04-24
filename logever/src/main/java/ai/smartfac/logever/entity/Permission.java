@@ -17,11 +17,12 @@ import java.util.Set;
 public class Permission {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column(unique = true)
     private String permission;
 
+    @JsonIgnore
     @CreatedBy
     @Column(name = "created_by")
     private String createdBy;
@@ -30,6 +31,7 @@ public class Permission {
     @CreationTimestamp
     private Timestamp createDt;
     @Column(name = "updated_by")
+    @JsonIgnore
     @LastModifiedBy
     private String updatedBy;
     @JsonIgnore

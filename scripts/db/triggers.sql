@@ -14,7 +14,7 @@ BEGIN
 	SET V_TYPE = 'USER';
 	SET V_PREV_STATE = null;
 	SET V_USERNAME = NEW.created_by;
-	SET V_NEW_STATE = concat('Username: ',NEW.username,' Email: ',NEW.email,' FirstName: ',NEW.first_name,' LastName: ',NEW.last_name,' Department: ',NEW.department);
+	SET V_NEW_STATE = concat('Username: ',NEW.username,' Email: ',NEW.email,' FirstName: ',NEW.first_name,' LastName: ',NEW.last_name,' Department: ',NEW.department,' IsActive: ',NEW.is_active);
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
 END;$$
@@ -57,6 +57,17 @@ BEGIN
 	SET V_NEW_STATE = concat(V_NEW_STATE,' Password: ','XXXXXXXXXXX');
 	SET V_CHECK = 1;
 	END IF;
+	IF NEW.is_active <> OLD.is_active THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,' IsActive: ',OLD.is_active);
+	SET V_NEW_STATE = concat(V_NEW_STATE,' IsActive: ',NEW.is_active);
+	SET V_CHECK = 1;
+	END IF;
+	IF NEW.last_login_dt <> OLD.last_login_dt || OLD.last_login_dt is NULL THEN
+		IF V_CHECK <> 1 THEN
+		SET V_CHECK = 2;
+		SET V_NEW_STATE = concat(V_NEW_STATE,'User logged In');
+		END IF;
+	END IF;
 
 	IF V_CHECK < 1 THEN
 	SET V_PREV_STATE = concat(V_PREV_STATE,'User unchanged');
@@ -65,7 +76,7 @@ BEGIN
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
 END;$$
-DELIMITER;
+DELIMITER ;
 
 DELIMITER $$
 CREATE TRIGGER trg_audit_create_roles

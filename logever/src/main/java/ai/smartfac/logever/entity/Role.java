@@ -17,7 +17,7 @@ import java.util.Set;
 public class Role {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Column(unique = true)
     private String role;
@@ -25,6 +25,7 @@ public class Role {
 
 
     @CreatedBy
+    @JsonIgnore
     @Column(name = "created_by")
     private String createdBy;
     @JsonIgnore
@@ -32,6 +33,7 @@ public class Role {
     @CreationTimestamp
     private Timestamp createDt;
     @Column(name = "updated_by")
+    @JsonIgnore
     @LastModifiedBy
     private String updatedBy;
     @JsonIgnore
