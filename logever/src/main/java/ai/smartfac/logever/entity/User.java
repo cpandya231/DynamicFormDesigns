@@ -14,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,11 +24,11 @@ import java.util.stream.Collectors;
 public class User implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Column(unique = true)
     private String username;
-    @Column(unique = true)
+    @Column(nullable = true)
     private String email;
     @Column(nullable=false)
     private String first_name;
@@ -37,19 +38,24 @@ public class User implements UserDetails {
     @Column(nullable=false)
     private String department;
     @CreatedBy
+    @JsonIgnore
     @Column(name = "created_by")
     private String createdBy;
-    @JsonIgnore
     @Column(name="create_dt")
     @CreationTimestamp
     private Timestamp createDt;
     @Column(name = "updated_by")
     @LastModifiedBy
+    @JsonIgnore
     private String updatedBy;
     @JsonIgnore
     @Column(name="update_dt")
     @UpdateTimestamp
     private Timestamp updateDt;
+    @Column(name = "is_active",nullable = false,columnDefinition = "BOOLEAN")
+    private Boolean isActive;
+    @Column(name = "last_login_dt")
+    private Timestamp lastLoginDt;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "user_id"),
@@ -86,22 +92,22 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return this.getIsActive();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return this.getIsActive();
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return this.getIsActive();
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.getIsActive();
     }
 
     public void setUsername(String username) {
@@ -178,5 +184,21 @@ public class User implements UserDetails {
 
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean active) {
+        isActive = active;
+    }
+
+    public Timestamp getLastLoginDt() {
+        return lastLoginDt;
+    }
+
+    public void setLastLoginDt(Timestamp lastLoginDt) {
+        this.lastLoginDt = lastLoginDt;
     }
 }
