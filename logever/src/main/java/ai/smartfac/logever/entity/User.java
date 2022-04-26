@@ -41,7 +41,6 @@ public class User implements UserDetails {
     @JsonIgnore
     @Column(name = "created_by")
     private String createdBy;
-    @JsonIgnore
     @Column(name="create_dt")
     @CreationTimestamp
     private Timestamp createDt;
