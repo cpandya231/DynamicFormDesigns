@@ -1,5 +1,9 @@
 
+use logever;
+
 DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_new_users $$
+
 CREATE TRIGGER trg_audit_new_users
 AFTER INSERT ON user FOR EACH ROW
 BEGIN
@@ -20,6 +24,9 @@ BEGIN
 END;$$
 
 DELIMITER $$
+
+DROP TRIGGER IF EXISTS trg_audit_update_users $$
+
 CREATE TRIGGER trg_audit_update_users
 AFTER UPDATE ON user FOR EACH ROW
 BEGIN
@@ -63,10 +70,10 @@ BEGIN
 	SET V_CHECK = 1;
 	END IF;
 	IF NEW.last_login_dt <> OLD.last_login_dt || OLD.last_login_dt is NULL THEN
-		IF V_CHECK <> 1 THEN
-		SET V_CHECK = 2;
-		SET V_NEW_STATE = concat(V_NEW_STATE,'User logged In');
-		END IF;
+	IF V_CHECK <> 1 THEN
+	SET V_CHECK = 2;
+	SET V_NEW_STATE = concat(V_NEW_STATE,'User logged In');
+	END IF;
 	END IF;
 
 	IF V_CHECK < 1 THEN
@@ -79,6 +86,8 @@ END;$$
 DELIMITER ;
 
 DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_create_roles $$
+
 CREATE TRIGGER trg_audit_create_roles
 AFTER INSERT ON role FOR EACH ROW
 BEGIN
@@ -100,6 +109,8 @@ END;$$
 DELIMITER ;
 
 DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_update_roles $$
+
 CREATE TRIGGER trg_audit_update_roles
 AFTER UPDATE ON role FOR EACH ROW
 BEGIN
@@ -137,6 +148,8 @@ END;$$
 DELIMITER ;
 
 DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_create_role_permissions $$
+
 CREATE TRIGGER trg_audit_create_role_permissions
 AFTER INSERT ON role_permission FOR EACH ROW
 BEGIN
@@ -165,6 +178,8 @@ END;$$
 DELIMITER ;
 
 DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_delete_role_permissions $$
+
 CREATE TRIGGER trg_audit_delete_role_permissions
 AFTER DELETE ON role_permission FOR EACH ROW
 BEGIN
@@ -193,6 +208,8 @@ END;$$
 DELIMITER ;
 
 DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_create_user_roles $$
+
 CREATE TRIGGER trg_audit_create_user_roles
 AFTER INSERT ON user_role FOR EACH ROW
 BEGIN
@@ -221,6 +238,8 @@ END;$$
 DELIMITER ;
 
 DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_delete_user_roles $$
+
 CREATE TRIGGER trg_audit_delete_user_roles
 AFTER DELETE ON user_role FOR EACH ROW
 BEGIN
