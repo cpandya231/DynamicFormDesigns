@@ -13,7 +13,7 @@ services:
            - MYSQL_PASSWORD=logever
            - MYSQL_ROOT_HOST=%
     volumes:
-           - ./my-datavolume:/var/lib/mysql
+           - ./scripts/db:/docker-entrypoint-initdb.d
     healthcheck:
            test: ["CMD","mysqladmin","ping","-h","localhost"]
            timeout: 20s

@@ -1,3 +1,5 @@
 To run docker compose: docker-compose up --build -d
 To check logs: docker logs [image-name]
 To stop: docker stop [container-name]
+
+docker stop dynamicformdesigns_frontend_1 dynamicformdesigns_backendserver_1 dynamicformdesigns_adminer_1  dynamicformdesigns_db_1
