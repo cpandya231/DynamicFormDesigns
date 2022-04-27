@@ -27,7 +27,9 @@ services:
            - "9000:8081"
 
   backendserver:
-    build: ./logever/
+    build:
+       context: https://github.com/cpandya231/DynamicFormDesigns.git#docker-setup
+       dockerfile: logever/Dockerfile
     ports:
            - "8080:8080"   
     expose:
