@@ -1,5 +1,5 @@
+DROP TRIGGER IF EXISTS trg_audit_new_users ^;
 
-DELIMITER $$
 CREATE TRIGGER trg_audit_new_users
 AFTER INSERT ON user FOR EACH ROW
 BEGIN
@@ -17,9 +17,10 @@ BEGIN
 	SET V_NEW_STATE = concat('Username: ',NEW.username,' Email: ',NEW.email,' FirstName: ',NEW.first_name,' LastName: ',NEW.last_name,' Department: ',NEW.department,' IsActive: ',NEW.is_active);
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
-END;$$
+END; ^;
 
-DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_update_users ^;
+
 CREATE TRIGGER trg_audit_update_users
 AFTER UPDATE ON user FOR EACH ROW
 BEGIN
@@ -63,10 +64,10 @@ BEGIN
 	SET V_CHECK = 1;
 	END IF;
 	IF NEW.last_login_dt <> OLD.last_login_dt || OLD.last_login_dt is NULL THEN
-		IF V_CHECK <> 1 THEN
-		SET V_CHECK = 2;
-		SET V_NEW_STATE = concat(V_NEW_STATE,'User logged In');
-		END IF;
+	IF V_CHECK <> 1 THEN
+	SET V_CHECK = 2;
+	SET V_NEW_STATE = concat(V_NEW_STATE,'User logged In');
+	END IF;
 	END IF;
 
 	IF V_CHECK < 1 THEN
@@ -75,10 +76,10 @@ BEGIN
 	END IF;
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
-END;$$
-DELIMITER ;
+END; ^;
 
-DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_create_roles ^;
+
 CREATE TRIGGER trg_audit_create_roles
 AFTER INSERT ON role FOR EACH ROW
 BEGIN
@@ -96,10 +97,10 @@ BEGIN
 	SET V_NEW_STATE = concat('Role: ',NEW.role,' Description: ',NEW.description);
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
-END;$$
-DELIMITER ;
+END; ^;
 
-DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_update_roles ^;
+
 CREATE TRIGGER trg_audit_update_roles
 AFTER UPDATE ON role FOR EACH ROW
 BEGIN
@@ -133,10 +134,10 @@ BEGIN
 	END IF;
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
 
-END;$$
-DELIMITER ;
+END; ^;
 
-DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_create_role_permissions ^;
+
 CREATE TRIGGER trg_audit_create_role_permissions
 AFTER INSERT ON role_permission FOR EACH ROW
 BEGIN
@@ -161,10 +162,10 @@ BEGIN
 	SET V_NEW_STATE = concat('RoleId: ',NEW.role_id,' PermissionId: ',NEW.permission_id);
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
-END;$$
-DELIMITER ;
+END; ^;
 
-DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_delete_role_permissions ^;
+
 CREATE TRIGGER trg_audit_delete_role_permissions
 AFTER DELETE ON role_permission FOR EACH ROW
 BEGIN
@@ -189,10 +190,10 @@ BEGIN
 	SET V_PREV_STATE = concat('RoleId: ',OLD.role_id,' PermissionId: ',OLD.permission_id);
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
-END;$$
-DELIMITER ;
+END; ^;
 
-DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_create_user_roles ^;
+
 CREATE TRIGGER trg_audit_create_user_roles
 AFTER INSERT ON user_role FOR EACH ROW
 BEGIN
@@ -217,10 +218,10 @@ BEGIN
 	SET V_NEW_STATE = concat('UserId: ',NEW.user_id,' RoleId: ',NEW.role_id);
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
-END;$$
-DELIMITER ;
+END; ^;
 
-DELIMITER $$
+DROP TRIGGER IF EXISTS trg_audit_delete_user_roles ^;
+
 CREATE TRIGGER trg_audit_delete_user_roles
 AFTER DELETE ON user_role FOR EACH ROW
 BEGIN
@@ -245,5 +246,4 @@ BEGIN
 	SET V_PREV_STATE = concat('UserId: ',OLD.user_id,' RoleId: ',OLD.role_id);
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
-END;$$
-DELIMITER ;
+END; ^;
