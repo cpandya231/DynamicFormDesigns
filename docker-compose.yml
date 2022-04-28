@@ -43,7 +43,8 @@ services:
               restart: always
 
        frontend:
-              build: ../dynamic_form_designs_frontend/
+              build:
+                     context: https://github.com/cpandya231/DynamicFormDesigns-FrontEnd.git#docker-setup-frontend
               links:
                      - "backendserver"
               depends_on:
