@@ -1,3 +1,4 @@
+create database if not exists logever;
 
 INSERT INTO permission (permission,created_by,create_dt)
 SELECT * FROM (SELECT 'CREATE-ROLE','admin',current_timestamp) AS tmp
