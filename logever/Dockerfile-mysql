@@ -1,1 +1,3 @@
 FROM mysql:latest
+ADD ../scripts/db /src/scripts
+ADD /src/scripts /docker-entrypoint-initdb.d
