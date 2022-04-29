@@ -1,4 +1,4 @@
-To run docker compose: docker-compose up --build -d
+To run docker compose: docker compose up --build -d
 To check logs: docker logs [image-name]
 To stop: docker stop [container-name]
 
