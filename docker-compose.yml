@@ -2,7 +2,7 @@ version: '3'
 services:
        db:
               build:
-                     context: https://github.com/cpandya231/DynamicFormDesigns.git#docker-setup
+                     context: https://github.com/cpandya231/DynamicFormDesigns.git#main
                      dockerfile: logever/Dockerfile-mysql
 
               ports:
@@ -30,7 +30,7 @@ services:
 
        backendserver:
               build:
-                     context: https://github.com/cpandya231/DynamicFormDesigns.git#docker-setup
+                     context: https://github.com/cpandya231/DynamicFormDesigns.git#main
                      dockerfile: logever/Dockerfile
               ports:
                      - "8080:8080"
@@ -44,7 +44,7 @@ services:
 
        frontend:
               build:
-                     context: https://github.com/cpandya231/DynamicFormDesigns-FrontEnd.git#docker-setup-frontend
+                     context: https://github.com/cpandya231/DynamicFormDesigns-FrontEnd.git#main
               links:
                      - "backendserver"
               depends_on:
