@@ -7,3 +7,16 @@ docker stop dynamicformdesigns_frontend_1 dynamicformdesigns_backendserver_1 dyn
 To connect to container: docker exec -it dynamicformdesigns_db_1 /bin/bash 
 
 Delete volumes: docker-compose down -v
+
+To refresh: 
+
+docker-compose stop frontend
+
+# We need the force flag, "-f", as the container is still bound to the volume
+docker-compose rm -f frontend
+
+# Next find your volume name in the following list
+docker volume ls
+
+# Finally remove the volume
+docker volume rm VOLUME_NAME
