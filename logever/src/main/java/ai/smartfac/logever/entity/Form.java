@@ -1,6 +1,11 @@
 package ai.smartfac.logever.entity;
 
+import ai.smartfac.logever.model.ColumnConstraints;
+import ai.smartfac.logever.model.ColumnDef;
+import ai.smartfac.logever.model.FormTemplate;
+import ai.smartfac.logever.model.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.Gson;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedBy;
@@ -10,6 +15,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 @EntityListeners(AuditingEntityListener.class)
 @Entity
@@ -96,5 +102,26 @@ public class Form {
 
     public void setUpdateDt(Timestamp updateDt) {
         this.updateDt = updateDt;
+    }
+
+    public String makeCreateTableStmt() {
+        Gson gson = new Gson();
+        FormTemplate formTemplate = gson.fromJson(this.getTemplate(), FormTemplate.class);
+        Table table = new Table();
+        table.setName(this.getName());
+        ArrayList<ColumnDef> columnDefs = new ArrayList<>();
+        formTemplate.getComponents().get(0).getRows().forEach(row->{
+            row.forEach(comps-> {
+                comps.getComponents().forEach(comp -> {
+                    columnDefs.add(new ColumnDef(comp.getKey(),comp.getType(),new ColumnConstraints(comp.getValidate().isRequired(),comp.getValidate().isUnique(),!comp.getDefaultValue().isBlank() || !comp.getDefaultValue().isEmpty(),"'"+comp.getDefaultValue()+"'")));
+                });
+            });
+        });
+        columnDefs.add(new ColumnDef("log_create_dt","DATETIME",new ColumnConstraints(true,false,true,"CURRENT_TIMESTAMP")));
+        columnDefs.add(new ColumnDef("created_by","text",new ColumnConstraints(true,false,false,null)));
+        columnDefs.add(new ColumnDef("log_update_dt","DATETIME",new ColumnConstraints(true,false,false,null)));
+        columnDefs.add(new ColumnDef("updated_by","text",new ColumnConstraints(true,false,false,null)));
+        table.setColumnDefs(columnDefs);
+        return table.showCreateTable();
     }
 }
