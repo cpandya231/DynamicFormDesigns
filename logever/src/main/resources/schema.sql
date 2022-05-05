@@ -66,7 +66,7 @@ BEGIN
 	IF NEW.last_login_dt <> OLD.last_login_dt || OLD.last_login_dt is NULL THEN
 	IF V_CHECK <> 1 THEN
 	SET V_CHECK = 2;
-	SET V_NEW_STATE = concat(V_NEW_STATE,'User logged In');
+	SET V_NEW_STATE = concat(V_NEW_STATE, NEW.username,' logged In');
 	END IF;
 	END IF;
 
@@ -246,4 +246,30 @@ BEGIN
 	SET V_PREV_STATE = concat('UserId: ',OLD.user_id,' RoleId: ',OLD.role_id);
 
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
+END; ^;
+
+DROP TRIGGER IF EXISTS trg_audit_update_settings ^;
+
+CREATE TRIGGER trg_audit_update_settings
+AFTER UPDATE ON settings FOR EACH ROW
+BEGIN
+	declare V_ACTION VARCHAR(255);
+	declare V_PK_VALUE INT;
+	declare V_TYPE VARCHAR(255);
+	declare V_PREV_STATE TEXT;
+	declare V_USERNAME VARCHAR(255);
+	declare V_NEW_STATE TEXT;
+	declare V_CHECK INT;
+	SET V_ACTION = 'UPDATED';
+	SET V_PK_VALUE = NEW.id;
+	SET V_TYPE = 'SETTING';
+	SET V_USERNAME = NEW.updated_by;
+	SET V_PREV_STATE = '';
+	SET V_NEW_STATE = '';
+	IF NEW.value <> OLD.value THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'Key: ',OLD.key,' Value: ',OLD.value);
+	SET V_NEW_STATE = concat(V_NEW_STATE,'Key: ',NEW.key,' Value: ',NEW.value);
+	END IF;
+	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
+
 END; ^;
