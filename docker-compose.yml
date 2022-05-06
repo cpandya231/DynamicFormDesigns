@@ -28,6 +28,8 @@ services:
               build:
                      context: https://github.com/cpandya231/DynamicFormDesigns.git#main
                      dockerfile: logever/Dockerfile
+              volumes:
+                     - backend-data:/app
               ports:
                      - "8080:8080"
               expose:
@@ -40,7 +42,7 @@ services:
 
        frontend:
               build:
-                     context: https://github.com/cpandya231/DynamicFormDesigns-FrontEnd.git#docker-changes
+                     context: https://github.com/cpandya231/DynamicFormDesigns-FrontEnd.git#main
 
               volumes:
                      - frontend-data:/app
@@ -59,4 +61,5 @@ services:
 
 volumes:
        db-data:
+       backend-data:
        frontend-data:
