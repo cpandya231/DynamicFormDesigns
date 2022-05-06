@@ -30,7 +30,7 @@ public class FormController {
         return new ResponseEntity<>(foundForm, HttpStatus.OK);
     }
 
-    @PostMapping("/save")
+    @PostMapping("/")
     public ResponseEntity<?> saveRolePermission(@RequestBody Form form) {
         Form savedForm = formService.save(form);
         return new ResponseEntity<>(savedForm, HttpStatus.OK);
