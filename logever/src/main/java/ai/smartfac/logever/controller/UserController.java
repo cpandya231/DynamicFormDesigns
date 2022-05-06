@@ -36,7 +36,7 @@ public class UserController {
         return new ResponseEntity<>(resultUser, HttpStatus.OK);
     }
 
-    @PostMapping("/register")
+    @PostMapping("/")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         Optional<User> existingUser = userService.getUserByUsername(user.getUsername());
         User newUser;
