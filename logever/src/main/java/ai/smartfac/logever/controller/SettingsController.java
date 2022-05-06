@@ -30,7 +30,7 @@ public class SettingsController {
         return new ResponseEntity<>(foundSettings, HttpStatus.OK);
     }
 
-    @PutMapping("/save")
+    @PutMapping("")
     public ResponseEntity<?> updateSetting(@RequestBody Settings settings) {
         Optional<Settings> savedSetting = settingsService.update(settings);
         return new ResponseEntity<>(savedSetting, HttpStatus.OK);
