@@ -14,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.*;
@@ -33,10 +34,14 @@ public class User implements UserDetails {
     @Column(nullable=false)
     private String first_name;
     private String last_name;
+    @Column(nullable=false,name = "date_of_birth")
+    private Date dateOfBirth;
     @Column(nullable=false)
     private String password;
     @Column(nullable=false)
     private String department;
+    @Column(name = "last_password_changed_dt")
+    private Date lastPasswordChangedDate;
     @CreatedBy
     @JsonIgnore
     @Column(name = "created_by")
@@ -136,6 +141,30 @@ public class User implements UserDetails {
 
     public void setLast_name(String last_name) {
         this.last_name = last_name;
+    }
+
+    public Date getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
+    }
+
+    public Date getLastPasswordChangedDate() {
+        return lastPasswordChangedDate;
+    }
+
+    public void setLastPasswordChangedDate(Date lastPasswordChangedDate) {
+        this.lastPasswordChangedDate = lastPasswordChangedDate;
     }
 
     @Override

@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.sql.Date;
 import java.util.Optional;
 
 @RestController
@@ -48,5 +49,50 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,"User already exists!");
         }
         return new ResponseEntity<>(newUser,HttpStatus.CREATED);
+    }
+
+    @PutMapping("/")
+    public ResponseEntity<?> updateUser(@RequestBody User user) {
+        Optional<User> existingUser = userService.getUserByUsername(user.getUsername());
+        User updatedUser;
+        boolean userUpdated = false;
+        if(!existingUser.isEmpty()) {
+            if(user.getDepartment()!=null && !user.getDepartment().isEmpty() && !existingUser.get().getDepartment().equals(user.getDepartment())) {
+                existingUser.get().setDepartment(user.getDepartment());
+                userUpdated = true;
+            }
+            if(user.getEmail()!=null && !user.getEmail().isEmpty() && !existingUser.get().getEmail().equals(user.getEmail())) {
+                existingUser.get().setEmail(user.getEmail());
+                userUpdated = true;
+            }
+            if(user.getPassword()!=null && !user.getPassword().isEmpty()
+                    && !bCryptPasswordEncoder.matches(user.getPassword(),existingUser.get().getPassword())) {
+                existingUser.get().setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+                existingUser.get().setLastPasswordChangedDate(new Date(System.currentTimeMillis()));
+                userUpdated = true;
+            }
+            if(userUpdated)
+                updatedUser = userService.saveUser(existingUser.get());
+            else
+                updatedUser = existingUser.get();
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"User does not exist!");
+        }
+        return new ResponseEntity<>(updatedUser,HttpStatus.OK);
+    }
+
+    @PatchMapping("/")
+    public ResponseEntity<?> toggleIsActive(@RequestBody User user) {
+        Optional<User> existingUser = userService.getUserByUsername(user.getUsername());
+        User updatedUser;
+        if(!existingUser.isEmpty()) {
+            existingUser.get().setIsActive(user.getIsActive());
+            updatedUser = userService.saveUser(existingUser.get());
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"User does not exist!");
+        }
+        return new ResponseEntity<>(updatedUser,HttpStatus.OK);
     }
 }
