@@ -57,7 +57,7 @@ public class UserController {
         User updatedUser;
         boolean userUpdated = false;
         if(!existingUser.isEmpty()) {
-            if(user.getDepartment()!=null && !user.getDepartment().isEmpty() && !existingUser.get().getDepartment().equals(user.getDepartment())) {
+            if(user.getDepartment()!=null && user.getDepartment().getId() > 0 && existingUser.get().getDepartment()!=user.getDepartment()) {
                 existingUser.get().setDepartment(user.getDepartment());
                 userUpdated = true;
             }

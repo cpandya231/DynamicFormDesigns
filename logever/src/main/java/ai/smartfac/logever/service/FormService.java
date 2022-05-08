@@ -13,6 +13,10 @@ public class FormService {
     @Autowired
     FormRepository formRepository;
 
+    public Optional<Form> getFormById(Integer id) {
+        return formRepository.findById(id);
+    }
+
     public Iterable<Form> getForms() {
         return formRepository.findAll();
     }
