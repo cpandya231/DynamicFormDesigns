@@ -39,9 +39,15 @@ WHERE NOT EXISTS (
     SELECT permission_id FROM role_permission WHERE permission_id = 3
 ) LIMIT 1 ^;
 
+INSERT INTO department (name,code,parent_id)
+SELECT * FROM (SELECT 'ZYDUS','001',0) AS tmp
+WHERE NOT EXISTS (
+    SELECT name FROM department WHERE name = 'ZYDUS'
+) LIMIT 1 ^;
 
-INSERT INTO user (username,password,first_name,department,date_of_birth,is_active,created_by,create_dt)
-SELECT * FROM (SELECT 'admin' as username,'$2a$10$neAtxbkTe3P1lUkvghFG0e9tO7Lfx47i4wuvl/UJqPSqF5lvpgRBa','ADMIN' as fname,'ZYDUS','1970-01-01',true,'admin',current_timestamp) AS tmp
+
+INSERT INTO user (username,password,first_name,date_of_birth,department_id,is_active,created_by,create_dt)
+SELECT * FROM (SELECT 'admin' as username,'$2a$10$neAtxbkTe3P1lUkvghFG0e9tO7Lfx47i4wuvl/UJqPSqF5lvpgRBa','ADMIN' as fname,'1970-01-01',1,true,'admin',current_timestamp) AS tmp
 WHERE NOT EXISTS (
     SELECT username FROM user WHERE username = 'admin'
 ) LIMIT 1 ^;

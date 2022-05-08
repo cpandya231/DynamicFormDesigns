@@ -38,8 +38,9 @@ public class User implements UserDetails {
     private Date dateOfBirth;
     @Column(nullable=false)
     private String password;
-    @Column(nullable=false)
-    private String department;
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
     @Column(name = "last_password_changed_dt")
     private Date lastPasswordChangedDate;
     @CreatedBy
@@ -87,11 +88,11 @@ public class User implements UserDetails {
         return username;
     }
 
-    public String getDepartment() {
+    public Department getDepartment() {
         return department;
     }
 
-    public void setDepartment(String department) {
+    public void setDepartment(Department department) {
         this.department = department;
     }
 
