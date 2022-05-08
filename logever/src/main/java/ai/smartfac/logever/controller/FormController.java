@@ -26,7 +26,7 @@ public class FormController {
     }
 
     @GetMapping("/{form}/")
-    public ResponseEntity<?> getForm(@PathVariable(name = "form") String form) {
+    public ResponseEntity<?> getFormByName(@PathVariable(name = "form") String form) {
         Optional<Form> queriedForm = formService.getFormByName(form);
         Form foundForm = queriedForm.orElseThrow(()->new RuntimeException("Form not found"));
         return new ResponseEntity<>(foundForm, HttpStatus.OK);

@@ -25,7 +25,7 @@ public class DepartmentController {
     }
 
     @GetMapping("/{department}/")
-    public ResponseEntity<?> getRole(@PathVariable(name = "department") String department) {
+    public ResponseEntity<?> getDepartmentByName(@PathVariable(name = "department") String department) {
         Optional<Department> queriedDepartment = departmentService.getDepartmentByName(department);
         Department foundDepartment = queriedDepartment.orElseThrow(()->new RuntimeException("Department not found"));
         return new ResponseEntity<>(foundDepartment, HttpStatus.OK);
