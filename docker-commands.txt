@@ -13,7 +13,7 @@ To refresh:
 docker-compose stop frontend
 
 # We need the force flag, "-f", as the container is still bound to the volume
-docker-compose rm -f frontend
+docker-compose rm -f frontend backendserver
 
 # Next find your volume name in the following list
 docker volume ls
