@@ -2,7 +2,9 @@ package ai.smartfac.logever.service;
 
 import ai.smartfac.logever.entity.AuditTrail;
 import ai.smartfac.logever.repository.AuditTrailRepository;
+import ai.smartfac.logever.response.AuditTrailResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,7 +20,6 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.List;
 
 @Service
 public class AuditTrailService {
@@ -34,14 +35,14 @@ public class AuditTrailService {
         return auditTrailRepository.findByUserNameAndAuditDtBetween(username, startDate, endDate, getPageable(0, 10));
     }
 
-    public List<AuditTrail> findAuditTrail(String username,
-                                           String type,
-                                           String startDate,
-                                           String endDate,
-                                           Integer pageNumber,
-                                           Integer pageSize) {
+    public AuditTrailResponse findAuditTrail(String username,
+                                             String type,
+                                             String startDate,
+                                             String endDate,
+                                             Integer pageNumber,
+                                             Integer pageSize) {
 
-
+        Page<AuditTrail> auditTrailPage;
         Date date = Date.from(ZonedDateTime.now().minusMonths(1).toInstant());
 
         Timestamp startDateTimestamp = new Timestamp(date.getTime());
@@ -54,13 +55,17 @@ public class AuditTrailService {
             }
             Pageable sortedByDateDesc = getPageable(pageNumber, pageSize);
             if (!ObjectUtils.isEmpty((username))) {
-                return auditTrailRepository.findByUserNameAndAuditDtBetween(username, startDateTimestamp, endDateTimestamp, sortedByDateDesc);
+                auditTrailPage=  auditTrailRepository.findByUserNameAndAuditDtBetween(username, startDateTimestamp, endDateTimestamp, sortedByDateDesc);
             } else if (!ObjectUtils.isEmpty(type)) {
-                return auditTrailRepository.findByTypeAndAuditDtBetween(type, startDateTimestamp, endDateTimestamp, sortedByDateDesc);
+                auditTrailPage= auditTrailRepository.findByTypeAndAuditDtBetween(type, startDateTimestamp, endDateTimestamp, sortedByDateDesc);
             } else {
-                return auditTrailRepository.findByAuditDtBetween(startDateTimestamp, endDateTimestamp, sortedByDateDesc);
+                auditTrailPage=   auditTrailRepository.findByAuditDtBetween(startDateTimestamp, endDateTimestamp, sortedByDateDesc);
             }
 
+            AuditTrailResponse auditTrailResponse=new AuditTrailResponse();
+            auditTrailResponse.setTotalPages(auditTrailPage.getTotalPages());
+            auditTrailResponse.setAuditTrails(auditTrailPage.getContent());
+            return auditTrailResponse;
         } catch (ParseException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parsing error");
         }

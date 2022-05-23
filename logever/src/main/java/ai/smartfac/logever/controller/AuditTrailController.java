@@ -24,7 +24,7 @@ public class AuditTrailController {
             @RequestParam(required = false,defaultValue = "") String endDate,
             @RequestParam(required = false,defaultValue = "0") Integer pageNumber,
             @RequestParam(required = false,defaultValue = "10") Integer pageSize) {
-        Iterable<AuditTrail> auditTrail = auditTrailService.findAuditTrail(user,type, startDate,endDate,pageNumber,pageSize);
+        var auditTrail = auditTrailService.findAuditTrail(user,type, startDate,endDate,pageNumber,pageSize);
         return new ResponseEntity<>(auditTrail, HttpStatus.OK);
     }
     @GetMapping("/{type}")
