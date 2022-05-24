@@ -1,6 +1,7 @@
 package ai.smartfac.logever.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedBy;
@@ -24,6 +25,11 @@ public class Form {
 
     @Column(columnDefinition = "text")
     private String template;
+
+    @JsonManagedReference
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "workflow_id",referencedColumnName = "id")
+    private Workflow workflow;
 
     @CreatedBy
     @Column(name = "created_by")
@@ -64,6 +70,14 @@ public class Form {
 
     public void setTemplate(String template) {
         this.template = template;
+    }
+
+    public Workflow getWorkflow() {
+        return workflow;
+    }
+
+    public void setWorkflow(Workflow workflow) {
+        this.workflow = workflow;
     }
 
     public String getCreatedBy() {

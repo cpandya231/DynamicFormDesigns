@@ -1,0 +1,57 @@
+package ai.smartfac.logever.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.*;
+
+@Entity
+public class Transition {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @JoinColumn(name = "workflow_id")
+    private Workflow workflow;
+
+    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @JoinColumn(name = "from_state_id")
+    private State fromState;
+
+    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @JoinColumn(name = "to_state_id")
+    private State toState;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Workflow getWorkflow() {
+        return workflow;
+    }
+
+    public void setWorkflow(Workflow workflow) {
+        this.workflow = workflow;
+    }
+
+    public State getFromState() {
+        return fromState;
+    }
+
+    public void setFromState(State fromState) {
+        this.fromState = fromState;
+    }
+
+    public State getToState() {
+        return toState;
+    }
+
+    public void setToState(State toState) {
+        this.toState = toState;
+    }
+}
