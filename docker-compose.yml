@@ -7,6 +7,8 @@ services:
 
               ports:
                      - "3307:3306"
+              volumes:
+                     - db-data:/var/lib/mysql
               expose:
                      - "3307"
               environment:
@@ -22,16 +24,12 @@ services:
                      retries: 10
               restart: always
 
-       adminer:
-              image: adminer
-              restart: always
-              ports:
-                     - "9000:8081"
-
        backendserver:
               build:
                      context: https://github.com/cpandya231/DynamicFormDesigns.git#main
                      dockerfile: logever/Dockerfile
+              volumes:
+                     - backend-data:/app
               ports:
                      - "8080:8080"
               expose:
@@ -45,9 +43,23 @@ services:
        frontend:
               build:
                      context: https://github.com/cpandya231/DynamicFormDesigns-FrontEnd.git#main
+
+              volumes:
+                     - frontend-data:/app
               links:
                      - "backendserver"
               depends_on:
                      - "backendserver"
+              expose:
+                     - "4200"
               ports:
                      - "4200:4200"
+                     - '49153:49153'
+
+              command: bash -c "npm start"
+              restart: always
+
+volumes:
+       db-data:
+       backend-data:
+       frontend-data:

@@ -33,7 +33,7 @@ public class RoleController {
         return new ResponseEntity<>(foundRole, HttpStatus.OK);
     }
 
-    @PostMapping("/save")
+    @PostMapping("/")
     public ResponseEntity<?> saveRolePermission(@RequestBody Role role) {
         Role savedRole = roleService.save(role);
         return new ResponseEntity<>(savedRole, HttpStatus.OK);

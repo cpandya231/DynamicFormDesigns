@@ -15,6 +15,10 @@ public class PermissionService {
     @Autowired
     PermissionRepository permissionRepository;
 
+    public Optional<Permission> getPermissionById(Integer id) {
+        return permissionRepository.findById(id);
+    }
+
     public Iterable<Permission> getAllPermissions() {
         return permissionRepository.findAll();
     }

@@ -33,7 +33,7 @@ public class PermissionController {
         return new ResponseEntity<>(foundPermission, HttpStatus.OK);
     }
 
-    @PostMapping("/save")
+    @PostMapping("/")
     public ResponseEntity<?> savePermission(@RequestBody Permission permission) {
         Permission savedPermission = permissionService.save(permission);
         return new ResponseEntity<>(savedPermission, HttpStatus.OK);

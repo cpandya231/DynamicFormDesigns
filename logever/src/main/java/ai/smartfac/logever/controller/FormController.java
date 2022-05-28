@@ -1,5 +1,6 @@
 package ai.smartfac.logever.controller;
 
+import ai.smartfac.logever.entity.Department;
 import ai.smartfac.logever.entity.Form;
 import ai.smartfac.logever.entity.Role;
 import ai.smartfac.logever.model.FormTemplate;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -26,22 +28,34 @@ public class FormController {
     }
 
     @GetMapping("/{form}/")
-    public ResponseEntity<?> getForm(@PathVariable(name = "form") String form) {
+    public ResponseEntity<?> getFormByName(@PathVariable(name = "form") String form) {
         Optional<Form> queriedForm = formService.getFormByName(form);
         Form foundForm = queriedForm.orElseThrow(()->new RuntimeException("Form not found"));
         foundForm.makeCreateTableStmt();
         return new ResponseEntity<>(foundForm, HttpStatus.OK);
     }
 
-    @PostMapping("/save")
+    @PostMapping("/")
     public ResponseEntity<?> saveForm(@RequestBody Form form) {
-        Optional<Form> queriedForm = formService.getFormByName(form.getName());
-        Form savedForm;
-        if(queriedForm.isEmpty()) {
-            savedForm = formService.save(form);
-        } else {
-            throw new RuntimeException("Form already exists!");
-        }
+        Form savedForm = formService.save(form);
         return new ResponseEntity<>(savedForm, HttpStatus.OK);
+    }
+
+    @PutMapping("/")
+    public ResponseEntity<?> updateForm(@RequestBody Form form) {
+        Optional<Form> existingForm = formService.getFormById(form.getId());
+        Form updatedForm = null;
+        if(existingForm.isPresent()) {
+            if(form.getName()!=null && !form.getName().equals(existingForm.get().getName()))
+                existingForm.get().setName(form.getName());
+            if(form.getTemplate()!=null && !form.getTemplate().equals(existingForm.get().getTemplate()))
+                existingForm.get().setTemplate(form.getTemplate());
+
+            updatedForm = formService.save(existingForm.get());
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Form does not exist!");
+        }
+        return new ResponseEntity<>(updatedForm,HttpStatus.OK);
     }
 }
