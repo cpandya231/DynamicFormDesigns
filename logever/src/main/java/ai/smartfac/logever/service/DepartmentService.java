@@ -4,9 +4,13 @@ import ai.smartfac.logever.entity.Department;
 import ai.smartfac.logever.entity.Form;
 import ai.smartfac.logever.repository.DepartmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class DepartmentService {
@@ -28,5 +32,32 @@ public class DepartmentService {
 
     public Department save(Department department) {
         return departmentRepository.save(department);
+    }
+
+    public boolean underADepartment(Department parentDepartment, Department childDepartment) {
+        Iterable<Department> departments = getDepartments();
+        Map<Integer, Department> depts = new HashMap<>();
+        departments.forEach(dept->depts.put(dept.getId(),dept));
+        Department checkDept = childDepartment;
+        while(checkDept.getParentId() != 0) {
+            if(checkDept.getId() == parentDepartment.getId()) {
+                return true;
+            }
+            checkDept = depts.get(checkDept.getParentId());
+        }
+        return false;
+    }
+
+    public boolean checkAccess(Department department, Set<Department> authorizedDepartments) {
+        if(authorizedDepartments.contains(department)) {
+            return true;
+        } else {
+            for (Department authorizedDepartment : authorizedDepartments) {
+                if(underADepartment(authorizedDepartment,department)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

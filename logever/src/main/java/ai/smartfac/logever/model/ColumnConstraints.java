@@ -54,7 +54,11 @@ public class ColumnConstraints {
             constraints += " UNIQUE ";
         }
         if(defaults) {
-            constraints += " DEFAULT "+defaultValue+" ";
+            if(defaultValue.contains("AUTO_INCREMENT")) {
+                constraints += " AUTO_INCREMENT ";
+            } else {
+                constraints += " DEFAULT " + defaultValue + " ";
+            }
         }
         return constraints;
     }

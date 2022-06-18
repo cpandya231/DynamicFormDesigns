@@ -38,6 +38,9 @@ public class Component {
     }
 
     public String getDefaultValue() {
+        if(defaultValue==null) {
+            defaultValue = "";
+        }
         return defaultValue;
     }
 

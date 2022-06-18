@@ -37,6 +37,8 @@ public class FormController {
 
     @PostMapping("/")
     public ResponseEntity<?> saveForm(@RequestBody Form form) {
+        form.setVersion(1);
+        form.makeCreateTableStmt();
         Form savedForm = formService.save(form);
         return new ResponseEntity<>(savedForm, HttpStatus.OK);
     }
@@ -46,12 +48,14 @@ public class FormController {
         Optional<Form> existingForm = formService.getFormById(form.getId());
         Form updatedForm = null;
         if(existingForm.isPresent()) {
+            String prevColumns = existingForm.get().getColumns();
+            existingForm.get().setVersion(existingForm.get().getVersion()+1);
             if(form.getName()!=null && !form.getName().equals(existingForm.get().getName()))
                 existingForm.get().setName(form.getName());
             if(form.getTemplate()!=null && !form.getTemplate().equals(existingForm.get().getTemplate()))
                 existingForm.get().setTemplate(form.getTemplate());
 
-            updatedForm = formService.save(existingForm.get());
+            updatedForm = formService.update(existingForm.get(), prevColumns);
         }
         else {
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Form does not exist!");

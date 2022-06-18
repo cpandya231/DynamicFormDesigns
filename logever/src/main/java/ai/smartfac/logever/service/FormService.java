@@ -30,7 +30,18 @@ public class FormService {
     }
 
     public Form save(Form form) {
-        jdbcTemplate.execute(form.makeCreateTableStmt());
+        if(form.getVersion() == 1 && form.getId() == null) {
+            jdbcTemplate.execute(form.makeCreateTableStmt());
+            return formRepository.save(form);
+        }
+        return form;
+    }
+
+    public Form update(Form form, String prevColumns) {
+        Form existingForm = getFormById(form.getId()).get();
+        String alterStmt = form.makeAlterTableStmt(prevColumns);
+        if(alterStmt.length() > 0)
+            jdbcTemplate.execute(alterStmt);
         return formRepository.save(form);
     }
 }

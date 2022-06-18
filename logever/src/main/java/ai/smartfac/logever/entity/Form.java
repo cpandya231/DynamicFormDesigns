@@ -17,6 +17,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @EntityListeners(AuditingEntityListener.class)
 @Entity
@@ -31,6 +35,10 @@ public class Form {
 
     @Column(columnDefinition = "text")
     private String template;
+
+    private int version;
+
+    private String columns;
 
     @JsonManagedReference
     @OneToOne(cascade = CascadeType.ALL)
@@ -78,6 +86,22 @@ public class Form {
         this.template = template;
     }
 
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public String getColumns() {
+        return String.join(",",parseFormTemplate().stream().map(col->col.getColumnName()).collect(Collectors.toList()));
+    }
+
+    public void setColumns(String columns) {
+        this.columns = columns;
+    }
+
     public Workflow getWorkflow() {
         return workflow;
     }
@@ -118,11 +142,9 @@ public class Form {
         this.updateDt = updateDt;
     }
 
-    public String makeCreateTableStmt() {
+    private ArrayList<ColumnDef> parseFormTemplate() {
         Gson gson = new Gson();
         FormTemplate formTemplate = gson.fromJson(this.getTemplate(), FormTemplate.class);
-        Table table = new Table();
-        table.setName(this.getName());
         ArrayList<ColumnDef> columnDefs = new ArrayList<>();
         formTemplate.getComponents().get(0).getRows().forEach(row->{
             row.forEach(comps-> {
@@ -131,11 +153,58 @@ public class Form {
                 });
             });
         });
+
+        return columnDefs;
+    }
+
+    public String makeCreateTableStmt() {
+        Table table = new Table();
+        table.setName(this.getName());
+
+        ArrayList<ColumnDef> columnDefs = parseFormTemplate();
+
+        columnDefs.add(new ColumnDef("id","INT",new ColumnConstraints(true,false,true,"AUTO_INCREMENT")));
+        columnDefs.add(new ColumnDef("state","VARCHAR2(50)",new ColumnConstraints(true,false,false,null)));
         columnDefs.add(new ColumnDef("log_create_dt","DATETIME",new ColumnConstraints(true,false,true,"CURRENT_TIMESTAMP")));
         columnDefs.add(new ColumnDef("created_by","text",new ColumnConstraints(true,false,false,null)));
-        columnDefs.add(new ColumnDef("log_update_dt","DATETIME",new ColumnConstraints(true,false,false,null)));
-        columnDefs.add(new ColumnDef("updated_by","text",new ColumnConstraints(true,false,false,null)));
+        columnDefs.add(new ColumnDef("log_update_dt","DATETIME",new ColumnConstraints(false,false,false,"NULL ON UPDATE CURRENT_TIMESTAMP")));
+        columnDefs.add(new ColumnDef("updated_by","text",new ColumnConstraints(false,false,false,null)));
         table.setColumnDefs(columnDefs);
         return table.showCreateTable();
+    }
+
+    public String makeAlterTableStmt(String prevColumns) {
+        ArrayList<String> prevColList = new ArrayList<>(Arrays.asList(prevColumns.split(",")));
+        ArrayList<String> newColList = new ArrayList<>(Arrays.asList(this.getColumns().split(",")));
+
+        List<String> addCols = newColList.stream().filter(col->!prevColList.contains(col)).collect(Collectors.toList());
+        List<String> removeCols = prevColList.stream().filter(col->!newColList.contains(col)).collect(Collectors.toList());
+
+        prevColList.removeAll(removeCols);
+        prevColList.addAll(addCols);
+
+        ArrayList<ColumnDef> newColumns = parseFormTemplate();
+        List<ColumnDef> columnsToBeAdded = newColumns.stream().filter(col->addCols.contains(col.getColumnName())).collect(Collectors.toList());
+
+        this.setColumns(String.join(",",prevColList));
+
+        if(addCols.size()>0) {
+            Table table = new Table();
+            table.setName(this.getName());
+            ArrayList<ColumnDef> alteredColumns = new ArrayList<>();
+            alteredColumns.addAll(columnsToBeAdded);
+            table.setAlteredColumnDefs(alteredColumns);
+
+            this.setColumns(String.join(",",prevColList));
+            return table.showAlterTable();
+        }
+        return "";
+    }
+
+    public String makeInsertValuesStmt(Map<String,String> values) {
+        Table table = new Table();
+        table.setName(this.getName());
+
+        return table.buildInsertStatement(this.getColumns(),values);
     }
 }
