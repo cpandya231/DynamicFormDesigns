@@ -4,8 +4,17 @@ import java.util.Map;
 
 public class LogEntry {
 
+    private int id;
     private String state;
     private Map<String,String> data;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getState() {
         return state;

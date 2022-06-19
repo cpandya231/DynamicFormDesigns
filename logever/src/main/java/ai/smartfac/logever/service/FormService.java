@@ -32,6 +32,7 @@ public class FormService {
     public Form save(Form form) {
         if(form.getVersion() == 1 && form.getId() == null) {
             jdbcTemplate.execute(form.makeCreateTableStmt());
+            form.setColumns(form.getColumns());
             return formRepository.save(form);
         }
         return form;

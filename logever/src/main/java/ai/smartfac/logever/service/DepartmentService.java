@@ -40,10 +40,10 @@ public class DepartmentService {
         departments.forEach(dept->depts.put(dept.getId(),dept));
         Department checkDept = childDepartment;
         while(checkDept.getParentId() != 0) {
+            checkDept = depts.get(checkDept.getParentId());
             if(checkDept.getId() == parentDepartment.getId()) {
                 return true;
             }
-            checkDept = depts.get(checkDept.getParentId());
         }
         return false;
     }

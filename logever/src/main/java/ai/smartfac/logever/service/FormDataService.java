@@ -14,7 +14,10 @@ public class FormDataService {
     JdbcTemplate jdbcTemplate;
 
     public void insertInto(Form form, Map<String,String> values) {
-        Map<String, String> data = values;
         jdbcTemplate.execute(form.makeInsertValuesStmt(values));
+    }
+
+    public void update(Form form, Map<String,String> values) {
+        jdbcTemplate.execute(form.makeUpdateStmt(values));
     }
 }

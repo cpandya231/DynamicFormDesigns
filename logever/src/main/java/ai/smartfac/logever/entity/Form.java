@@ -167,7 +167,7 @@ public class Form {
         columnDefs.add(new ColumnDef("state","VARCHAR2(50)",new ColumnConstraints(true,false,false,null)));
         columnDefs.add(new ColumnDef("log_create_dt","DATETIME",new ColumnConstraints(true,false,true,"CURRENT_TIMESTAMP")));
         columnDefs.add(new ColumnDef("created_by","text",new ColumnConstraints(true,false,false,null)));
-        columnDefs.add(new ColumnDef("log_update_dt","DATETIME",new ColumnConstraints(false,false,false,"NULL ON UPDATE CURRENT_TIMESTAMP")));
+        columnDefs.add(new ColumnDef("log_update_dt","DATETIME",new ColumnConstraints(false,false,true,"NULL ON UPDATE CURRENT_TIMESTAMP")));
         columnDefs.add(new ColumnDef("updated_by","text",new ColumnConstraints(false,false,false,null)));
         table.setColumnDefs(columnDefs);
         return table.showCreateTable();
@@ -206,5 +206,12 @@ public class Form {
         table.setName(this.getName());
 
         return table.buildInsertStatement(this.getColumns(),values);
+    }
+
+    public String makeUpdateStmt(Map<String,String> values) {
+        Table table = new Table();
+        table.setName(this.getName());
+
+        return table.buildUpdateStatement(this.getColumns(),values);
     }
 }
