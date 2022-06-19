@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class RoleService {
@@ -31,5 +32,14 @@ public class RoleService {
         //role.setPermissions(role.getPermissions());
         //role.getPermissions().stream().forEach(f->System.out.println(f.getPermission()));
         return roleRepository.save(role);
+    }
+
+    public boolean hasAccess(Set<Role> userRoles, Set<Role> authorizedRoles) {
+        for (Role userRole : userRoles) {
+            if(authorizedRoles.contains(userRole)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

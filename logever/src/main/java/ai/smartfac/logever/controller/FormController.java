@@ -3,7 +3,9 @@ package ai.smartfac.logever.controller;
 import ai.smartfac.logever.entity.Department;
 import ai.smartfac.logever.entity.Form;
 import ai.smartfac.logever.entity.Role;
+import ai.smartfac.logever.model.FormTemplate;
 import ai.smartfac.logever.service.FormService;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +31,14 @@ public class FormController {
     public ResponseEntity<?> getFormByName(@PathVariable(name = "form") String form) {
         Optional<Form> queriedForm = formService.getFormByName(form);
         Form foundForm = queriedForm.orElseThrow(()->new RuntimeException("Form not found"));
+        foundForm.makeCreateTableStmt();
         return new ResponseEntity<>(foundForm, HttpStatus.OK);
     }
 
     @PostMapping("/")
     public ResponseEntity<?> saveForm(@RequestBody Form form) {
+        form.setVersion(1);
+        form.makeCreateTableStmt();
         Form savedForm = formService.save(form);
         return new ResponseEntity<>(savedForm, HttpStatus.OK);
     }
@@ -43,12 +48,14 @@ public class FormController {
         Optional<Form> existingForm = formService.getFormById(form.getId());
         Form updatedForm = null;
         if(existingForm.isPresent()) {
+            String prevColumns = existingForm.get().getColumns();
+            existingForm.get().setVersion(existingForm.get().getVersion()+1);
             if(form.getName()!=null && !form.getName().equals(existingForm.get().getName()))
                 existingForm.get().setName(form.getName());
             if(form.getTemplate()!=null && !form.getTemplate().equals(existingForm.get().getTemplate()))
                 existingForm.get().setTemplate(form.getTemplate());
 
-            updatedForm = formService.save(existingForm.get());
+            updatedForm = formService.update(existingForm.get(), prevColumns);
         }
         else {
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Form does not exist!");
