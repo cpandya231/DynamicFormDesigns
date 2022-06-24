@@ -1,6 +1,7 @@
 package ai.smartfac.logever.controller;
 
 import ai.smartfac.logever.entity.*;
+import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.model.LogEntry;
 import ai.smartfac.logever.service.*;
 import org.apache.juli.logging.Log;
@@ -13,9 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/entry")
@@ -62,17 +62,24 @@ public class FormDataController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @GetMapping("/{formId}")
+    public ResponseEntity<?> getLogEntries(@PathVariable(name="formId") int formId) {
+        Optional<Form> existingForm = formService.getFormById(formId);
+        List<State> accessibleStates = getAccessibleStates(existingForm);
+        List<DataQuery> dataQueried = null;
+        if(accessibleStates.size()>0)
+            dataQueried = formDataService.getAllFor(existingForm.get(),accessibleStates);
+
+        return new ResponseEntity<>(dataQueried,HttpStatus.OK);
+    }
+
     private String checkAccess(Optional<Form> existingForm, LogEntry logEntry) {
         if(existingForm.isPresent()) {
             Optional<State> state = existingForm.get().getWorkflow().getStates().stream().filter(st->st.getName().equals(logEntry.getState())).findFirst();
             if(state.isPresent()) {
-                Set<Department> departments = state.get().getDepartments();
-                Set<Role> roles = state.get().getRoles();
-                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                User loggedInUser = userService.getUserByUsername(auth.getPrincipal().toString()).get();
-                if(departmentService.checkAccess(loggedInUser.getDepartment(),departments) ||
-                        roleService.hasAccess(loggedInUser.getRoles(), roles)) {
-                    return loggedInUser.getUsername();
+                List<State> accessibleStates = getAccessibleStates(existingForm);
+                if(accessibleStates.contains(state.get())) {
+                    return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
                 } else {
                     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not have access to log this entry!");
                 }
@@ -81,6 +88,26 @@ public class FormDataController {
             }
         } else {
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Form does not exist!");
+        }
+    }
+
+    private List<State> getAccessibleStates(Optional<Form> existingForm) {
+        if(existingForm.isPresent()) {
+            Set<State> formStates = existingForm.get().getWorkflow().getStates();
+            return formStates.stream().filter(state-> {
+                Set<Department> departments = state.getDepartments();
+                Set<Role> roles = state.getRoles();
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                User loggedInUser = userService.getUserByUsername(auth.getPrincipal().toString()).get();
+                if(departmentService.checkAccess(loggedInUser.getDepartment(),departments) ||
+                        roleService.hasAccess(loggedInUser.getRoles(), roles)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }).collect(Collectors.toList());
+        } else {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Form does not exist!");
         }
     }
 
