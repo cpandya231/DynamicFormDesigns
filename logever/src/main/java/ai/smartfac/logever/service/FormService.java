@@ -1,12 +1,18 @@
 package ai.smartfac.logever.service;
 
 import ai.smartfac.logever.entity.Form;
+import ai.smartfac.logever.entity.User;
 import ai.smartfac.logever.repository.FormRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class FormService {
@@ -21,8 +27,19 @@ public class FormService {
         return formRepository.findById(id);
     }
 
-    public Iterable<Form> getForms() {
-        return formRepository.findAll();
+    public Iterable<Form> getForms(User user) {
+        Iterable<Form> forms = formRepository.findAll();
+        if(user.getAuthorities().stream().filter(auth->auth.getAuthority().equals("ROLE_ADMIN")).count()>0)
+            return forms;
+        else {
+            return StreamSupport.stream(forms.spliterator(),false)
+                    .filter(form->{
+                        return form.getWorkflow().getStates().stream().filter(state-> {
+                            return state.getDepartments().contains(user.getDepartment()) || state.getRoles().contains(user.getRoles().toArray()[0]);
+                        }).count() > 0;
+                    })
+                    .collect(Collectors.toList());
+        }
     }
 
     public Optional<Form> getFormByName(String name) {
