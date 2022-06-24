@@ -50,6 +50,8 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 .withIssuer(request.getRequestURL().toString())
                 .withClaim("role",user.getAuthorities().stream().filter(f->f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                 .withClaim("authority",user.getAuthorities().stream().filter(f->!f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                .withClaim("firstName",user.getFirst_name())
+                .withClaim("lastName",user.getLast_name())
                 .sign(algo);
 
         String refreshToken = JWT.create()
