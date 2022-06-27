@@ -5,11 +5,9 @@ import ai.smartfac.logever.entity.User;
 import ai.smartfac.logever.repository.FormRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -29,15 +27,14 @@ public class FormService {
 
     public Iterable<Form> getForms(User user) {
         Iterable<Form> forms = formRepository.findAll();
-        if(user.getAuthorities().stream().filter(auth->auth.getAuthority().equals("ROLE_ADMIN")).count()>0)
+        if (user.getAuthorities().stream().filter(auth -> auth.getAuthority().equals("ROLE_ADMIN")).count() > 0)
             return forms;
         else {
-            return StreamSupport.stream(forms.spliterator(),false)
-                    .filter(form->{
-                        return form.getWorkflow().getStates().stream().filter(state-> {
-                            return state.getDepartments().contains(user.getDepartment()) || state.getRoles().contains(user.getRoles().toArray()[0]);
-                        }).count() > 0;
-                    })
+            return StreamSupport.stream(forms.spliterator(), false)
+                    .filter(form ->
+                            form.getWorkflow().getStates().stream()
+                                    .anyMatch(state -> state.getDepartments().contains(user.getDepartment())
+                                            || !Collections.disjoint(state.getRoles(), user.getRoles())))
                     .collect(Collectors.toList());
         }
     }
@@ -47,7 +44,7 @@ public class FormService {
     }
 
     public Form save(Form form) {
-        if(form.getVersion() == 1 && form.getId() == null) {
+        if (form.getVersion() == 1 && form.getId() == null) {
             jdbcTemplate.execute(form.makeCreateTableStmt());
             form.setColumns(form.getColumns());
             return formRepository.save(form);
@@ -58,7 +55,7 @@ public class FormService {
     public Form update(Form form, String prevColumns) {
         Form existingForm = getFormById(form.getId()).get();
         String alterStmt = form.makeAlterTableStmt(prevColumns);
-        if(alterStmt.length() > 0)
+        if (alterStmt.length() > 0)
             jdbcTemplate.execute(alterStmt);
         return formRepository.save(form);
     }
