@@ -20,3 +20,6 @@ docker volume ls
 
 # Finally remove the volume
 docker volume rm VOLUME_NAME
+
+docker-compose build --no-cache --pull
+docker-compose up -d
