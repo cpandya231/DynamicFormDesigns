@@ -3,7 +3,6 @@ package ai.smartfac.logever.model;
 import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class DataQuery {
