@@ -63,12 +63,13 @@ public class FormDataController {
     }
 
     @GetMapping("/{formId}")
-    public ResponseEntity<?> getLogEntries(@PathVariable(name="formId") int formId) {
+    public ResponseEntity<?> getLogEntries(@PathVariable(name="formId") int formId,
+                                           @RequestParam(name="entryId",required = false,defaultValue = "-1") int entryId) {
         Optional<Form> existingForm = formService.getFormById(formId);
         List<State> accessibleStates = getAccessibleStates(existingForm);
         List<DataQuery> dataQueried = null;
         if(accessibleStates.size()>0)
-            dataQueried = formDataService.getAllFor(existingForm.get(),accessibleStates);
+            dataQueried = formDataService.getAllFor(existingForm.get(),accessibleStates,entryId);
 
         return new ResponseEntity<>(dataQueried,HttpStatus.OK);
     }
