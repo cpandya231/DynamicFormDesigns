@@ -4,13 +4,11 @@ import ai.smartfac.logever.entity.*;
 import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.model.LogEntry;
 import ai.smartfac.logever.service.*;
-import org.apache.juli.logging.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -32,6 +30,9 @@ public class FormDataController {
 
     @Autowired
     RoleService roleService;
+
+    @Autowired
+    TransitionService transitionService;
 
     @Autowired
     FormDataService formDataService;
@@ -65,7 +66,7 @@ public class FormDataController {
     @GetMapping("/{formId}")
     public ResponseEntity<?> getLogEntries(@PathVariable(name="formId") int formId) {
         Optional<Form> existingForm = formService.getFormById(formId);
-        List<State> accessibleStates = getAccessibleStates(existingForm);
+        List<State> accessibleStates = getAccessibleReadStates(existingForm);
         List<DataQuery> dataQueried = null;
         if(accessibleStates.size()>0)
             dataQueried = formDataService.getAllFor(existingForm.get(),accessibleStates);
@@ -77,7 +78,7 @@ public class FormDataController {
         if(existingForm.isPresent()) {
             Optional<State> state = existingForm.get().getWorkflow().getStates().stream().filter(st->st.getName().equals(logEntry.getState())).findFirst();
             if(state.isPresent()) {
-                List<State> accessibleStates = getAccessibleStates(existingForm);
+                List<State> accessibleStates = getAccessibleWriteStates(existingForm,logEntry.getState());
                 if(accessibleStates.contains(state.get())) {
                     return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
                 } else {
@@ -91,7 +92,17 @@ public class FormDataController {
         }
     }
 
-    private List<State> getAccessibleStates(Optional<Form> existingForm) {
+    private List<State> getAccessibleWriteStates(Optional<Form> existingForm, String state) {
+        Map<State,State> transitions = new HashMap<>();
+        List<State> accessibleStates = getAccessibleReadStates(existingForm);
+        transitionService.getWorkflowTransitions(existingForm.get().getWorkflow().getId())
+                .forEach(transition -> transitions.put(transition.getToState(),transition.getFromState()));
+        List<State> matchingState = transitions.entrySet().stream().filter(kv->kv.getKey().getName().equals(state) && accessibleStates.contains(kv.getValue()))
+                .map(kv->kv.getKey()).collect(Collectors.toList());
+        return matchingState;
+    }
+
+    private List<State> getAccessibleReadStates(Optional<Form> existingForm) {
         if(existingForm.isPresent()) {
             Set<State> formStates = existingForm.get().getWorkflow().getStates();
             return formStates.stream().filter(state-> {
