@@ -33,7 +33,6 @@ public class FormController {
     @PostMapping("/")
     public ResponseEntity<?> saveForm(@RequestBody Form form) {
         form.setVersion(1);
-        form.makeCreateTableStmt();
         Form savedForm = formService.save(form);
         return new ResponseEntity<>(savedForm, HttpStatus.OK);
     }
