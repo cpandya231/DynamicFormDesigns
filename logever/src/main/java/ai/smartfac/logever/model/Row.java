@@ -4,13 +4,13 @@ import java.util.ArrayList;
 
 public class Row {
 
-    private ArrayList<Component> components;
+    private ArrayList<RowComponent> components;
 
-    public ArrayList<Component> getComponents() {
+    public ArrayList<RowComponent> getComponents() {
         return components;
     }
 
-    public void setComponents(ArrayList<Component> components) {
+    public void setComponents(ArrayList<RowComponent> components) {
         this.components = components;
     }
 }

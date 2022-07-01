@@ -52,7 +52,6 @@ public class Table {
         List<String> defs = columnDefs.stream().map(columnDef -> {
             return "\t" + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"VARCHAR(255)")+" " + columnDef.getConstraints().toString();
         }).collect(Collectors.toList());
-        System.out.println(createStmt + String.join(",",defs) + ")");
         return createStmt + String.join(",",defs) + ", PRIMARY KEY(id))";
     }
 
@@ -61,7 +60,6 @@ public class Table {
         List<String> defs = columnDefs.stream().map(columnDef -> {
             return "\t" + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"VARCHAR(255)")+" " + columnDef.getConstraints().toString();
         }).collect(Collectors.toList());
-        System.out.println(createStmt + String.join(",",defs) + ")");
         return createStmt + String.join(",",defs) + ", PRIMARY KEY(id)))";
     }
 
@@ -70,7 +68,6 @@ public class Table {
         List<String> defs = alteredColumnDefs.stream().map(columnDef -> {
             return "\t ADD " + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"VARCHAR(255)")+" " + columnDef.getConstraints().toString();
         }).collect(Collectors.toList());
-        System.out.println(alterStmt + String.join(",",defs) + ")");
         return alterStmt + String.join(",",defs);
     }
 
@@ -79,7 +76,6 @@ public class Table {
         List<String> defs = alteredColumnDefs.stream().map(columnDef -> {
             return "\t ADD " + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"VARCHAR(255)")+" " + columnDef.getConstraints().toString();
         }).collect(Collectors.toList());
-        System.out.println(alterStmt + String.join(",",defs) + ")");
         return alterStmt + String.join(",",defs) + ")";
     }
 
