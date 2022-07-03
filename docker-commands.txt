@@ -10,7 +10,7 @@ Delete volumes: docker-compose down -v
 
 To refresh: 
 
-docker-compose stop frontend
+docker-compose stop frontend backendserver
 
 # We need the force flag, "-f", as the container is still bound to the volume
 docker-compose rm -f frontend backendserver
@@ -20,3 +20,6 @@ docker volume ls
 
 # Finally remove the volume
 docker volume rm VOLUME_NAME
+
+docker-compose build --no-cache --pull
+docker-compose up -d

@@ -1,13 +1,14 @@
 package ai.smartfac.logever.model;
 
 import java.sql.ResultSet;
+import java.util.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DataQuery {
 
-    private Map<String,String> data = new HashMap<>();
+    private Map<String,String> data = new LinkedHashMap<>();
 
     public DataQuery(ResultSet resultSet, String[] columns) {
         Arrays.stream(columns).forEach(column-> {
