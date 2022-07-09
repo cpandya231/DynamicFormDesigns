@@ -173,6 +173,28 @@ public class Form {
         return table.showCreateTable();
     }
 
+
+    public String makeCreateMetaDataTableStmt() {
+        Table table = new Table();
+        table.setName(getMetadataTableName());
+
+        ArrayList<ColumnDef> columnDefs = parseFormTemplate();
+
+        columnDefs.add(new ColumnDef("id","INT",new ColumnConstraints(true,false,true,"AUTO_INCREMENT")));
+        columnDefs.add(new ColumnDef("log_entry_id","INT",new ColumnConstraints(true,false,false,null)));
+        columnDefs.add(new ColumnDef("state","VARCHAR2(50)",new ColumnConstraints(false,false,false,null)));
+        columnDefs.add(new ColumnDef("log_create_dt","DATETIME",new ColumnConstraints(true,false,true,"CURRENT_TIMESTAMP")));
+        columnDefs.add(new ColumnDef("created_by","text",new ColumnConstraints(true,false,false,null)));
+        columnDefs.add(new ColumnDef("comment","LONGTEXT",new ColumnConstraints(false,false,false,null)));
+        table.setColumnDefs(columnDefs);
+        return table.showCreateTable();
+    }
+
+    public String getMetadataTableName() {
+        return this.getName() + "_metadata";
+    }
+
+
     public String makeAlterTableStmt(String prevColumns) {
         ArrayList<String> prevColList = new ArrayList<>(Arrays.asList(prevColumns.split(",")));
         ArrayList<String> newColList = new ArrayList<>(Arrays.asList(this.getColumns().split(",")));
@@ -206,6 +228,14 @@ public class Form {
         table.setName(this.getName());
 
         return table.buildInsertStatement(this.getColumns(),values);
+    }
+
+
+    public String makeInsertMetadataValuesStmt(Map<String,String> values) {
+        Table table = new Table();
+        table.setName(this.getMetadataTableName());
+
+        return table.buildInsertMetadataStatement(this.getColumns(),values);
     }
 
     public String makeUpdateStmt(Map<String,String> values) {
