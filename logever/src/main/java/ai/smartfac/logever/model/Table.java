@@ -43,6 +43,11 @@ public class Table {
         return "state,log_create_dt,created_by,log_update_dt,updated_by";
     }
 
+
+    public String getDefaultMetadataColumns() {
+        return "state,log_entry_id,comment,log_create_dt,created_by";
+    }
+
     private String auditTableFor(Table table) {
         return table.getName() + "_audit";
     }
@@ -82,6 +87,17 @@ public class Table {
     public String buildInsertStatement(String columns, Map<String,String> values) {
         String insertStmt = "INSERT INTO "+this.getName()+ "(";
         List<String> filledColumns = Arrays.stream((columns+","+getDefaultColumns()).split(",")).filter(column->values.containsKey(column)).collect(Collectors.toList());
+
+        insertStmt = insertStmt + String.join(",",filledColumns);
+        insertStmt = insertStmt + ") VALUES (" +
+                String.join(",",filledColumns.stream().map(col->"'"+values.get(col)+"'").collect(Collectors.toList())) +
+                ")";
+        return insertStmt;
+    }
+
+    public String buildInsertMetadataStatement(String columns, Map<String,String> values) {
+        String insertStmt = "INSERT INTO "+this.getName()+ "(";
+        List<String> filledColumns = Arrays.stream((columns+","+getDefaultMetadataColumns()).split(",")).filter(column->values.containsKey(column)).collect(Collectors.toList());
 
         insertStmt = insertStmt + String.join(",",filledColumns);
         insertStmt = insertStmt + ") VALUES (" +

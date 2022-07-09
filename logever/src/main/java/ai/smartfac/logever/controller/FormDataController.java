@@ -58,6 +58,7 @@ public class FormDataController {
         values.put("state", logEntry.getState());
         values.put("updated_by", user);
         values.put("id", logEntry.getId() + "");
+        values.put("log_entry_id", logEntry.getId() + "");
         formDataService.update(existingForm.get(), values);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -67,15 +68,39 @@ public class FormDataController {
     public ResponseEntity<?> getLogEntries(@PathVariable(name = "formId") int formId,
                                            @RequestParam(name = "entryId", required = false, defaultValue = "-1") int entryId,
                                            @RequestParam(name = "filterByUsername", required = false, defaultValue = "false") boolean filterByUsername,
-                                           @RequestParam(name = "filterByDepartment", required = false, defaultValue = "false") boolean filterByDepartment){
+                                           @RequestParam(name = "filterByDepartment", required = false, defaultValue = "false") boolean filterByDepartment) {
         Optional<Form> existingForm = formService.getFormById(formId);
 
         List<DataQuery> dataQueried;
 
-        dataQueried = formDataService.getAllFor(existingForm.get(), entryId,filterByUsername,filterByDepartment);
+        dataQueried = formDataService.getAllFor(existingForm.get(), entryId, filterByUsername, filterByDepartment);
 
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
     }
+
+    @GetMapping("/metadata/{formId}/{entryId}")
+    public ResponseEntity<?> getLogEntryMetadata(@PathVariable(name = "formId") int formId,
+                                                 @PathVariable(name = "entryId") int entryId) {
+        Optional<Form> existingForm = formService.getFormById(formId);
+
+        var dataQueried = formDataService.getLogEntryMetadata(existingForm.get(), entryId);
+
+        return new ResponseEntity<>(dataQueried, HttpStatus.OK);
+    }
+
+    @PostMapping("/metadata/{formId}/{entryId}")
+    public ResponseEntity<?> saveLogEntryMetadata(@PathVariable(name = "formId") int formId,
+                                                  @PathVariable(name = "entryId") int entryId,
+                                                  @RequestBody Map<String, String> metaDataValues) {
+        Optional<Form> existingForm = formService.getFormById(formId);
+        String user = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        metaDataValues.put("log_entry_id", entryId + "");
+        metaDataValues.put("created_by", user);
+        formDataService.saveLogEntryMetadata(existingForm.get(), metaDataValues);
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
 
     private String checkAccess(Optional<Form> existingForm, LogEntry logEntry) {
         if (existingForm.isPresent()) {
