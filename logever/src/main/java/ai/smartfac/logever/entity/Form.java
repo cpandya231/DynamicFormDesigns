@@ -191,7 +191,7 @@ public class Form {
     }
 
     public String getMetadataTableName() {
-        return this.getName() + "_metadata";
+        return this.getName() + "_history";
     }
 
 
