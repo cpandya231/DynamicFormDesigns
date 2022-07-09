@@ -20,6 +20,8 @@ public class State {
 
     private String description;
 
+    private boolean sendBackAvailable;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "workflow_id")
@@ -57,6 +59,14 @@ public class State {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isSendBackAvailable() {
+        return sendBackAvailable;
+    }
+
+    public void setSendBackAvailable(boolean sendBackAvailable) {
+        this.sendBackAvailable = sendBackAvailable;
     }
 
     public Workflow getWorkflow() {
