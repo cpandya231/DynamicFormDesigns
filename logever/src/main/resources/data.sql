@@ -40,9 +40,9 @@ WHERE NOT EXISTS (
 ) LIMIT 1 ^;
 
 INSERT INTO department (name,code,parent_id)
-SELECT * FROM (SELECT 'ZYDUS','001',0) AS tmp
+SELECT * FROM (SELECT 'AMNEAL','001',0) AS tmp
 WHERE NOT EXISTS (
-    SELECT name FROM department WHERE name = 'ZYDUS'
+    SELECT name FROM department WHERE name = 'AMNEAL'
 ) LIMIT 1 ^;
 
 
