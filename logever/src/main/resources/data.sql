@@ -144,7 +144,7 @@ WHERE NOT EXISTS (
 ) LIMIT 1 ^;
 
 INSERT INTO settings (type,`key`,`value`)
-SELECT * FROM (SELECT 'GLOBAL','DATE_FORMAT','YYYY-mm-dd') AS tmp
+SELECT * FROM (SELECT 'GLOBAL','DATE_FORMAT','YYYY-MM-dd') AS tmp
 WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'DATE_FORMAT'
 ) LIMIT 1 ^;
@@ -154,7 +154,7 @@ WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'TIME_FORMAT'
 ) LIMIT 1 ^;
 INSERT INTO settings (type,`key`,`value`)
-SELECT * FROM (SELECT 'GLOBAL','TIMESTAMP_FORMAT','YYYY-mm-dd HH:mm:ss') AS tmp
+SELECT * FROM (SELECT 'GLOBAL','TIMESTAMP_FORMAT','YYYY-MM-dd HH:mm:ss') AS tmp
 WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'TIMESTAMP_FORMAT'
 ) LIMIT 1 ^;
