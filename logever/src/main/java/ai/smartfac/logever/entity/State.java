@@ -22,6 +22,10 @@ public class State {
 
     private boolean sendBackAvailable;
 
+    private String visibleColumns;
+
+    private String disabledColumns;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "workflow_id")
@@ -91,5 +95,21 @@ public class State {
 
     public void setDepartments(Set<Department> departments) {
         this.departments = departments;
+    }
+
+    public String getVisibleColumns() {
+        return visibleColumns;
+    }
+
+    public void setVisibleColumns(String visibleColumns) {
+        this.visibleColumns = visibleColumns;
+    }
+
+    public String getDisabledColumns() {
+        return disabledColumns;
+    }
+
+    public void setDisabledColumns(String disabledColumns) {
+        this.disabledColumns = disabledColumns;
     }
 }
