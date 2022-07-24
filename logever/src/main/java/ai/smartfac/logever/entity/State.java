@@ -26,6 +26,8 @@ public class State {
 
     private String disabledColumns;
 
+    private String mandatoryColumns;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "workflow_id")
@@ -111,5 +113,13 @@ public class State {
 
     public void setDisabledColumns(String disabledColumns) {
         this.disabledColumns = disabledColumns;
+    }
+
+    public String getMandatoryColumns() {
+        return mandatoryColumns;
+    }
+
+    public void setMandatoryColumns(String mandatoryColumns) {
+        this.mandatoryColumns = mandatoryColumns;
     }
 }
