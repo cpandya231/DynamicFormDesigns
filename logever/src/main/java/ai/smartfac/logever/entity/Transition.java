@@ -23,6 +23,8 @@ public class Transition {
     @JoinColumn(name = "to_state_id")
     private State toState;
 
+    private boolean sendBackTransition;
+
     public Integer getId() {
         return id;
     }
@@ -53,5 +55,13 @@ public class Transition {
 
     public void setToState(State toState) {
         this.toState = toState;
+    }
+
+    public boolean isSendBackTransition() {
+        return sendBackTransition;
+    }
+
+    public void setSendBackTransition(boolean sendBackTransition) {
+        this.sendBackTransition = sendBackTransition;
     }
 }
