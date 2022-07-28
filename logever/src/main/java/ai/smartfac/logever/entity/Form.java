@@ -196,6 +196,10 @@ public class Form {
 
 
     public String makeAlterTableStmt(String prevColumns) {
+        return makeAlterStatement(prevColumns, this.getName());
+    }
+
+    private String makeAlterStatement(String prevColumns, String tableName) {
         ArrayList<String> prevColList = new ArrayList<>(Arrays.asList(prevColumns.split(",")));
         ArrayList<String> newColList = new ArrayList<>(Arrays.asList(this.getColumns().split(",")));
 
@@ -212,7 +216,7 @@ public class Form {
 
         if(addCols.size()>0) {
             Table table = new Table();
-            table.setName(this.getName());
+            table.setName(tableName);
             ArrayList<ColumnDef> alteredColumns = new ArrayList<>();
             alteredColumns.addAll(columnsToBeAdded);
             table.setAlteredColumnDefs(alteredColumns);
@@ -221,6 +225,10 @@ public class Form {
             return table.showAlterTable();
         }
         return "";
+    }
+
+    public String makeAlterTableMetaDataStmt(String prevColumns) {
+        return makeAlterStatement(prevColumns, this.getMetadataTableName());
     }
 
     public String makeInsertValuesStmt(Map<String,String> values) {
