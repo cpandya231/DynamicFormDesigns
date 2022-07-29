@@ -56,8 +56,12 @@ public class FormService {
     public Form update(Form form, String prevColumns) {
         Form existingForm = getFormById(form.getId()).get();
         String alterStmt = form.makeAlterTableStmt(prevColumns);
-        if (alterStmt.length() > 0)
+        String alterTableMetaDataStmt = form.makeAlterTableMetaDataStmt(prevColumns);
+        if (alterStmt.length() > 0) {
             jdbcTemplate.execute(alterStmt);
+            jdbcTemplate.execute(alterTableMetaDataStmt);
+        }
+
         return formRepository.save(form);
     }
 }
