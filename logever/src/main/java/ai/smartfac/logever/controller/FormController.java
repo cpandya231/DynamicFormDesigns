@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Optional;
 
 @RestController
@@ -32,13 +33,17 @@ public class FormController {
     @GetMapping("/{form}/")
     public ResponseEntity<?> getFormByName(@PathVariable(name = "form") String form) {
         Optional<Form> queriedForm = formService.getFormByName(form);
-        Form foundForm = queriedForm.orElseThrow(()->new RuntimeException("Form not found"));
+        Form foundForm = queriedForm.orElseThrow(() -> new RuntimeException("Form not found"));
         foundForm.makeCreateTableStmt();
         return new ResponseEntity<>(foundForm, HttpStatus.OK);
     }
 
     @PostMapping("/")
     public ResponseEntity<?> saveForm(@RequestBody Form form) {
+        Optional<Form> queriedForm = formService.getFormByName(form.getName());
+        if(queriedForm.isPresent()){
+            throw new RuntimeException("Form already present");
+        }
         form.setVersion(1);
         Form savedForm = formService.save(form);
         return new ResponseEntity<>(savedForm, HttpStatus.OK);
@@ -48,19 +53,18 @@ public class FormController {
     public ResponseEntity<?> updateForm(@RequestBody Form form) {
         Optional<Form> existingForm = formService.getFormById(form.getId());
         Form updatedForm = null;
-        if(existingForm.isPresent()) {
+        if (existingForm.isPresent()) {
             String prevColumns = existingForm.get().getColumns();
-            existingForm.get().setVersion(existingForm.get().getVersion()+1);
-            if(form.getName()!=null && !form.getName().equals(existingForm.get().getName()))
+            existingForm.get().setVersion(existingForm.get().getVersion() + 1);
+            if (form.getName() != null && !form.getName().equals(existingForm.get().getName()))
                 existingForm.get().setName(form.getName());
-            if(form.getTemplate()!=null && !form.getTemplate().equals(existingForm.get().getTemplate()))
+            if (form.getTemplate() != null && !form.getTemplate().equals(existingForm.get().getTemplate()))
                 existingForm.get().setTemplate(form.getTemplate());
 
             updatedForm = formService.update(existingForm.get(), prevColumns);
+        } else {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Form does not exist!");
         }
-        else {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"Form does not exist!");
-        }
-        return new ResponseEntity<>(updatedForm,HttpStatus.OK);
+        return new ResponseEntity<>(updatedForm, HttpStatus.OK);
     }
 }

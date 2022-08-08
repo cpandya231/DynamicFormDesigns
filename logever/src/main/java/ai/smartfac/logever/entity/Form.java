@@ -33,6 +33,8 @@ public class Form {
     @Column(unique = true)
     private String name;
 
+    private String type;
+
     @Column(columnDefinition = "text")
     private String template;
 
@@ -142,6 +144,14 @@ public class Form {
         this.updateDt = updateDt;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     private ArrayList<ColumnDef> parseFormTemplate() {
         Gson gson = new Gson();
         FormTemplate formTemplate = gson.fromJson(this.getTemplate(), FormTemplate.class);
@@ -159,6 +169,7 @@ public class Form {
 
     public String makeCreateTableStmt() {
         Table table = new Table();
+
         table.setName(this.getName());
 
         ArrayList<ColumnDef> columnDefs = parseFormTemplate();
