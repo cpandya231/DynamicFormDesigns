@@ -28,7 +28,7 @@ public class FormDataService {
         jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
         values.remove("log_entry_id");
         values.put("id", insertedId + "");
-        if(values.get("isEndState").equalsIgnoreCase("true") || values.get("isEndState").equalsIgnoreCase("1")) {
+        if(values.get("endState").equalsIgnoreCase("true")) {
             jdbcTemplate.execute(form.makeInsertMasterValuesStmt(values));
         }
     }
@@ -40,7 +40,7 @@ public class FormDataService {
         values.put("created_by", values.get("updated_by"));
         jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
         values.remove("log_entry_id");
-        if(values.get("isEndState").equalsIgnoreCase("true") || values.get("isEndState").equalsIgnoreCase("1")) {
+        if(values.get("endState").equalsIgnoreCase("true")) {
             jdbcTemplate.execute(form.makeUpdateMasterStmt(values));
         }
     }

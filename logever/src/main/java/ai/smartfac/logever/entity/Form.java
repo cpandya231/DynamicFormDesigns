@@ -159,7 +159,7 @@ public class Form {
         formTemplate.getComponents().get(0).getRows().forEach(row->{
             row.forEach(comps-> {
                 comps.getComponents().forEach(comp -> {
-                    columnDefs.add(new ColumnDef(comp.getKey(),comp.getType(),new ColumnConstraints(comp.getValidate().isRequired(),comp.getValidate().isUnique(),!comp.getDefaultValue().isBlank() || !comp.getDefaultValue().isEmpty(),"'"+comp.getDefaultValue()+"'")));
+                    columnDefs.add(new ColumnDef(comp.getKey(),comp.getType(),new ColumnConstraints(comp.getValidate().isRequired(),comp.isUnique(),!comp.getDefaultValue().isBlank() || !comp.getDefaultValue().isEmpty(),"'"+comp.getDefaultValue()+"'")));
                 });
             });
         });
@@ -277,7 +277,7 @@ public class Form {
         Table table = new Table();
         table.setName("mstr_"+this.getName());
 
-        return table.buildInsertUpdateMasterStatement(this.getColumns(),values);
+        return table.buildInsertUpdateMasterStatement("id,"+this.getColumns(),values);
     }
 
     public String makeUpdateStmt(Map<String,String> values) {
@@ -291,6 +291,6 @@ public class Form {
         Table table = new Table();
         table.setName("mstr_"+this.getName());
 
-        return table.buildInsertUpdateMasterStatement(this.getColumns(),values);
+        return table.buildInsertUpdateMasterStatement("id,"+this.getColumns(),values);
     }
 }
