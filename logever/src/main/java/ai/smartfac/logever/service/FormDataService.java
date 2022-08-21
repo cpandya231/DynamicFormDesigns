@@ -26,6 +26,11 @@ public class FormDataService {
         var insertedId = keyHolder.getKey().intValue();
         values.put("log_entry_id", insertedId + "");
         jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
+        values.remove("log_entry_id");
+        values.put("id", insertedId + "");
+        if(values.get("isEndState").equalsIgnoreCase("true") || values.get("isEndState").equalsIgnoreCase("1")) {
+            jdbcTemplate.execute(form.makeInsertMasterValuesStmt(values));
+        }
     }
 
     public void update(Form form, Map<String, String> values) {
@@ -34,6 +39,10 @@ public class FormDataService {
                 connection -> connection.prepareStatement(form.makeUpdateStmt(values), new String[]{"id"}), keyHolder);
         values.put("created_by", values.get("updated_by"));
         jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
+        values.remove("log_entry_id");
+        if(values.get("isEndState").equalsIgnoreCase("true") || values.get("isEndState").equalsIgnoreCase("1")) {
+            jdbcTemplate.execute(form.makeUpdateMasterStmt(values));
+        }
     }
 
     public List<DataQuery> getAllFor(Form form, int entryId, boolean filterByUsername, boolean filterByDepartment) {

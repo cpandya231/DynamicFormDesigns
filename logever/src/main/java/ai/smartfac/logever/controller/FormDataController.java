@@ -44,6 +44,7 @@ public class FormDataController {
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
         values.put("created_by", user);
+        values.put("isEndState",logEntry.getIsEndState().toString());
         formDataService.insertInto(existingForm.get(), values);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -59,6 +60,7 @@ public class FormDataController {
         values.put("updated_by", user);
         values.put("id", logEntry.getId() + "");
         values.put("log_entry_id", logEntry.getId() + "");
+        values.put("isEndState",logEntry.getIsEndState().toString());
         formDataService.update(existingForm.get(), values);
 
         return new ResponseEntity<>(HttpStatus.CREATED);

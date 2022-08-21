@@ -184,6 +184,22 @@ public class Form {
         return table.showCreateTable();
     }
 
+    public String makeCreateMasterTableStmt() {
+        Table table = new Table();
+
+        table.setName("mstr_"+this.getName());
+
+        ArrayList<ColumnDef> columnDefs = parseFormTemplate();
+
+        columnDefs.add(new ColumnDef("id","INT",new ColumnConstraints(true,false,true,"AUTO_INCREMENT")));
+        columnDefs.add(new ColumnDef("state","VARCHAR2(50)",new ColumnConstraints(true,false,false,null)));
+        columnDefs.add(new ColumnDef("log_create_dt","DATETIME",new ColumnConstraints(true,false,true,"CURRENT_TIMESTAMP")));
+        columnDefs.add(new ColumnDef("created_by","text",new ColumnConstraints(true,false,false,null)));
+        columnDefs.add(new ColumnDef("log_update_dt","DATETIME",new ColumnConstraints(false,false,true,"NULL ON UPDATE CURRENT_TIMESTAMP")));
+        columnDefs.add(new ColumnDef("updated_by","text",new ColumnConstraints(false,false,false,null)));
+        table.setColumnDefs(columnDefs);
+        return table.showCreateTable();
+    }
 
     public String makeCreateMetaDataTableStmt() {
         Table table = new Table();
@@ -257,10 +273,24 @@ public class Form {
         return table.buildInsertMetadataStatement(this.getColumns(),values);
     }
 
+    public String makeInsertMasterValuesStmt(Map<String,String> values) {
+        Table table = new Table();
+        table.setName("mstr_"+this.getName());
+
+        return table.buildInsertUpdateMasterStatement(this.getColumns(),values);
+    }
+
     public String makeUpdateStmt(Map<String,String> values) {
         Table table = new Table();
         table.setName(this.getName());
 
         return table.buildUpdateStatement(this.getColumns(),values);
+    }
+
+    public String makeUpdateMasterStmt(Map<String,String> values) {
+        Table table = new Table();
+        table.setName("mstr_"+this.getName());
+
+        return table.buildInsertUpdateMasterStatement(this.getColumns(),values);
     }
 }

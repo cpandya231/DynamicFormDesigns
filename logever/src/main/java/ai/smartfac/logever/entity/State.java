@@ -28,6 +28,8 @@ public class State {
 
     private String mandatoryColumns;
 
+    private boolean isEndState;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "workflow_id")
@@ -121,5 +123,13 @@ public class State {
 
     public void setMandatoryColumns(String mandatoryColumns) {
         this.mandatoryColumns = mandatoryColumns;
+    }
+
+    public boolean isEndState() {
+        return isEndState;
+    }
+
+    public void setEndState(boolean endState) {
+        isEndState = endState;
     }
 }

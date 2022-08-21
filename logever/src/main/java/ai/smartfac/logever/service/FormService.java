@@ -47,6 +47,8 @@ public class FormService {
         if (form.getVersion() == 1 && form.getId() == null) {
             jdbcTemplate.execute(form.makeCreateTableStmt());
             jdbcTemplate.execute(form.makeCreateMetaDataTableStmt());
+            if(form.getType().equalsIgnoreCase("master"))
+                jdbcTemplate.execute(form.makeCreateMasterTableStmt());
             form.setColumns(form.getColumns());
             return formRepository.save(form);
         }

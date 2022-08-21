@@ -6,6 +6,7 @@ public class LogEntry {
 
     private int id;
     private String state;
+    private Boolean isEndState;
     private Map<String,String> data;
 
     public int getId() {
@@ -30,5 +31,13 @@ public class LogEntry {
 
     public void setData(Map<String, String> data) {
         this.data = data;
+    }
+
+    public Boolean getIsEndState() {
+        return isEndState;
+    }
+
+    public void setEndState(Boolean endState) {
+        isEndState = endState;
     }
 }
