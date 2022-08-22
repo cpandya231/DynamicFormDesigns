@@ -114,4 +114,16 @@ public class Table {
         updateStmt = updateStmt + " WHERE id='"+Integer.parseInt(values.get("id"))+"'";
         return updateStmt;
     }
+
+    public String buildInsertUpdateMasterStatement(String columns, Map<String,String> values) {
+        String upsertStmt = "INSERT INTO "+this.getName()+"(";
+        List<String> filledColumns = Arrays.stream((columns+","+getDefaultMetadataColumns()).split(",")).filter(column->values.containsKey(column)).collect(Collectors.toList());
+
+        upsertStmt = upsertStmt + String.join(",",filledColumns);
+        upsertStmt = upsertStmt + ") VALUES (" +
+                String.join(",",filledColumns.stream().map(col->"'"+values.get(col)+"'").collect(Collectors.toList())) +
+                ") ON DUPLICATE KEY UPDATE "+String.join(",",filledColumns.stream().map(col->col+"="+"'"+values.get(col)+"'").collect(Collectors.toList()));
+
+        return upsertStmt;
+    }
 }

@@ -10,6 +10,7 @@ public class Component {
     private boolean persistent;
     private Validate validate;
     private String inputType;
+    private boolean unique;
 
     private ArrayList<ArrayList<Row>> rows;
 
@@ -78,5 +79,13 @@ public class Component {
 
     public void setRows(ArrayList<ArrayList<Row>> rows) {
         this.rows = rows;
+    }
+
+    public boolean isUnique() {
+        return unique;
+    }
+
+    public void setUnique(boolean unique) {
+        this.unique = unique;
     }
 }

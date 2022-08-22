@@ -10,6 +10,7 @@ public class RowComponent {
     private boolean persistent;
     private Validate validate;
     private String inputType;
+    private boolean unique;
 
     public String getLabel() {
         return label;
@@ -70,4 +71,11 @@ public class RowComponent {
         this.inputType = inputType;
     }
 
+    public boolean isUnique() {
+        return unique;
+    }
+
+    public void setUnique(boolean unique) {
+        this.unique = unique;
+    }
 }

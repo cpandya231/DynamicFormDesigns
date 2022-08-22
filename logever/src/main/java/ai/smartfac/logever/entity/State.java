@@ -2,6 +2,7 @@ package ai.smartfac.logever.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -27,6 +28,8 @@ public class State {
     private String disabledColumns;
 
     private String mandatoryColumns;
+
+    private boolean endState;
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
@@ -121,5 +124,13 @@ public class State {
 
     public void setMandatoryColumns(String mandatoryColumns) {
         this.mandatoryColumns = mandatoryColumns;
+    }
+
+    public boolean isEndState() {
+        return endState;
+    }
+
+    public void setEndState(boolean endState) {
+        this.endState = endState;
     }
 }
