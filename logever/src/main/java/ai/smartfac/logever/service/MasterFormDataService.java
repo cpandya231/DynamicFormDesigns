@@ -18,12 +18,12 @@ public class MasterFormDataService {
 
     public List<DataQuery> getAllFor(Form form, String column, String columnValue) {
         Table table = new Table();
-        table.setName(form.getName());
-        String selectCols = "id," + form.getColumns() + ",state,log_create_dt,created_by,log_update_dt,updated_by";
+        table.setName(form.getMasterTableName());
+        String selectCols = "id," + form.getColumns();
         String selectStmt = "SELECT " + selectCols + " from " + table.getName() + "";
 
         if (null != column && column.length() > 0) {
-            selectStmt += " WHERE " + column + " = '" + columnValue+"'";
+            selectStmt += " WHERE " + column + " = '" + columnValue + "'";
         }
 
         return jdbcTemplate.query(selectStmt,

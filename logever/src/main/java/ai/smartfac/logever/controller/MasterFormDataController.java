@@ -45,9 +45,7 @@ public class MasterFormDataController {
         if (existingForm.isEmpty()) {
             throw new RuntimeException("No form found for " + formName);
         }
-//        if (Arrays.stream(existingForm.get().getColumns().split(",")).noneMatch(col->col.equalsIgnoreCase(column))) {
-//            throw new RuntimeException("No column found for " + column);
-//        }
+
         var dataQueried = masterFormDataService.getAllFor(existingForm.get(), column,columnValue);
 
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);

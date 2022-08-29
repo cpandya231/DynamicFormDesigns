@@ -187,7 +187,7 @@ public class Form {
     public String makeCreateMasterTableStmt() {
         Table table = new Table();
 
-        table.setName("mstr_"+this.getName());
+        table.setName(getMasterTableName());
 
         ArrayList<ColumnDef> columnDefs = parseFormTemplate();
 
@@ -275,7 +275,7 @@ public class Form {
 
     public String makeInsertMasterValuesStmt(Map<String,String> values) {
         Table table = new Table();
-        table.setName("mstr_"+this.getName());
+        table.setName(this.getMasterTableName());
 
         return table.buildInsertUpdateMasterStatement("id,"+this.getColumns(),values);
     }
@@ -289,8 +289,12 @@ public class Form {
 
     public String makeUpdateMasterStmt(Map<String,String> values) {
         Table table = new Table();
-        table.setName("mstr_"+this.getName());
+        table.setName(getMasterTableName());
 
         return table.buildInsertUpdateMasterStatement("id,"+this.getColumns(),values);
+    }
+
+    public String getMasterTableName() {
+        return "mstr_" + this.getName();
     }
 }
