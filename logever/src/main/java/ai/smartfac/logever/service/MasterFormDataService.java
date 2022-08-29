@@ -18,7 +18,7 @@ public class MasterFormDataService {
 
     public List<DataQuery> getAllFor(Form form, String column, String columnValue) {
         Table table = new Table();
-        table.setName(form.getMetadataTableName());
+        table.setName(form.getMasterTableName());
         String selectCols = "id," + form.getColumns();
         String selectStmt = "SELECT " + selectCols + " from " + table.getName() + "";
 

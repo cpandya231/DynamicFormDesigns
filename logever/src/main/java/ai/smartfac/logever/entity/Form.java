@@ -294,7 +294,7 @@ public class Form {
         return table.buildInsertUpdateMasterStatement("id,"+this.getColumns(),values);
     }
 
-    private String getMasterTableName() {
+    public String getMasterTableName() {
         return "mstr_" + this.getName();
     }
 }
