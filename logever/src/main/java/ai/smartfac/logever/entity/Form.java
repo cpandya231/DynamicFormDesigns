@@ -97,7 +97,7 @@ public class Form {
     }
 
     public String getColumns() {
-        return String.join(",",parseFormTemplate().stream().map(col->col.getColumnName()).collect(Collectors.toList()));
+        return parseFormTemplate().stream().map(ColumnDef::getColumnName).collect(Collectors.joining(","));
     }
 
     public void setColumns(String columns) {
@@ -193,6 +193,8 @@ public class Form {
 
         columnDefs.add(new ColumnDef("id","INT",new ColumnConstraints(true,false,true,"AUTO_INCREMENT")));
         columnDefs.add(new ColumnDef("state","VARCHAR2(50)",new ColumnConstraints(true,false,false,null)));
+        columnDefs.add(new ColumnDef("entry_state","VARCHAR2(50)",new ColumnConstraints(false,false,false,null)));
+        columnDefs.add(new ColumnDef("metadata","text",new ColumnConstraints(false,false,false,null)));
         columnDefs.add(new ColumnDef("log_create_dt","DATETIME",new ColumnConstraints(true,false,true,"CURRENT_TIMESTAMP")));
         columnDefs.add(new ColumnDef("created_by","text",new ColumnConstraints(true,false,false,null)));
         columnDefs.add(new ColumnDef("log_update_dt","DATETIME",new ColumnConstraints(false,false,true,"NULL ON UPDATE CURRENT_TIMESTAMP")));
