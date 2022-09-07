@@ -23,13 +23,18 @@ public class State {
 
     private boolean sendBackAvailable;
 
+    @Column(columnDefinition = "text")
     private String visibleColumns;
 
+    @Column(columnDefinition = "text")
     private String disabledColumns;
 
+    @Column(columnDefinition = "text")
     private String mandatoryColumns;
 
     private boolean endState;
+
+    private String label;
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
@@ -132,5 +137,13 @@ public class State {
 
     public void setEndState(boolean endState) {
         this.endState = endState;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 }

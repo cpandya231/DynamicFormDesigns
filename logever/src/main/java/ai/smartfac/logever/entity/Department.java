@@ -10,6 +10,7 @@ public class Department {
     @Column(nullable = false)
     private String name;
     private String code;
+    private String site;
     @Column(name = "parent_id",nullable = false)
     private Integer parentId;
 
@@ -52,5 +53,13 @@ public class Department {
         } else {
             return false;
         }
+    }
+
+    public String getSite() {
+        return site;
+    }
+
+    public void setSite(String site) {
+        this.site = site;
     }
 }
