@@ -3,13 +3,18 @@ package ai.smartfac.logever.service;
 import ai.smartfac.logever.entity.Form;
 import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.model.Table;
+import ai.smartfac.logever.repository.FormRepository;
+import ai.smartfac.logever.util.ApplicationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,8 +23,39 @@ public class FormDataService {
 
     @Autowired
     JdbcTemplate jdbcTemplate;
+    @Autowired
+    private FormRepository formRepository;
+    @Autowired
+    private MasterFormDataService masterFormDataService;
 
-    public void insertInto(Form form, Map<String, String> values) {
+
+    public void insertInto(Form form, Map<String, String> values, String masterTable, String masterTableEntryId) {
+        if (ApplicationUtil.isNotEmpty(masterTable) && ApplicationUtil.isNotEmpty(masterTableEntryId)) {
+            var masterFormOptional = formRepository.findByName(masterTable);
+            if (masterFormOptional.isPresent()) {
+                var masterForm = masterFormOptional.get();
+                var result = masterFormDataService.getAllFor(masterForm, "id", masterTableEntryId);
+                var entryInProgress =
+                        result.stream().filter(dataQuery -> dataQuery.getData().get("entry_state").equalsIgnoreCase("TRUE")).findFirst();
+                if (entryInProgress.isPresent()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The Entry Already in Progress, you can not reuse this entry");
+                }
+                Map<String, String> masterValues = new HashMap<>();
+                masterValues.put("id", masterTableEntryId);
+                masterValues.put("entry_state", "TRUE");
+                jdbcTemplate.execute(masterForm.makeUpdateMasterEntryStateStmt(masterValues));
+                insertData(form, values);
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No Master Table present with name " + masterTable);
+            }
+        } else {
+            insertData(form, values);
+        }
+
+
+    }
+
+    private void insertData(Form form, Map<String, String> values) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 connection -> connection.prepareStatement(form.makeInsertValuesStmt(values), new String[]{"id"}), keyHolder);
@@ -28,7 +64,7 @@ public class FormDataService {
         jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
         values.remove("log_entry_id");
         values.put("id", insertedId + "");
-        if(values.get("endState").equalsIgnoreCase("true")) {
+        if (values.get("endState").equalsIgnoreCase("true")) {
             jdbcTemplate.execute(form.makeInsertMasterValuesStmt(values));
         }
     }
@@ -40,7 +76,7 @@ public class FormDataService {
         values.put("created_by", values.get("updated_by"));
         jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
         values.remove("log_entry_id");
-        if(values.get("endState").equalsIgnoreCase("true")) {
+        if (values.get("endState").equalsIgnoreCase("true")) {
             jdbcTemplate.execute(form.makeUpdateMasterStmt(values));
         }
     }

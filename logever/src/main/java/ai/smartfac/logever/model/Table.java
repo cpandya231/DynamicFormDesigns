@@ -126,4 +126,14 @@ public class Table {
 
         return upsertStmt;
     }
+
+
+    public String makeUpdateMasterEntryStateStmt(String columns, Map<String,String> values) {
+        String updateStmt = "UPDATE "+this.getName()+" SET ";
+        List<String> filledColumns = Arrays.stream((columns+","+getDefaultColumns()).split(",")).filter(values::containsKey)
+                .map(col->col + "="+"'"+values.get(col)+"'").collect(Collectors.toList());
+        updateStmt = updateStmt + String.join(",",filledColumns);
+        updateStmt = updateStmt + " WHERE id='"+Integer.parseInt(values.get("id"))+"'";
+        return updateStmt;
+    }
 }
