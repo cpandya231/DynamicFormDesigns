@@ -38,17 +38,14 @@ public class FormDataController {
     FormDataService formDataService;
 
     @PostMapping("/{formId}")
-    public ResponseEntity<?> logEntry(@PathVariable(name = "formId") int formId,
-                                      @RequestParam(name = "masterTableName",required = false,defaultValue = "") String masterTable,
-                                      @RequestParam(name = "masterTableEntryId",required = false,defaultValue = "") String masterTableEntryId,
-                                      @RequestBody LogEntry logEntry) {
+    public ResponseEntity<?> logEntry(@PathVariable(name = "formId") int formId, @RequestBody LogEntry logEntry) {
         Optional<Form> existingForm = formService.getFormById(formId);
         String user = checkAccess(existingForm, logEntry);
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
         values.put("created_by", user);
         values.put("endState", logEntry.isEndState() ? "true" : "false");
-        formDataService.insertInto(existingForm.get(), values,masterTable,masterTableEntryId);
+        formDataService.insertInto(existingForm.get(), values);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
