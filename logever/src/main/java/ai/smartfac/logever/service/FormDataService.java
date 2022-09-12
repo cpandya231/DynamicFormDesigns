@@ -40,7 +40,7 @@ public class FormDataService {
         values.put("created_by", values.get("updated_by"));
         jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
         values.remove("log_entry_id");
-        if (values.get("endState").equalsIgnoreCase("true")) {
+        if (values.get("endState").equalsIgnoreCase("true") && form.getType().equalsIgnoreCase("master")) {
             jdbcTemplate.execute(form.makeUpdateMasterStmt(values));
         }
     }
