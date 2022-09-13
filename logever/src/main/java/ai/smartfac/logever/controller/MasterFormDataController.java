@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -42,22 +43,23 @@ public class MasterFormDataController {
             throw new RuntimeException("No form found for " + formName);
         }
 
-        var dataQueried = masterFormDataService.getAllFor(existingForm.get(), column, columnValue, "");
+        var dataQueried = masterFormDataService.getAllFor(existingForm.get(), column, columnValue, "entry_state,metadata");
 
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
     }
 
-    @PatchMapping("/{formName}")
+    @PutMapping("/{formName}")
     public ResponseEntity<?> updateMasterEntryState(@PathVariable(name = "formName") String formName,
                                                     @RequestParam(name = "id") String masterTableEntryId,
-                                                    @RequestParam(name = "stateValue") String stateValue) {
+                                                    @RequestParam(name = "stateValue") String stateValue,
+                                                    @RequestBody Map<String, String> value ) {
         Optional<Form> existingForm = formService.getFormByName(formName);
 
         if (existingForm.isEmpty()) {
             throw new RuntimeException("No form found for " + formName);
         }
 
-        masterFormDataService.updateEntryState(existingForm.get(), masterTableEntryId, stateValue);
+        masterFormDataService.updateEntryState(existingForm.get(), masterTableEntryId, stateValue,value);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

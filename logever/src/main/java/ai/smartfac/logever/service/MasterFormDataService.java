@@ -40,7 +40,7 @@ public class MasterFormDataService {
     }
 
 
-    public void updateEntryState(Form masterForm, String masterTableEntryId, String stateValue) {
+    public void updateEntryState(Form masterForm, String masterTableEntryId, String stateValue, Map<String, String> value) {
         var result = getAllFor(masterForm, "id", masterTableEntryId, "entry_state");
         if (result.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -56,6 +56,7 @@ public class MasterFormDataService {
         Map<String, String> masterValues = new HashMap<>();
         masterValues.put("id", masterTableEntryId);
         masterValues.put("entry_state", stateValue);
+        masterValues.put("metadata", value.get("metadata"));
         jdbcTemplate.execute(masterForm.makeUpdateMasterEntryStateStmt(masterValues));
     }
 
