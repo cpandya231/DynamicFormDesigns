@@ -39,6 +39,7 @@ public class Form {
 
     private int version;
 
+    @Column(columnDefinition = "text")
     private String columns;
 
     @JsonManagedReference
@@ -155,10 +156,11 @@ public class Form {
         Gson gson = new Gson();
         FormTemplate formTemplate = gson.fromJson(this.getTemplate(), FormTemplate.class);
         ArrayList<ColumnDef> columnDefs = new ArrayList<>();
-        formTemplate.getComponents().get(0).getRows().forEach(row -> {
-            row.forEach(comps -> {
-                comps.getComponents().forEach(comp -> {
-                    columnDefs.add(new ColumnDef(comp.getKey(), comp.getType(), new ColumnConstraints(comp.getValidate().isRequired(), comp.isUnique(), !comp.getDefaultValue().isBlank() || !comp.getDefaultValue().isEmpty(), "'" + comp.getDefaultValue() + "'")));
+        formTemplate.getComponents().forEach(component -> { component.getRows().forEach(row -> {
+                row.forEach(comps -> {
+                    comps.getComponents().forEach(comp -> {
+                        columnDefs.add(new ColumnDef(comp.getKey(), comp.getType(), new ColumnConstraints(comp.getValidate().isRequired(), comp.isUnique(), !comp.getDefaultValue().isBlank() || !comp.getDefaultValue().isEmpty(), "'" + comp.getDefaultValue() + "'")));
+                    });
                 });
             });
         });
