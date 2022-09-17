@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,27 @@ public class MasterFormDataService {
                 (resultSet, rowNum) -> new DataQuery(resultSet, finalColumns.split(",")));
     }
 
+    public List<DataQuery> getAllFor(Form form, Map<String,String> filter, String additionalColumns) {
+        Table table = new Table();
+        table.setName(form.getMasterTableName());
+        String selectCols = "id," + form.getColumns();
+        if (ApplicationUtil.isNotEmpty(additionalColumns)) {
+            selectCols += "," + additionalColumns;
+        }
+        var finalColumns = selectCols;
+        String selectStmt = "SELECT " + selectCols + " from " + table.getName() + "";
+
+        ArrayList<String> wheres = new ArrayList<>();
+
+        filter.forEach((col,val)-> {
+            wheres.add(col +"="+"'"+val+"'");
+        });
+
+        selectStmt += " WHERE 1=1 "+wheres.stream().reduce("",(con1,con2)->con1+" AND "+con2);
+
+        return jdbcTemplate.query(selectStmt,
+                (resultSet, rowNum) -> new DataQuery(resultSet, finalColumns.split(",")));
+    }
 
     public void updateEntryState(Form masterForm, String masterTableEntryId, String stateValue, Map<String, String> value) {
         var result = getAllFor(masterForm, "id", masterTableEntryId, "entry_state");

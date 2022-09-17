@@ -48,6 +48,20 @@ public class MasterFormDataController {
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
     }
 
+    @GetMapping("/{formName}/new/")
+    public ResponseEntity<?> getFilteredLogEntries(@PathVariable(name = "formName") String formName,
+                                           @RequestBody Map<String,String> filter) {
+        Optional<Form> existingForm = formService.getFormByName(formName);
+
+        if (existingForm.isEmpty()) {
+            throw new RuntimeException("No form found for " + formName);
+        }
+
+        var dataQueried = masterFormDataService.getAllFor(existingForm.get(), filter, "entry_state,metadata");
+
+        return new ResponseEntity<>(dataQueried, HttpStatus.OK);
+    }
+
     @PutMapping("/{formName}")
     public ResponseEntity<?> updateMasterEntryState(@PathVariable(name = "formName") String formName,
                                                     @RequestParam(name = "id") String masterTableEntryId,
