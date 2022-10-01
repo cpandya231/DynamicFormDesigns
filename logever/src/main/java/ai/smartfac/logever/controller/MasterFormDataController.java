@@ -7,8 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/master/entry")
@@ -44,6 +46,20 @@ public class MasterFormDataController {
         }
 
         var dataQueried = masterFormDataService.getAllFor(existingForm.get(), column, columnValue, "entry_state,metadata");
+
+        return new ResponseEntity<>(dataQueried, HttpStatus.OK);
+    }
+
+    @GetMapping("/{formName}/new/")
+    public ResponseEntity<?> getFilteredLogEntries(@PathVariable(name = "formName") String formName,
+                                           @RequestParam(name = "filters") String filters) {
+        Optional<Form> existingForm = formService.getFormByName(formName);
+
+        if (existingForm.isEmpty()) {
+            throw new RuntimeException("No form found for " + formName);
+        }
+
+        var dataQueried = masterFormDataService.getAllFor(existingForm.get(), Arrays.stream(filters.split(";")).collect(Collectors.toMap(cond->cond.split(":")[0],cond->cond.split(":")[1])), "entry_state,metadata");
 
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
     }
