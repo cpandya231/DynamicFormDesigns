@@ -159,7 +159,7 @@ public class Form {
         formTemplate.getComponents().forEach(component -> { component.getRows().forEach(row -> {
                 row.forEach(comps -> {
                     comps.getComponents().forEach(comp -> {
-                        columnDefs.add(new ColumnDef(comp.getKey(), comp.getType(), new ColumnConstraints(comp.getValidate().isRequired(), comp.isUnique(), !comp.getDefaultValue().isBlank() || !comp.getDefaultValue().isEmpty(), "'" + comp.getDefaultValue() + "'")));
+                        columnDefs.add(new ColumnDef(comp.getKey(), comp.getType(), new ColumnConstraints(comp.getValidate().isRequired(), comp.isUnique(), false, null)));
                     });
                 });
             });
