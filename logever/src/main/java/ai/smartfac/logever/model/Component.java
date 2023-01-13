@@ -6,7 +6,6 @@ public class Component {
     private String label;
     private String key;
     private String type;
-    private String defaultValue;
     private boolean persistent;
     private Validate validate;
     private String inputType;
@@ -36,17 +35,6 @@ public class Component {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getDefaultValue() {
-        if(defaultValue==null) {
-            defaultValue = "";
-        }
-        return defaultValue;
-    }
-
-    public void setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
     }
 
     public boolean isPersistent() {
