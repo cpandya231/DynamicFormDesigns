@@ -229,6 +229,10 @@ public class Form {
         return makeAlterStatement(prevColumns, this.getName());
     }
 
+    public String makeAlterMasterTableStmt(String prevColumns) {
+        return makeAlterStatement(prevColumns, this.getMasterTableName());
+    }
+
     private String makeAlterStatement(String prevColumns, String tableName) {
         ArrayList<String> prevColList = new ArrayList<>(Arrays.asList(prevColumns.split(",")));
         ArrayList<String> newColList = new ArrayList<>(Arrays.asList(this.getColumns().split(",")));
