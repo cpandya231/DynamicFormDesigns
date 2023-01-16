@@ -38,6 +38,8 @@ public class User implements UserDetails {
     private Date dateOfBirth;
     @Column(nullable=false)
     private String password;
+    private String code;
+    private String designation;
     @ManyToOne
     @JoinColumn(name = "department_id")
     private Department department;
@@ -230,5 +232,21 @@ public class User implements UserDetails {
 
     public void setLastLoginDt(Timestamp lastLoginDt) {
         this.lastLoginDt = lastLoginDt;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getDesignation() {
+        return designation;
+    }
+
+    public void setDesignation(String designation) {
+        this.designation = designation;
     }
 }
