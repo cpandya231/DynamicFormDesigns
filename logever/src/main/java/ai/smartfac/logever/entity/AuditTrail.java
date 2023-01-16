@@ -28,6 +28,18 @@ public class AuditTrail {
     @CreationTimestamp
     private Timestamp auditDt;
 
+    public AuditTrail() {
+    }
+
+    public AuditTrail(String type, String pkValue, String action, String prevState, String newState, String userName) {
+        this.type = type;
+        this.pkValue = pkValue;
+        this.action = action;
+        this.prevState = prevState;
+        this.newState = newState;
+        this.userName = userName;
+    }
+
     public Integer getId() {
         return id;
     }
