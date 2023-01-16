@@ -324,6 +324,11 @@ BEGIN
 	SET V_NEW_STATE = concat(V_NEW_STATE,'Name: ',NEW.name,' ');
 	SET V_CHECK = 1;
 	END IF;
+	IF NEW.columns <> OLD.columns THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'Columns: ',OLD.columns,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'Columns: ',NEW.columns,' ');
+	SET V_CHECK = 1;
+	END IF;
     IF NEW.template <> OLD.template THEN
     IF V_CHECK = 1 THEN
     SET V_PREV_STATE = concat(V_PREV_STATE,'& Template updated');
@@ -333,6 +338,81 @@ BEGIN
     SET V_NEW_STATE = concat(V_NEW_STATE,'Template updated');
     END IF;
     END IF;
+	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
+
+END; ^;
+
+DROP TRIGGER IF EXISTS trg_audit_create_depts ^;
+
+CREATE TRIGGER trg_audit_create_depts
+AFTER INSERT ON department FOR EACH ROW
+BEGIN
+	declare V_ACTION VARCHAR(255);
+	declare V_PK_VALUE VARCHAR(255);
+	declare V_TYPE VARCHAR(255);
+	declare V_PREV_STATE TEXT;
+	declare V_USERNAME VARCHAR(255);
+	declare V_NEW_STATE TEXT;
+	SET V_ACTION = 'CREATED';
+	SET V_PK_VALUE = New.id;
+	SET V_TYPE = 'DEPARTMENT';
+	SET V_PREV_STATE = null;
+	SET V_USERNAME = null;
+    SET V_NEW_STATE = '';
+
+	IF V_USERNAME is NULL THEN
+	SET V_USERNAME = 'ADMIN';
+	END IF;
+
+	SET V_NEW_STATE = concat(V_NEW_STATE,'Name: ',NEW.name,' Code: ',NEW.code,' ParentID: ',NEW.parent_id,' Site: ',coalesce(NEW.site,'NULL'));
+
+	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
+END; ^;
+
+DROP TRIGGER IF EXISTS trg_audit_update_depts ^;
+
+CREATE TRIGGER trg_audit_update_depts
+AFTER UPDATE ON department FOR EACH ROW
+BEGIN
+	declare V_ACTION VARCHAR(255);
+	declare V_PK_VALUE INT;
+	declare V_TYPE VARCHAR(255);
+	declare V_PREV_STATE TEXT;
+	declare V_USERNAME VARCHAR(255);
+	declare V_NEW_STATE TEXT;
+	declare V_CHECK INT;
+	SET V_ACTION = 'UPDATED';
+	SET V_PK_VALUE = NEW.id;
+	SET V_TYPE = 'DEPARTMENT';
+	SET V_USERNAME = 'ADMIN';
+	SET V_PREV_STATE = '';
+	SET V_NEW_STATE = '';
+	SET V_CHECK = 0;
+	IF NEW.name <> OLD.name THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'Name: ',OLD.name,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'Name: ',NEW.name,' ');
+	SET V_CHECK = 1;
+	END IF;
+    IF coalesce(NEW.site,'NULL') <> coalesce(OLD.site,'NULL') THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' Site updated: ',coalesce(OLD.site,'NULL'));
+    SET V_NEW_STATE = concat(V_NEW_STATE,' Site updated: ',coalesce(NEW.site,'NULL'));
+    SET V_CHECK = 1;
+    END IF;
+    IF NEW.parent_id <> OLD.parent_id THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' ParentID updated: ',OLD.parent_id);
+    SET V_NEW_STATE = concat(V_NEW_STATE,' ParentID updated: ',NEW.parent_id);
+    SET V_CHECK = 1;
+    END IF;
+    IF NEW.code <> OLD.code THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' Code updated: ',OLD.code);
+    SET V_NEW_STATE = concat(V_NEW_STATE,' Code updated: ',NEW.code);
+    SET V_CHECK = 1;
+    END IF;
+
+    IF V_CHECK = 0 THEN
+    SET V_NEW_STATE = 'Department Unchanged';
+    END IF;
+
 	insert into audit_trail (type,pk_value,action,prev_state,new_state,username) values (V_TYPE, V_PK_VALUE,V_ACTION,V_PREV_STATE, V_NEW_STATE, V_USERNAME);
 
 END; ^;
