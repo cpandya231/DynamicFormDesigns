@@ -216,6 +216,7 @@ public class Form {
         columnDefs.add(new ColumnDef("log_create_dt", "DATETIME", new ColumnConstraints(true, false, true, "CURRENT_TIMESTAMP")));
         columnDefs.add(new ColumnDef("created_by", "text", new ColumnConstraints(true, false, false, null)));
         columnDefs.add(new ColumnDef("comment", "LONGTEXT", new ColumnConstraints(false, false, false, null)));
+        columnDefs.forEach(cd->cd.setConstraints(new ColumnConstraints(cd.getConstraints().isRequired(),false,cd.getConstraints().isDefaults(),cd.getConstraints().getDefaultValue())));
         table.setColumnDefs(columnDefs);
         return table.showCreateTable();
     }
