@@ -75,4 +75,8 @@ public class AuditTrailService {
     private Pageable getPageable(Integer pageNumber, Integer pageSize) {
         return PageRequest.of(pageNumber, pageSize, Sort.by("auditDt").descending().and(Sort.by("id").descending()));
     }
+
+    public AuditTrail save(AuditTrail auditTrail) {
+        return auditTrailRepository.save(auditTrail);
+    }
 }
