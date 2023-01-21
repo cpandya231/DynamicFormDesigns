@@ -17,9 +17,10 @@ public class Report {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(unique = true)
     private String name;
     private String type;
+    @Column(columnDefinition = "text")
+    private String columns;
     @Column(columnDefinition = "text")
     private String template;
     private int version;
@@ -128,5 +129,13 @@ public class Report {
 
     public void setReasonForChange(String reasonForChange) {
         this.reasonForChange = reasonForChange;
+    }
+
+    public String getColumns() {
+        return columns;
+    }
+
+    public void setColumns(String columns) {
+        this.columns = columns;
     }
 }

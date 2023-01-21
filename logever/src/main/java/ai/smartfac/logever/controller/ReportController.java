@@ -49,4 +49,9 @@ public class ReportController {
         reportService.save(existingReport);
         return new ResponseEntity<>(reportService.save(report), HttpStatus.OK);
     }
+
+    @GetMapping("/run/{id}")
+    public ResponseEntity<?> getReportResults(@PathVariable int id, @RequestParam(name = "page",required = false,defaultValue = "0") int page, @RequestParam(name="size", required = false,defaultValue = "0") int size) {
+        return new ResponseEntity<>(reportService.getReportResults(id,page,size), HttpStatus.OK);
+    }
 }
