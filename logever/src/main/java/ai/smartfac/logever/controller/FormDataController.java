@@ -103,6 +103,19 @@ public class FormDataController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @GetMapping("/{formId}/filtered/")
+    public ResponseEntity<?> getFilteredLogEntries(@PathVariable(name = "formId") int formId,
+                                                   @RequestParam(name = "filters") String filters) {
+        Optional<Form> existingForm = formService.getFormById(formId);
+
+        if (existingForm.isEmpty()) {
+            throw new RuntimeException("No form found for " + formId);
+        }
+
+        var dataQueried = formDataService.getAllFor(existingForm.get(), Arrays.stream(filters.split(";")).collect(Collectors.toMap(cond->cond.split(":")[0],cond->cond.split(":")[1])));
+
+        return new ResponseEntity<>(dataQueried, HttpStatus.OK);
+    }
 
     private String checkAccess(Optional<Form> existingForm, LogEntry logEntry) {
         if (existingForm.isPresent()) {
