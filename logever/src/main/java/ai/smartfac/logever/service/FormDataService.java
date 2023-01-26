@@ -30,7 +30,7 @@ public class FormDataService {
         jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
         values.remove("log_entry_id");
         values.put("id", insertedId + "");
-        if (values.get("endState").equalsIgnoreCase("true")) {
+        if (values.get("endState").equalsIgnoreCase("true") && form.getType().equalsIgnoreCase("master")) {
             jdbcTemplate.execute(form.makeInsertMasterValuesStmt(values));
         }
     }
