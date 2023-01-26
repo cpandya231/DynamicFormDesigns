@@ -5,6 +5,7 @@ import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.model.LogEntry;
 import ai.smartfac.logever.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,12 +38,33 @@ public class FormDataController {
     @Autowired
     FormDataService formDataService;
 
+    @Value("${logever.initiator.department.id}")
+    private String initiatorDeptId;
+
+    @Value("${logever.initiator.manager.role.id}")
+    private String initiatorManagerRoleId;
+
+    @Value("${logever.initiator.role.id}")
+    private String initiatorRoleId;
+
     @PostMapping("/{formId}")
     public ResponseEntity<?> logEntry(@PathVariable(name = "formId") int formId, @RequestBody LogEntry logEntry) {
         Optional<Form> existingForm = formService.getFormById(formId);
         String user = checkAccess(existingForm, logEntry);
+
+        State state = existingForm.get().getWorkflow().getStates().stream().filter(st->st.getName().equalsIgnoreCase(logEntry.getState())).findFirst().get();
+        String assignedUser = "";
+        String assignedRoles = String.join(",",state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.toList()));;
+        String assignedDepartments = String.join(",",state.getDepartments().stream().map(dpt->dpt.getId()+"").collect(Collectors.toList()));
+        if(Arrays.stream(assignedRoles.split(",")).filter(role->role.equalsIgnoreCase(initiatorRoleId)).count() > 0) {
+            assignedUser = user;
+        }
+
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
+        values.put("assigned_user",assignedUser);
+        values.put("assigned_role",assignedRoles);
+        values.put("assigned_dept",assignedDepartments);
         values.put("created_by", user);
         values.put("endState", logEntry.isEndState() ? "true" : "false");
         formDataService.insertInto(existingForm.get(), values);
@@ -53,13 +75,25 @@ public class FormDataController {
     @PutMapping("/{formId}")
     public ResponseEntity<?> updateLogEntry(@PathVariable(name = "formId") int formId, @RequestBody LogEntry logEntry) {
         Optional<Form> existingForm = formService.getFormById(formId);
-        String user = checkAccess(existingForm, logEntry);
+        DataQuery dataQueried = formDataService.getAllFor(existingForm.get(), logEntry.getId(), false, false).get(0);
+        String user = checkNewAccess(existingForm, dataQueried);
+
+        State state = existingForm.get().getWorkflow().getStates().stream().filter(st->st.getName().equalsIgnoreCase(logEntry.getState())).findFirst().get();
+        String assignedUser = "";
+        String assignedRoles = String.join(",",state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.toList()));;
+        String assignedDepartments = String.join(",",state.getDepartments().stream().map(dpt->dpt.getId()+"").collect(Collectors.toList()));
+        if(Arrays.stream(assignedRoles.split(",")).filter(role->role.equalsIgnoreCase(initiatorRoleId)).count() > 0) {
+            assignedUser = user;
+        }
 
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
         values.put("updated_by", user);
         values.put("id", logEntry.getId() + "");
         values.put("log_entry_id", logEntry.getId() + "");
+        values.put("assigned_user",assignedUser);
+        values.put("assigned_role",assignedRoles);
+        values.put("assigned_dept",assignedDepartments);
         values.put("endState", logEntry.isEndState() ? "true" : "false");
         formDataService.update(existingForm.get(), values);
 
@@ -103,6 +137,24 @@ public class FormDataController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    private String checkNewAccess(Optional<Form> existingForm, DataQuery dataQueried) {
+        String user = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        User currUser = userService.getUserByUsername(user).get();
+
+        String assignedToUser = dataQueried.getData().getOrDefault("assigned_user","");
+        String assignedToRoles = dataQueried.getData().getOrDefault("assigned_role","");
+        String assignedToDepartments = dataQueried.getData().getOrDefault("assigned_dept","");
+
+        if(assignedToUser.equalsIgnoreCase(user)) {
+            return user;
+        } else if(Arrays.stream(assignedToDepartments.split(",")).filter(dpt->dpt.equalsIgnoreCase(currUser.getDepartment().getId()+"")).count() > 0) {
+            return user;
+        } else if(Arrays.stream(assignedToRoles.split(",")).filter(role-> {return currUser.getRoles().stream().filter(r->r.getId().toString().equalsIgnoreCase(role)).count()>0;}).count() > 0) {
+            return user;
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not have access to log this entry!");
+        }
+    }
 
     private String checkAccess(Optional<Form> existingForm, LogEntry logEntry) {
         if (existingForm.isPresent()) {

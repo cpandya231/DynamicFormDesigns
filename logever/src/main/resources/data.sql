@@ -15,6 +15,17 @@ WHERE NOT EXISTS (
 ) LIMIT 1 ^;
 
 
+INSERT INTO role (role,description,created_by,create_dt)
+SELECT * FROM (SELECT 'INITIATOR MANAGER','Manager of the initiator','admin',current_timestamp) AS tmp
+WHERE NOT EXISTS (
+    SELECT role FROM role WHERE role = 'INITIATOR MANAGER'
+) LIMIT 1 ^;
+
+INSERT INTO role (role,description,created_by,create_dt)
+SELECT * FROM (SELECT 'INITIATOR','Initiator of the request','admin',current_timestamp) AS tmp
+WHERE NOT EXISTS (
+    SELECT role FROM role WHERE role = 'INITIATOR'
+) LIMIT 1 ^;
 
 INSERT INTO role (role,description,created_by,create_dt)
 SELECT * FROM (SELECT 'ROLE_ADMIN','Administrator role for the Application','admin',current_timestamp) AS tmp
@@ -39,10 +50,10 @@ WHERE NOT EXISTS (
     SELECT permission_id FROM role_permission WHERE permission_id = 3
 ) LIMIT 1 ^;
 
-INSERT INTO department (name,code,parent_id)
-SELECT * FROM (SELECT 'AMNEAL','001',0) AS tmp
+INSERT INTO department (name,parent_id)
+SELECT * FROM (SELECT "INITIATOR DEPARTMENT",'-1') AS tmp
 WHERE NOT EXISTS (
-    SELECT name FROM department WHERE name = 'AMNEAL'
+    SELECT name FROM department WHERE name = 'INITIATOR DEPARTMENT'
 ) LIMIT 1 ^;
 
 

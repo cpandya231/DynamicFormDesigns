@@ -40,12 +40,12 @@ public class Table {
     }
 
     public String getDefaultColumns() {
-        return "state,log_create_dt,created_by,log_update_dt,updated_by";
+        return "state,log_create_dt,created_by,log_update_dt,updated_by,assigned_user,assigned_role,assigned_dept";
     }
 
 
     public String getDefaultMetadataColumns() {
-        return "state,log_entry_id,comment,log_create_dt,created_by";
+        return "state,log_entry_id,comment,log_create_dt,created_by,assigned_user,assigned_role,assigned_dept";
     }
 
     private String auditTableFor(Table table) {
