@@ -41,11 +41,11 @@ public class FormDataController {
     @Value("${logever.initiator.department.id}")
     private String initiatorDeptId;
 
-    @Value("${logever.initiator.manager.role.id}")
-    private String initiatorManagerRoleId;
+    @Value("${logever.initiator.manager.role}")
+    private String initiatorManagerRole;
 
-    @Value("${logever.initiator.role.id}")
-    private String initiatorRoleId;
+    @Value("${logever.initiator.role}")
+    private String initiatorRole;
 
     @PostMapping("/{formId}")
     public ResponseEntity<?> logEntry(@PathVariable(name = "formId") int formId, @RequestBody LogEntry logEntry) {
@@ -54,11 +54,12 @@ public class FormDataController {
 
         State state = existingForm.get().getWorkflow().getStates().stream().filter(st->st.getName().equalsIgnoreCase(logEntry.getState())).findFirst().get();
         String assignedUser = "";
-        String assignedRoles = String.join(",",state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.toList()));;
-        String assignedDepartments = String.join(",",state.getDepartments().stream().map(dpt->dpt.getId()+"").collect(Collectors.toList()));
-        if(Arrays.stream(assignedRoles.split(",")).filter(role->role.equalsIgnoreCase(initiatorRoleId)).count() > 0) {
+        String assignedRoles = state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.joining(","));;
+        String assignedDepartments = state.getDepartments().stream().map(dpt->dpt.getId()+"").collect(Collectors.joining(","));
+        if(state.getRoles().stream().anyMatch(role -> role.getRole().equalsIgnoreCase(initiatorRole))){
             assignedUser = user;
         }
+
 
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
@@ -80,9 +81,9 @@ public class FormDataController {
 
         State state = existingForm.get().getWorkflow().getStates().stream().filter(st->st.getName().equalsIgnoreCase(logEntry.getState())).findFirst().get();
         String assignedUser = "";
-        String assignedRoles = String.join(",",state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.toList()));;
-        String assignedDepartments = String.join(",",state.getDepartments().stream().map(dpt->dpt.getId()+"").collect(Collectors.toList()));
-        if(Arrays.stream(assignedRoles.split(",")).filter(role->role.equalsIgnoreCase(initiatorRoleId)).count() > 0) {
+        String assignedRoles = state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.joining(","));;
+        String assignedDepartments = state.getDepartments().stream().map(dpt->dpt.getId()+"").collect(Collectors.joining(","));
+        if(state.getRoles().stream().anyMatch(role -> role.getRole().equalsIgnoreCase(initiatorRole))){
             assignedUser = user;
         }
 
