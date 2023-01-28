@@ -129,6 +129,16 @@ public class FormDataController {
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
     }
 
+    @GetMapping("/{formId}/{entryId}")
+    public ResponseEntity<?> getLogEntriesById(@PathVariable(name = "formId") int formId,
+                                               @PathVariable(name = "entryId") int entryId) {
+        Optional<Form> existingForm = formService.getFormById(formId);
+
+        List<DataQuery> dataQueried;
+        dataQueried = formDataService.getAllFor(existingForm.get(), entryId,false,false);
+
+        return new ResponseEntity<>(dataQueried, HttpStatus.OK);
+    }
     @GetMapping("/metadata/{formId}/{entryId}")
     public ResponseEntity<?> getLogEntryMetadata(@PathVariable(name = "formId") int formId,
                                                  @PathVariable(name = "entryId") int entryId) {
