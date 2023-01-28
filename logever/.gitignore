@@ -33,3 +33,4 @@ build/
 .vscode/
 /.mvn/local-settings.xml
 /.mvn/mvn.config
+.DS_Store
