@@ -4,6 +4,7 @@ import ai.smartfac.logever.entity.Form;
 import ai.smartfac.logever.entity.User;
 import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.model.Table;
+import ai.smartfac.logever.util.ApplicationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -113,5 +115,25 @@ public class FormDataService {
 
         jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(metaDataValues));
 
+    }
+
+    public List<DataQuery> getAllFor(Form form, Map<String,String> filter) {
+        Table table = new Table();
+        table.setName(form.getName());
+        String selectCols = "id," + form.getColumns();
+
+        var finalColumns = selectCols;
+        String selectStmt = "SELECT " + selectCols + " from " + table.getName() + "";
+
+        ArrayList<String> wheres = new ArrayList<>();
+
+        filter.forEach((col,val)-> {
+            wheres.add(col +"="+"'"+val+"'");
+        });
+
+        selectStmt += " WHERE 1=1 "+wheres.stream().reduce("",(con1,con2)->con1+" AND "+con2);
+
+        return jdbcTemplate.query(selectStmt,
+                (resultSet, rowNum) -> new DataQuery(resultSet, finalColumns.split(",")));
     }
 }
