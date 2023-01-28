@@ -38,8 +38,8 @@ public class FormDataController {
     @Autowired
     FormDataService formDataService;
 
-    @Value("${logever.initiator.department.id}")
-    private String initiatorDeptId;
+    @Value("${logever.initiator.department}")
+    private String initiatorDept;
 
     @Value("${logever.initiator.manager.role}")
     private String initiatorManagerRole;
@@ -52,14 +52,21 @@ public class FormDataController {
         Optional<Form> existingForm = formService.getFormById(formId);
         String user = checkAccess(existingForm, logEntry);
 
+        User currUser = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()).get();
+
         State state = existingForm.get().getWorkflow().getStates().stream().filter(st->st.getName().equalsIgnoreCase(logEntry.getState())).findFirst().get();
         String assignedUser = "";
-        String assignedRoles = state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.joining(","));;
+        String assignedRoles = state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.joining(","));
         String assignedDepartments = state.getDepartments().stream().map(dpt->dpt.getId()+"").collect(Collectors.joining(","));
         if(state.getRoles().stream().anyMatch(role -> role.getRole().equalsIgnoreCase(initiatorRole))){
             assignedUser = user;
         }
-
+        if(state.getRoles().stream().filter(role->role.getRole().equalsIgnoreCase(initiatorRole)).count() > 0) {
+            assignedRoles += ","+currUser.getRoles().stream().map(role -> role.getId()+"").collect(Collectors.joining(","));
+        }
+        if(state.getDepartments().stream().filter(dept->dept.getName().equalsIgnoreCase(initiatorDept)).count() > 0) {
+            assignedDepartments += ","+currUser.getDepartment().getId();
+        }
 
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
@@ -76,15 +83,21 @@ public class FormDataController {
     @PutMapping("/{formId}")
     public ResponseEntity<?> updateLogEntry(@PathVariable(name = "formId") int formId, @RequestBody LogEntry logEntry) {
         Optional<Form> existingForm = formService.getFormById(formId);
-        DataQuery dataQueried = formDataService.getAllFor(existingForm.get(), logEntry.getId(), false, false).get(0);
+        DataQuery dataQueried = formDataService.getAllForWithAssignments(existingForm.get(), logEntry.getId(), false, false).get(0);
         String user = checkNewAccess(existingForm, dataQueried);
-
+        User currUser = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()).get();
         State state = existingForm.get().getWorkflow().getStates().stream().filter(st->st.getName().equalsIgnoreCase(logEntry.getState())).findFirst().get();
         String assignedUser = "";
-        String assignedRoles = state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.joining(","));;
+        String assignedRoles = state.getRoles().stream().map(r->r.getId()+"").collect(Collectors.joining(","));
         String assignedDepartments = state.getDepartments().stream().map(dpt->dpt.getId()+"").collect(Collectors.joining(","));
         if(state.getRoles().stream().anyMatch(role -> role.getRole().equalsIgnoreCase(initiatorRole))){
-            assignedUser = user;
+            assignedUser = dataQueried.getData().get("created_by");
+        }
+        if(state.getRoles().stream().filter(role->role.getRole().equalsIgnoreCase(initiatorRole)).count() > 0) {
+            assignedRoles += ","+currUser.getRoles().stream().map(role -> role.getId()+"").collect(Collectors.joining(","));
+        }
+        if(state.getDepartments().stream().filter(dept->dept.getName().equalsIgnoreCase(initiatorDept)).count() > 0) {
+            assignedDepartments += ","+currUser.getDepartment().getId();
         }
 
         Map<String, String> values = logEntry.getData();
@@ -109,8 +122,9 @@ public class FormDataController {
         Optional<Form> existingForm = formService.getFormById(formId);
 
         List<DataQuery> dataQueried;
-
-        dataQueried = formDataService.getAllFor(existingForm.get(), entryId, filterByUsername, filterByDepartment);
+        String user = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        User currUser = userService.getUserByUsername(user).get();
+        dataQueried = formDataService.getAllForUser(existingForm.get(), currUser);
 
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
     }
@@ -146,11 +160,12 @@ public class FormDataController {
         String assignedToRoles = dataQueried.getData().getOrDefault("assigned_role","");
         String assignedToDepartments = dataQueried.getData().getOrDefault("assigned_dept","");
 
+        boolean deptCheck = Arrays.stream(assignedToDepartments.split(",")).filter(dpt->dpt.equalsIgnoreCase(currUser.getDepartment().getId()+"")).count() > 0;
+        boolean roleCheck = Arrays.stream(assignedToRoles.split(",")).filter(role-> {return currUser.getRoles().stream().filter(r->r.getId().toString().equalsIgnoreCase(role)).count()>0;}).count() > 0;
+
         if(assignedToUser.equalsIgnoreCase(user)) {
             return user;
-        } else if(Arrays.stream(assignedToDepartments.split(",")).filter(dpt->dpt.equalsIgnoreCase(currUser.getDepartment().getId()+"")).count() > 0) {
-            return user;
-        } else if(Arrays.stream(assignedToRoles.split(",")).filter(role-> {return currUser.getRoles().stream().filter(r->r.getId().toString().equalsIgnoreCase(role)).count()>0;}).count() > 0) {
+        } else if(deptCheck && roleCheck) {
             return user;
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not have access to log this entry!");

@@ -182,8 +182,8 @@ public class Form {
         columnDefs.add(new ColumnDef("log_update_dt", "DATETIME", new ColumnConstraints(false, false, true, "NULL ON UPDATE CURRENT_TIMESTAMP")));
         columnDefs.add(new ColumnDef("updated_by", "text", new ColumnConstraints(false, false, false, null)));
         columnDefs.add(new ColumnDef("assigned_user", "text", new ColumnConstraints(false, false, false, null)));
-        columnDefs.add(new ColumnDef("assigned_role", "INT", new ColumnConstraints(false, false, false, null)));
-        columnDefs.add(new ColumnDef("assigned_dept", "INT", new ColumnConstraints(false, false, false, null)));
+        columnDefs.add(new ColumnDef("assigned_role", "text", new ColumnConstraints(false, false, false, null)));
+        columnDefs.add(new ColumnDef("assigned_dept", "text", new ColumnConstraints(false, false, false, null)));
         table.setColumnDefs(columnDefs);
         return table.showCreateTable();
     }
@@ -204,8 +204,8 @@ public class Form {
         columnDefs.add(new ColumnDef("log_update_dt", "DATETIME", new ColumnConstraints(false, false, true, "NULL ON UPDATE CURRENT_TIMESTAMP")));
         columnDefs.add(new ColumnDef("updated_by", "text", new ColumnConstraints(false, false, false, null)));
         columnDefs.add(new ColumnDef("assigned_user", "text", new ColumnConstraints(false, false, false, null)));
-        columnDefs.add(new ColumnDef("assigned_role", "INT", new ColumnConstraints(false, false, false, null)));
-        columnDefs.add(new ColumnDef("assigned_dept", "INT", new ColumnConstraints(false, false, false, null)));
+        columnDefs.add(new ColumnDef("assigned_role", "text", new ColumnConstraints(false, false, false, null)));
+        columnDefs.add(new ColumnDef("assigned_dept", "text", new ColumnConstraints(false, false, false, null)));
         table.setColumnDefs(columnDefs);
         return table.showCreateTable();
     }
@@ -223,8 +223,8 @@ public class Form {
         columnDefs.add(new ColumnDef("created_by", "text", new ColumnConstraints(true, false, false, null)));
         columnDefs.add(new ColumnDef("comment", "LONGTEXT", new ColumnConstraints(false, false, false, null)));
         columnDefs.add(new ColumnDef("assigned_user", "text", new ColumnConstraints(false, false, false, null)));
-        columnDefs.add(new ColumnDef("assigned_role", "INT", new ColumnConstraints(false, false, false, null)));
-        columnDefs.add(new ColumnDef("assigned_dept", "INT", new ColumnConstraints(false, false, false, null)));
+        columnDefs.add(new ColumnDef("assigned_role", "text", new ColumnConstraints(false, false, false, null)));
+        columnDefs.add(new ColumnDef("assigned_dept", "text", new ColumnConstraints(false, false, false, null)));
 
         columnDefs.forEach(cd->cd.setConstraints(new ColumnConstraints(cd.getConstraints().isRequired(),false,cd.getConstraints().isDefaults(),cd.getConstraints().getDefaultValue())));
         table.setColumnDefs(columnDefs);

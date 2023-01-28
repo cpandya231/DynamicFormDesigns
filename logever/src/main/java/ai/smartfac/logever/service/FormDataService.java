@@ -1,6 +1,7 @@
 package ai.smartfac.logever.service;
 
 import ai.smartfac.logever.entity.Form;
+import ai.smartfac.logever.entity.User;
 import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.model.Table;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class FormDataService {
@@ -58,6 +60,42 @@ public class FormDataService {
         }
 
 
+        return jdbcTemplate.query(selectStmt,
+                (resultSet, rowNum) -> new DataQuery(resultSet, selectCols.split(",")));
+    }
+
+    public List<DataQuery> getAllForWithAssignments(Form form, int entryId, boolean filterByUsername, boolean filterByDepartment) {
+        Table table = new Table();
+        table.setName(form.getName());
+        String selectCols = "id," + form.getColumns() + ",state,log_create_dt,created_by,log_update_dt,updated_by,assigned_user,assigned_role,assigned_dept";
+        String selectStmt = "SELECT " + selectCols + " from " + table.getName() + "";
+
+        if (entryId != -1) {
+            selectStmt += " WHERE id=" + entryId;
+        } else if (filterByUsername) {
+            selectStmt += " WHERE created_by=  '" + SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString() + "'";
+        }
+
+
+        return jdbcTemplate.query(selectStmt,
+                (resultSet, rowNum) -> new DataQuery(resultSet, selectCols.split(",")));
+    }
+
+    public List<DataQuery> getAllForUser(Form form, User user) {
+        Table table = new Table();
+        table.setName(form.getName());
+        Table metaDataTable = new Table();
+        metaDataTable.setName(form.getMetadataTableName());
+        String selectCols = "id," + form.getColumns() + ",state,log_create_dt,created_by,log_update_dt,updated_by";
+        String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " WHERE id in (SELECT log_entry_id from "+metaDataTable.getName()+
+                " WHERE created_by='"+user.getUsername()+"' OR ";
+        String roleClause = "(1=0 OR "+user.getRoles().stream().map(role-> {
+            return "FIND_IN_SET('"+role.getId()+"',assigned_role) > 0";
+        }).collect(Collectors.joining("OR"))+")";
+        String deptClause = "(1=0 OR FIND_IN_SET('"+user.getDepartment().getId()+"',assigned_dept)>0))";
+        selectStmt = selectStmt + "("+ roleClause + " AND "+deptClause+")";
+        System.out.println(selectStmt);
+        //select selectCols from table.getName() where id in (select id from table.getMetadata() where created_by
         return jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet, selectCols.split(",")));
     }
