@@ -90,7 +90,7 @@ public class FormDataService {
         metaDataTable.setName(form.getMetadataTableName());
         String selectCols = "id," + form.getColumns() + ",state,log_create_dt,created_by,log_update_dt,updated_by";
         String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " WHERE id in (SELECT log_entry_id from "+metaDataTable.getName()+
-                " WHERE created_by='"+user.getUsername()+"' OR ";
+                " WHERE (assigned_role='' AND assigned_dept='') OR created_by='"+user.getUsername()+"' OR ";
         String roleClause = "(1=0 OR "+user.getRoles().stream().map(role-> {
             return "FIND_IN_SET('"+role.getId()+"',assigned_role) > 0";
         }).collect(Collectors.joining("OR"))+")";
