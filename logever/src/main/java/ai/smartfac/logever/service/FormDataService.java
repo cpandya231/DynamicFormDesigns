@@ -90,11 +90,11 @@ public class FormDataService {
         metaDataTable.setName(form.getMetadataTableName());
         String selectCols = "id," + form.getColumns() + ",state,log_create_dt,created_by,log_update_dt,updated_by";
         String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " WHERE id in (SELECT log_entry_id from "+metaDataTable.getName()+
-                " WHERE (assigned_role='' AND assigned_dept='') OR created_by='"+user.getUsername()+"' OR ";
-        String roleClause = "(1=0 OR "+user.getRoles().stream().map(role-> {
+                " WHERE created_by='"+user.getUsername()+"' OR ";
+        String roleClause = "(1=0 OR assigned_role='' OR "+user.getRoles().stream().map(role-> {
             return "FIND_IN_SET('"+role.getId()+"',assigned_role) > 0";
         }).collect(Collectors.joining("OR"))+")";
-        String deptClause = "(1=0 OR FIND_IN_SET('"+user.getDepartment().getId()+"',assigned_dept)>0))";
+        String deptClause = "(1=0 OR assigned_dept='' OR FIND_IN_SET('"+user.getDepartment().getId()+"',assigned_dept)>0))";
         selectStmt = selectStmt + "("+ roleClause + " AND "+deptClause+")";
         System.out.println(selectStmt);
         //select selectCols from table.getName() where id in (select id from table.getMetadata() where created_by
