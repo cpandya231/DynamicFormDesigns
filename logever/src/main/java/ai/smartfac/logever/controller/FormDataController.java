@@ -174,8 +174,8 @@ public class FormDataController {
         String assignedToRoles = dataQueried.getData().getOrDefault("assigned_role","");
         String assignedToDepartments = dataQueried.getData().getOrDefault("assigned_dept","");
 
-        boolean deptCheck = Arrays.stream(assignedToDepartments.split(",")).filter(dpt->dpt.equalsIgnoreCase(currUser.getDepartment().getId()+"")).count() > 0;
-        boolean roleCheck = Arrays.stream(assignedToRoles.split(",")).filter(role-> {return currUser.getRoles().stream().filter(r->r.getId().toString().equalsIgnoreCase(role)).count()>0;}).count() > 0;
+        boolean deptCheck = Arrays.stream(assignedToDepartments.split(",")).filter(dpt->dpt.equalsIgnoreCase(currUser.getDepartment().getId()+"")).count() > 0 || assignedToDepartments.length() == 0;
+        boolean roleCheck = Arrays.stream(assignedToRoles.split(",")).filter(role-> {return currUser.getRoles().stream().filter(r->r.getId().toString().equalsIgnoreCase(role)).count()>0;}).count() > 0 || assignedToRoles.length() == 0;
 
         if(assignedToUser.equalsIgnoreCase(user)) {
             return user;
