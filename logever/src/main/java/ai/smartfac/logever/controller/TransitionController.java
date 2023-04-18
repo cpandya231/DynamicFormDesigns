@@ -43,7 +43,7 @@ public class TransitionController {
         Optional<Workflow> workflow = workflowService.getWorkflowById(stateTransitionRequest.getWorkflowId());
 
         if(workflow.isPresent()) {
-            Iterable<Transition> transitions = stateTransitionRequest.getTransitions();
+            Iterable<Transition> transitions = stateTransitionRequest.getStateTransitions();
             transitions.forEach(transition -> transition.setWorkflow(workflow.get()));
             List<Transition> transitionList = (StreamSupport.stream(transitions.spliterator(),false)).collect(Collectors.toList());
 
@@ -73,7 +73,7 @@ public class TransitionController {
         Optional<Workflow> savedWorkflow = workflowService.getWorkflowById(stateTransitionRequest.getWorkflowId());
 
         if(savedWorkflow.isPresent()) {
-            Iterable<Transition> transitions = stateTransitionRequest.getTransitions();
+            Iterable<Transition> transitions = stateTransitionRequest.getStateTransitions();
             transitions.forEach(transition -> transition.setWorkflow(savedWorkflow.get()));
             List<Transition> transitionList = (StreamSupport.stream(transitions.spliterator(),false)).collect(Collectors.toList());
 
@@ -88,7 +88,7 @@ public class TransitionController {
             }).collect(Collectors.toList());
 
             if(validTransitions.size() == transitionList.size()) {
-                transitionService.removeAllTransistionsForWorkflow(savedWorkflow.get().getId());
+                transitionService.removeAllTransistionsForWorkflow(savedWorkflow.get());
                 Iterable<Transition> savedTransitions = transitionService.saveAllTransitions(transitions);
                 workflowService.saveWorkflow(savedWorkflow.get());
                 return new ResponseEntity<>(savedTransitions, HttpStatus.CREATED);

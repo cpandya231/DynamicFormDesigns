@@ -30,12 +30,25 @@ public class FormController {
         return new ResponseEntity<>(forms, HttpStatus.OK);
     }
 
+    @GetMapping("/accessible-forms/")
+    public ResponseEntity<?> getAccessibleForms() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Iterable<Form> forms = formService.getAccessibleForms(userService.getUserByUsername(authentication.getPrincipal().toString()).get());
+        return new ResponseEntity<>(forms, HttpStatus.OK);
+    }
+
     @GetMapping("/{form}/")
     public ResponseEntity<?> getFormByName(@PathVariable(name = "form") String form) {
         Optional<Form> queriedForm = formService.getFormByName(form);
         Form foundForm = queriedForm.orElseThrow(() -> new RuntimeException("Form not found"));
-        foundForm.makeCreateTableStmt();
+//        foundForm.makeCreateTableStmt();
         return new ResponseEntity<>(foundForm, HttpStatus.OK);
+    }
+
+    @GetMapping("/{appId}")
+    public ResponseEntity<?> getFormByName(@PathVariable(name = "appId") Integer appId) {
+        Iterable<Form> queriedForms = formService.getFormsByApp(appId);
+        return new ResponseEntity<>(queriedForms, HttpStatus.OK);
     }
 
     @PostMapping("/")

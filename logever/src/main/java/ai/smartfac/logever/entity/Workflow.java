@@ -2,6 +2,7 @@ package ai.smartfac.logever.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedBy;
@@ -21,8 +22,11 @@ public class Workflow {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToMany(mappedBy = "workflow",cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "workflow",cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<State> states;
+
+    @OneToMany(mappedBy = "workflow",cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Transition> transitions;
 
     @JsonBackReference
     @OneToOne(mappedBy = "workflow")
@@ -101,11 +105,18 @@ public class Workflow {
         //state.setWorkflow(this);
     }
 
+    public Set<Transition> getTransitions() {
+        return transitions;
+    }
+
+    public void setTransitions(Set<Transition> transitions) {
+        this.transitions = transitions;
+    }
+
     public Workflow(Integer id) {
         this.id = id;
     }
 
     public Workflow() {
-
     }
 }

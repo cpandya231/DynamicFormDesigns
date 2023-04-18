@@ -1,9 +1,11 @@
 package ai.smartfac.logever.controller;
 
+import ai.smartfac.logever.entity.Form;
 import ai.smartfac.logever.entity.State;
 import ai.smartfac.logever.entity.Transition;
 import ai.smartfac.logever.entity.Workflow;
 import ai.smartfac.logever.model.StateTransitionRequest;
+import ai.smartfac.logever.service.FormService;
 import ai.smartfac.logever.service.StateService;
 import ai.smartfac.logever.service.TransitionService;
 import ai.smartfac.logever.service.WorkflowService;
@@ -13,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping("/states")
@@ -27,6 +31,8 @@ public class StateController {
     @Autowired
     TransitionService transitionService;
 
+    @Autowired
+    FormService formService;
 
     @PostMapping("/")
     public ResponseEntity<?> saveAllStates(@RequestBody StateTransitionRequest stateTransitionRequest) {
@@ -47,15 +53,21 @@ public class StateController {
         Optional<Workflow> savedWorkflow = workflowService.getWorkflowById(stateTransitionRequest.getWorkflowId());
 
         if(savedWorkflow.isPresent()) {
+            System.out.println("Workflow present");
             Iterable<State> newStates = stateTransitionRequest.getStates();
-            transitionService.removeAllTransistionsForWorkflow(savedWorkflow.get().getId());
-            stateService.removeStatesForWorkflow(savedWorkflow.get().getId());
             newStates.forEach(state -> state.setWorkflow(savedWorkflow.get()));
+            transitionService.removeAllTransistionsForWorkflow(savedWorkflow.get());
+            stateService.removeStatesForWorkflow(savedWorkflow.get());
 
-            stateService.saveAllStates(newStates);
+            Iterable<State> savedStates = stateService.saveAllStates(newStates);
             workflowService.saveWorkflow(savedWorkflow.get());
+            stateTransitionRequest.setStates(savedStates);
+            Iterable<Transition> savedTransitions = transitionService.saveAllTransitions(stateTransitionRequest.getStateTransitions());
 
-            return new ResponseEntity<>(savedWorkflow, HttpStatus.CREATED);
+            Workflow workflow = workflowService.getWorkflowById(stateTransitionRequest.getWorkflowId()).get();
+            workflow.setStates(StreamSupport.stream(savedStates.spliterator(),false).collect(Collectors.toSet()));
+            workflow.setTransitions(StreamSupport.stream(savedTransitions.spliterator(),false).collect(Collectors.toSet()));
+            return new ResponseEntity<>(workflow, HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

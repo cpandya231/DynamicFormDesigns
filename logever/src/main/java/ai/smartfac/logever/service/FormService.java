@@ -1,16 +1,12 @@
 package ai.smartfac.logever.service;
 
-import ai.smartfac.logever.entity.Form;
-import ai.smartfac.logever.entity.User;
+import ai.smartfac.logever.entity.*;
 import ai.smartfac.logever.repository.FormRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -23,8 +19,25 @@ public class FormService {
     @Autowired
     JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    DepartmentService departmentService;
+
+    @Autowired
+    RoleService roleService;
+
     public Optional<Form> getFormById(Integer id) {
         return formRepository.findById(id);
+    }
+
+    public Iterable<Form> getAccessibleForms(User user) {
+        Iterable<Form> forms = formRepository.findAll();
+        return StreamSupport.stream(forms.spliterator(),false).filter(form-> {
+            State firstState = form.getWorkflow().getStates().stream().filter(st->st.isFirstState()).findFirst().get();
+            Set<Department> authDepts = firstState.getDepartments();
+            Set<Role> authRoles = firstState.getRoles();
+            return (authDepts.size()==0 || departmentService.checkAccess(user.getDepartment(), authDepts)) && (authRoles.size()==0 || roleService.hasAccess(user
+                    .getRoles(),authRoles));
+        }).collect(Collectors.toList());
     }
 
     public Iterable<Form> getForms(User user) {
@@ -49,12 +62,16 @@ public class FormService {
         if (form.getVersion() == 1 && form.getId() == null) {
             jdbcTemplate.execute(form.makeCreateTableStmt());
             jdbcTemplate.execute(form.makeCreateMetaDataTableStmt());
-            if(form.getType().equalsIgnoreCase("master"))
-                jdbcTemplate.execute(form.makeCreateMasterTableStmt());
-            form.setColumns(form.getColumns());
+//            if(form.getType().equalsIgnoreCase("master"))
+//                jdbcTemplate.execute(form.makeCreateMasterTableStmt());
+//            form.setColumns(form.getColumns());
             return formRepository.save(form);
         }
         return form;
+    }
+
+    public Iterable<Form> getFormsByApp(Integer appId) {
+        return formRepository.findAllByAppId(appId);
     }
 
     public Form update(Form form, String prevColumns) {
@@ -71,5 +88,9 @@ public class FormService {
         }
 
         return formRepository.save(form);
+    }
+
+    public Optional<Form> getFormByWorkflowId(Integer workflowId) {
+        return formRepository.findByWorkflowId(workflowId);
     }
 }

@@ -33,11 +33,12 @@ public class State {
     private String mandatoryColumns;
 
     private boolean endState;
+    private boolean firstState;
 
     private String label;
 
     @JsonBackReference
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "workflow_id")
     private Workflow workflow;
 
@@ -50,6 +51,16 @@ public class State {
     @JoinTable(name = "state_department",joinColumns = @JoinColumn(name = "state_id"),
             inverseJoinColumns = @JoinColumn(name = "department_id"))
     private Set<Department> departments = new HashSet<>();
+
+    @Transient
+    public String stateId;
+
+    public State() {
+    }
+
+    public State(Integer id) {
+        this.id = id;
+    }
 
     public Integer getId() {
         return id;
@@ -145,5 +156,21 @@ public class State {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public String getStateId() {
+        return stateId;
+    }
+
+    public void setStateId(String stateId) {
+        this.stateId = stateId;
+    }
+
+    public boolean isFirstState() {
+        return firstState;
+    }
+
+    public void setFirstState(boolean firstState) {
+        this.firstState = firstState;
     }
 }

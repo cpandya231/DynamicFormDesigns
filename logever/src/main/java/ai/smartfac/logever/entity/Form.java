@@ -4,6 +4,7 @@ import ai.smartfac.logever.model.ColumnConstraints;
 import ai.smartfac.logever.model.ColumnDef;
 import ai.smartfac.logever.model.FormTemplate;
 import ai.smartfac.logever.model.Table;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.google.gson.Gson;
@@ -46,6 +47,11 @@ public class Form {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "workflow_id", referencedColumnName = "id")
     private Workflow workflow;
+
+//    @JsonBackReference
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "app_id")
+    private App app;
 
     @CreatedBy
     @Column(name = "created_by")
@@ -97,7 +103,7 @@ public class Form {
     }
 
     public String getColumns() {
-        return parseFormTemplate().stream().map(ColumnDef::getColumnName).collect(Collectors.joining(","));
+        return columns;
     }
 
     public void setColumns(String columns) {
@@ -156,12 +162,9 @@ public class Form {
         Gson gson = new Gson();
         FormTemplate formTemplate = gson.fromJson(this.getTemplate(), FormTemplate.class);
         ArrayList<ColumnDef> columnDefs = new ArrayList<>();
-        formTemplate.getComponents().forEach(component -> { component.getRows().forEach(row -> {
-                row.forEach(comps -> {
-                    comps.getComponents().forEach(comp -> {
-                        columnDefs.add(new ColumnDef(comp.getKey(), comp.getType(), new ColumnConstraints(comp.getValidate().isRequired(), comp.isUnique(), false, null)));
-                    });
-                });
+        formTemplate.getControls().stream().forEach(controls-> {
+            controls.stream().forEach(control-> {
+                columnDefs.add(new ColumnDef(control.getKey(), control.getType(), new ColumnConstraints(control.isRequired(), false, false, null)));
             });
         });
 
@@ -311,5 +314,13 @@ public class Form {
 
     public String getMasterTableName() {
         return "mstr_" + this.getName();
+    }
+
+    public App getApp() {
+        return app;
+    }
+
+    public void setApp(App app) {
+        this.app = app;
     }
 }

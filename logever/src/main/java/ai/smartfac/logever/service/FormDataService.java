@@ -12,8 +12,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class FormDataService {
@@ -50,18 +52,21 @@ public class FormDataService {
     public List<DataQuery> getAllFor(Form form, int entryId, boolean filterByUsername, boolean filterByDepartment) {
         Table table = new Table();
         table.setName(form.getName());
-        String selectCols = "id," + form.getColumns() + ",state,log_create_dt,created_by,log_update_dt,updated_by";
-        String selectStmt = "SELECT " + selectCols + " from " + table.getName() + "";
+        Table metaTable = new Table();
+        metaTable.setName(form.getMetadataTableName());
+        String selectCols = "l.id," + Arrays.stream(form.getColumns().split(",")).map(s->"l."+s).collect(Collectors.joining(",")) + ",l.state,l.log_create_dt,l.created_by,l.log_update_dt,l.updated_by";
+        String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " l inner join "+metaTable.getName()+" h on l.id=h.log_entry_id";
 
         if (entryId != -1) {
             selectStmt += " WHERE id=" + entryId;
         } else if (filterByUsername) {
-            selectStmt += " WHERE created_by=  '" + SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString() + "'";
+            selectStmt += " WHERE h.created_by=  '" + SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString() + "'";
         }
 
+        System.out.println(selectStmt);
 
         return jdbcTemplate.query(selectStmt,
-                (resultSet, rowNum) -> new DataQuery(resultSet, selectCols.split(",")));
+                (resultSet, rowNum) -> new DataQuery(resultSet, Arrays.stream(selectCols.split(",")).map(col->col.split("\\.")[1]).collect(Collectors.joining(",")).split(",")));
     }
 
     public List<DataQuery> getLogEntryMetadata(Form form, int entryId) {

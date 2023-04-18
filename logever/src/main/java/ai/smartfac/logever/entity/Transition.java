@@ -1,5 +1,6 @@
 package ai.smartfac.logever.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
@@ -11,6 +12,7 @@ public class Transition {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @JsonBackReference
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinColumn(name = "workflow_id")
     private Workflow workflow;
@@ -24,6 +26,14 @@ public class Transition {
     private State toState;
 
     private boolean sendBackTransition;
+
+    public Transition(Integer id, Workflow workflow, State fromState, State toState, boolean sendBackTransition) {
+        this.id = id;
+        this.workflow = workflow;
+        this.fromState = fromState;
+        this.toState = toState;
+        this.sendBackTransition = sendBackTransition;
+    }
 
     public Integer getId() {
         return id;
@@ -63,5 +73,8 @@ public class Transition {
 
     public void setSendBackTransition(boolean sendBackTransition) {
         this.sendBackTransition = sendBackTransition;
+    }
+
+    public Transition() {
     }
 }

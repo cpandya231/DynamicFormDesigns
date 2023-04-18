@@ -1,6 +1,7 @@
 package ai.smartfac.logever.service;
 
 import ai.smartfac.logever.entity.Transition;
+import ai.smartfac.logever.entity.Workflow;
 import ai.smartfac.logever.repository.TransitionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,8 @@ public class TransitionService {
     }
 
     @Transactional
-    public void removeAllTransistionsForWorkflow(Integer workflowId) {
-        transitionRepository.deleteAllByWorkflowId(workflowId);
+    public void removeAllTransistionsForWorkflow(Workflow workflow) {
+        System.out.println("Removing transitions");
+        transitionRepository.deleteByWorkflow(workflow);
     }
 }

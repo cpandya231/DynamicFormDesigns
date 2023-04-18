@@ -4,6 +4,7 @@ import ai.smartfac.logever.entity.State;
 import ai.smartfac.logever.entity.Transition;
 import ai.smartfac.logever.entity.Workflow;
 import ai.smartfac.logever.model.StateTransitionRequest;
+import ai.smartfac.logever.model.TransitionModel;
 import ai.smartfac.logever.service.StateService;
 import ai.smartfac.logever.service.TransitionService;
 import ai.smartfac.logever.service.WorkflowService;
@@ -13,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping("/state_transitions")
@@ -37,7 +40,9 @@ public class StateTransitionController {
         StateTransitionRequest stateTransitionRequest  = new StateTransitionRequest();
         stateTransitionRequest.setWorkflowId(workflowId);
         stateTransitionRequest.setStates(stateService.getWorkflowStates(workflowId));
-        stateTransitionRequest.setTransitions(transitionService.getWorkflowTransitions(workflowId));
+        stateTransitionRequest.setTransitions(StreamSupport.stream(transitionService.getWorkflowTransitions(workflowId).spliterator(),false).map(t->
+             new TransitionModel(t.getFromState().getId()+"",t.getToState().getId()+"")
+        ).collect(Collectors.toList()));
         return new ResponseEntity<>(stateTransitionRequest, HttpStatus.OK);
     }
 

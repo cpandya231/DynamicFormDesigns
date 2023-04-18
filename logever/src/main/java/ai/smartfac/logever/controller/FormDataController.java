@@ -40,10 +40,10 @@ public class FormDataController {
     @PostMapping("/{formId}")
     public ResponseEntity<?> logEntry(@PathVariable(name = "formId") int formId, @RequestBody LogEntry logEntry) {
         Optional<Form> existingForm = formService.getFormById(formId);
-        String user = checkAccess(existingForm, logEntry);
+//        String user = checkAccess(existingForm, logEntry);
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
-        values.put("created_by", user);
+        values.put("created_by", SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
         values.put("endState", logEntry.isEndState() ? "true" : "false");
         formDataService.insertInto(existingForm.get(), values);
 
