@@ -30,6 +30,13 @@ public class FormController {
         return new ResponseEntity<>(forms, HttpStatus.OK);
     }
 
+    @GetMapping("/init-forms/")
+    public ResponseEntity<?> getInitiatableForms() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Iterable<Form> forms = formService.getInitiatableForms(userService.getUserByUsername(authentication.getPrincipal().toString()).get());
+        return new ResponseEntity<>(forms, HttpStatus.OK);
+    }
+
     @GetMapping("/accessible-forms/")
     public ResponseEntity<?> getAccessibleForms() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

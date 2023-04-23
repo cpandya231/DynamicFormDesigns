@@ -29,7 +29,7 @@ public class FormService {
         return formRepository.findById(id);
     }
 
-    public Iterable<Form> getAccessibleForms(User user) {
+    public Iterable<Form> getInitiatableForms(User user) {
         Iterable<Form> forms = formRepository.findAll();
         return StreamSupport.stream(forms.spliterator(),false).filter(form-> {
             State firstState = form.getWorkflow().getStates().stream().filter(st->st.isFirstState()).findFirst().get();
@@ -37,6 +37,19 @@ public class FormService {
             Set<Role> authRoles = firstState.getRoles();
             return (authDepts.size()==0 || departmentService.checkAccess(user.getDepartment(), authDepts)) && (authRoles.size()==0 || roleService.hasAccess(user
                     .getRoles(),authRoles));
+        }).collect(Collectors.toList());
+    }
+
+    public Iterable<Form> getAccessibleForms(User user) {
+        Iterable<Form> forms = formRepository.findAll();
+        return StreamSupport.stream(forms.spliterator(),false).filter(form-> {
+            return form.getWorkflow().getStates().stream().filter(st -> {
+                Set<Department> authDepts = st.getDepartments();
+                boolean initDeptCheck = authDepts.stream().filter(d->d.getName().equalsIgnoreCase("Initiator Department")).count() > 0;
+                Set<Role> authRoles = st.getRoles();
+                return (authDepts.size() == 0 || initDeptCheck || departmentService.checkAccess(user.getDepartment(), authDepts)) && (authRoles.size() == 0 || roleService.hasAccess(user
+                        .getRoles(), authRoles));
+            }).count() > 0;
         }).collect(Collectors.toList());
     }
 

@@ -5,6 +5,7 @@ import ai.smartfac.logever.repository.SettingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -32,5 +33,9 @@ public class SettingsService {
             settingsRepository.save(foundSetting.get());
         }
         return foundSetting;
+    }
+
+    public void updateAll(List<Settings> settings) {
+        settings.forEach(setting->update(setting));
     }
 }

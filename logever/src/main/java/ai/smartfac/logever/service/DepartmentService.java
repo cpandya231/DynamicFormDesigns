@@ -7,10 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class DepartmentService {
@@ -59,5 +58,26 @@ public class DepartmentService {
             }
         }
         return false;
+    }
+
+    public List<Department> getAllUnder(Department department) {
+        Iterable<Department> allDepts = getDepartments();
+        ArrayList<Department> allUnder = new ArrayList<Department>();
+
+        for(Department d:allDepts) {
+            Department nD = d;
+            while(nD.getParentId()>0) {
+                if(nD.getParentId()==department.getId()) {
+                    allUnder.add(d);
+                }
+                for(Department dept:allDepts) {
+                    if(dept.getId()==nD.getParentId()) {
+                        nD=dept;
+                    }
+                }
+            }
+        }
+        allUnder.add(department);
+        return allUnder;
     }
 }

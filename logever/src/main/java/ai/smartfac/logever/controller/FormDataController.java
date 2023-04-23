@@ -37,15 +37,38 @@ public class FormDataController {
     @Autowired
     FormDataService formDataService;
 
+    @Autowired
+    PendingEntryService pendingEntryService;
+
     @PostMapping("/{formId}")
     public ResponseEntity<?> logEntry(@PathVariable(name = "formId") int formId, @RequestBody LogEntry logEntry) {
         Optional<Form> existingForm = formService.getFormById(formId);
-//        String user = checkAccess(existingForm, logEntry);
+        User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()).get();
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
         values.put("created_by", SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
         values.put("endState", logEntry.isEndState() ? "true" : "false");
-        formDataService.insertInto(existingForm.get(), values);
+        int entryId = formDataService.insertInto(existingForm.get(), values);
+        if(!logEntry.isEndState()) {
+            Form form = existingForm.get();
+            State nextState = form.getWorkflow().getStates().stream().filter(st->st.getLabel().equals(logEntry.getState())).findFirst().get();
+            List<PendingEntry> pendingEntries = new ArrayList<>();
+            nextState.getRoles().forEach(r->{
+                nextState.getDepartments().forEach(d-> {
+                    if(d.getName().equalsIgnoreCase("Initiator Department")) {
+                        departmentService.getAllUnder(user.getDepartment()).forEach(aD-> {
+                            pendingEntries.add(new PendingEntry(form.getId(),entryId,null,r.getId(),aD.getId()));
+                        });
+                    } else {
+                        departmentService.getAllUnder(d).forEach(aD-> {
+                            pendingEntries.add(new PendingEntry(form.getId(),entryId,null,r.getId(),aD.getId()));
+                        });
+                    }
+                });
+            });
+
+            pendingEntryService.saveAll(pendingEntries);
+        }
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -61,7 +84,22 @@ public class FormDataController {
         values.put("id", logEntry.getId() + "");
         values.put("log_entry_id", logEntry.getId() + "");
         values.put("endState", logEntry.isEndState() ? "true" : "false");
+        values.remove("log_update_dt");
         formDataService.update(existingForm.get(), values);
+        pendingEntryService.removeAllFor(existingForm.get().getId(),logEntry.getId());
+        if(!logEntry.isEndState()) {
+            Form form = existingForm.get();
+            State nextState = form.getWorkflow().getStates().stream().filter(st->st.getLabel().equals(logEntry.getState())).findFirst().get();
+            List<PendingEntry> pendingEntries = new ArrayList<>();
+            nextState.getRoles().forEach(r->{
+                nextState.getDepartments().forEach(d-> {
+                    departmentService.getAllUnder(d).forEach(aD-> {
+                        pendingEntries.add(new PendingEntry(form.getId(),logEntry.getId(),null,r.getId(),aD.getId()));
+                    });
+                });
+            });
+            pendingEntryService.saveAll(pendingEntries);
+        }
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -75,9 +113,27 @@ public class FormDataController {
 
         List<DataQuery> dataQueried;
 
-        dataQueried = formDataService.getAllFor(existingForm.get(), entryId, filterByUsername, filterByDepartment);
+        dataQueried = formDataService.getAllFor(existingForm.get(), entryId, true, filterByDepartment);
 
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
+    }
+
+    @GetMapping("/{formId}/pending")
+    public ResponseEntity<?> getPendingLogEntries(@PathVariable(name = "formId") int formId) {
+        Optional<Form> existingForm = formService.getFormById(formId);
+
+        List<DataQuery> dataQueried;
+        User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()).get();
+        dataQueried = formDataService.getAllPendingFor(existingForm.get(),user);
+
+        return new ResponseEntity<>(dataQueried, HttpStatus.OK);
+    }
+
+    @GetMapping("/all-pending")
+    public ResponseEntity<?> getPendingForms() {
+        User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()).get();
+
+        return new ResponseEntity<>(pendingEntryService.getAllForUser(user), HttpStatus.OK);
     }
 
     @GetMapping("/metadata/{formId}/{entryId}")

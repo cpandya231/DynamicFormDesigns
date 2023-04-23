@@ -40,6 +40,7 @@ public class UserController {
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         Optional<User> existingUser = userService.getUserByUsername(user.getUsername());
         User newUser;
+        user.setIsActive(true);
         if(existingUser.isEmpty()) {
             user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
             newUser = userService.saveUser(user);
@@ -60,7 +61,11 @@ public class UserController {
                 existingUser.get().setDepartment(user.getDepartment());
                 userUpdated = true;
             }
-            if(user.getEmail()!=null && !user.getEmail().isEmpty() && !existingUser.get().getEmail().equals(user.getEmail())) {
+            if(user.getRoles()!=null && user.getRoles().size()>0) {
+                existingUser.get().setRoles(user.getRoles());
+                userUpdated = true;
+            }
+            if(user.getEmail()!=null && !user.getEmail().isEmpty() && (existingUser.get().getEmail()==null || existingUser.get().getEmail().equals(user.getEmail()))) {
                 existingUser.get().setEmail(user.getEmail());
                 userUpdated = true;
             }

@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -34,5 +35,11 @@ public class SettingsController {
     public ResponseEntity<?> updateSetting(@RequestBody Settings settings) {
         Optional<Settings> savedSetting = settingsService.update(settings);
         return new ResponseEntity<>(savedSetting, HttpStatus.OK);
+    }
+
+    @PutMapping("/all")
+    public ResponseEntity<?> updateSetting(@RequestBody List<Settings> settings) {
+        settingsService.updateAll(settings);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
