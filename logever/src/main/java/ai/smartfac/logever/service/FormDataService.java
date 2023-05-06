@@ -1,9 +1,6 @@
 package ai.smartfac.logever.service;
 
-import ai.smartfac.logever.entity.Department;
-import ai.smartfac.logever.entity.Form;
-import ai.smartfac.logever.entity.Role;
-import ai.smartfac.logever.entity.User;
+import ai.smartfac.logever.entity.*;
 import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.model.Table;
 import ai.smartfac.logever.util.ApplicationUtil;
@@ -14,6 +11,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +27,52 @@ public class FormDataService {
     @Autowired
     DepartmentService departmentService;
 
+    @Autowired
+    PendingEntryService pendingEntryService;
+
+    @Transactional
+    public void bulkInsert(User user, Form form, ArrayList<Map<String,String>> records) {
+        records.forEach(record-> {
+            insertIntoWithPendingEntries(user,form,record);
+        });
+    }
+
+    @Transactional
+    public int insertIntoWithPendingEntries(User user, Form form, Map<String, String> values) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(
+                connection -> connection.prepareStatement(form.makeInsertValuesStmt(values), new String[]{"id"}), keyHolder);
+        var insertedId = keyHolder.getKey().intValue();
+        values.put("log_entry_id", insertedId + "");
+        jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
+        values.remove("log_entry_id");
+        values.put("id", insertedId + "");
+        if (values.get("endState").equalsIgnoreCase("true") && form.getType()!=null && form.getType().equalsIgnoreCase("master")) {
+            jdbcTemplate.execute(form.makeInsertMasterValuesStmt(values));
+        }
+        if(!values.get("endState").equalsIgnoreCase("true")) {
+            State nextState = form.getWorkflow().getStates().stream().filter(st->st.getLabel().equals(values.get("state"))).findFirst().get();
+            List<PendingEntry> pendingEntries = new ArrayList<>();
+            nextState.getRoles().forEach(r->{
+                nextState.getDepartments().forEach(d-> {
+                    if(d.getName().equalsIgnoreCase("Initiator Department")) {
+                        departmentService.getAllUnder(user.getDepartment()).forEach(aD-> {
+                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId()));
+                        });
+                    } else {
+                        departmentService.getAllUnder(d).forEach(aD-> {
+                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId()));
+                        });
+                    }
+                });
+            });
+
+            pendingEntryService.saveAll(pendingEntries);
+        }
+        return insertedId;
+    }
+
+    @Transactional
     public int insertInto(Form form, Map<String, String> values) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -44,6 +88,7 @@ public class FormDataService {
         return insertedId;
     }
 
+    @Transactional
     public void update(Form form, Map<String, String> values) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -79,7 +124,7 @@ public class FormDataService {
         table.setName(form.getName());
         Table metaTable = new Table();
         metaTable.setName(form.getMetadataTableName());
-        String selectCols = "l.id," + Arrays.stream(form.getColumns().split(",")).map(s->"l."+s).collect(Collectors.joining(",")) + ",l.state,l.log_create_dt,l.created_by,l.log_update_dt,l.updated_by";
+        String selectCols = "distinct l.id," + Arrays.stream(form.getColumns().split(",")).map(s->"l."+s).collect(Collectors.joining(",")) + ",l.state,l.log_create_dt,l.created_by,l.log_update_dt,l.updated_by";
         String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " l inner join "+metaTable.getName()+" h on l.id=h.log_entry_id";
 
         if (entryId != -1) {

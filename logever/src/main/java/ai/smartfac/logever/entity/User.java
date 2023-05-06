@@ -35,6 +35,7 @@ public class User implements UserDetails {
     private String first_name;
     private String last_name;
     @Column(nullable=false,name = "date_of_birth")
+    @JsonFormat(pattern="yyyy-MM-dd")
     private Date dateOfBirth;
     @Column(nullable=false)
     private String password;

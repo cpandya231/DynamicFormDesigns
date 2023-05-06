@@ -82,5 +82,15 @@ public class MasterFormDataService {
         jdbcTemplate.execute(masterForm.makeUpdateMasterEntryStateStmt(masterValues));
     }
 
+    public List<DataQuery> getReferenceData(Form form,String colName,String where) {
+        Table table = new Table();
+        table.setName(form.getMasterTableName());
+        String selectStmt = "SELECT "+colName+" from "+table.getName();
+        if(!where.isEmpty()) {
+            selectStmt = selectStmt + " WHERE "+where;
+        }
+        return jdbcTemplate.query(selectStmt,
+                (resultSet, rowNum) -> new DataQuery(resultSet, colName.split(",")));
+    }
 
 }

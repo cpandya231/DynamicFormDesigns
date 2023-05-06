@@ -171,6 +171,17 @@ public class Form {
         return columnDefs;
     }
 
+    public ArrayList<String> getFormLabels() {
+        Gson gson = new Gson();
+        FormTemplate formTemplate = gson.fromJson(this.getTemplate(), FormTemplate.class);
+        ArrayList<String> labels = new ArrayList<>();
+        formTemplate.getControls().stream().forEach(controls-> {
+            controls.stream().forEach(control-> {
+                labels.add(control.getLabel());
+            });
+        });
+        return labels;
+    }
     public String makeCreateTableStmt() {
         Table table = new Table();
 
