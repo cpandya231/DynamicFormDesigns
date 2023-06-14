@@ -7,7 +7,7 @@ public class ColumnConstraints {
     private String defaultValue;
 
     public ColumnConstraints(boolean required, boolean unique, boolean defaults, String defaultValue) {
-        this.required = required;
+        this.required = false;
         this.unique = unique;
         this.defaults = defaults;
         this.defaultValue = defaultValue;

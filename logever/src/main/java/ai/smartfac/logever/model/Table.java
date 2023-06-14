@@ -11,7 +11,7 @@ public class Table {
     private ArrayList<ColumnDef> alteredColumnDefs;
     static {
         typeToSqlMapping = new HashMap<>();
-        typeToSqlMapping.put("text", "VARCHAR(1000)");
+        typeToSqlMapping.put("text", "text");
         typeToSqlMapping.put("DATETIME", "DATETIME");
         typeToSqlMapping.put("INT","INT");
     }
