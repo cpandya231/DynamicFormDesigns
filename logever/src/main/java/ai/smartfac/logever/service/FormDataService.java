@@ -2,6 +2,7 @@ package ai.smartfac.logever.service;
 
 import ai.smartfac.logever.entity.*;
 import ai.smartfac.logever.model.DataQuery;
+import ai.smartfac.logever.model.GridLogEntry;
 import ai.smartfac.logever.model.Table;
 import ai.smartfac.logever.util.ApplicationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +90,23 @@ public class FormDataService {
     }
 
     @Transactional
+    public void insertInto(Form form, ArrayList<GridLogEntry> gridValues, int parentId) {
+        if(form.getGrids().size() > 0) {
+            gridValues.forEach(gridValue-> {
+                gridValue.getData().forEach(values-> {
+                    values.put("log_entry_id", parentId+"");
+                    KeyHolder keyHolder = new GeneratedKeyHolder();
+                    jdbcTemplate.update(
+                            connection -> connection.prepareStatement(form.makeGridInsertValuesStmt(gridValue.getName(),values), new String[]{"id"}), keyHolder);
+                    var insertedId = keyHolder.getKey().intValue();
+                    values.put("grid_entry_id", insertedId + "");
+                    jdbcTemplate.execute(form.makeGridInsertMetadataValuesStmt(gridValue.getName(),values));
+                });
+            });
+        }
+    }
+
+    @Transactional
     public void update(Form form, Map<String, String> values) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -110,7 +128,7 @@ public class FormDataService {
         Table metaTable = new Table();
         metaTable.setName(form.getMetadataTableName());
         String selectCols = "l.id," + Arrays.stream(form.getColumns().split(",")).map(s->"l."+s).collect(Collectors.joining(",")) + ",l.state,l.log_create_dt,l.created_by,l.log_update_dt,l.updated_by";
-        String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " l inner join pending_entry p on l.id=p.entry_id where (p.assigned_role in ("+userRoles
+        String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " l inner join pending_entry p on l.id=p.entry_id and p.form_id='"+form.getId()+"' where (p.assigned_role in ("+userRoles
                 +") and p.assigned_department="+userDept+") or p.assigned_user = '"+user.getUsername()+"'";
         System.out.println(selectStmt);
 

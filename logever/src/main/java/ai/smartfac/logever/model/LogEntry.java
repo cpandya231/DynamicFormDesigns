@@ -1,5 +1,6 @@
 package ai.smartfac.logever.model;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class LogEntry {
@@ -8,6 +9,7 @@ public class LogEntry {
     private String state;
     private boolean endState;
     private Map<String,String> data;
+    private ArrayList<GridLogEntry> gridData;
 
     public int getId() {
         return id;
@@ -39,5 +41,13 @@ public class LogEntry {
 
     public void setEndState(boolean endState) {
         this.endState = endState;
+    }
+
+    public ArrayList<GridLogEntry> getGridData() {
+        return gridData;
+    }
+
+    public void setGridData(ArrayList<GridLogEntry> gridData) {
+        this.gridData = gridData;
     }
 }

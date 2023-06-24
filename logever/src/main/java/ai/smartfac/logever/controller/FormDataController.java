@@ -49,6 +49,8 @@ public class FormDataController {
         values.put("created_by", SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
         values.put("endState", logEntry.isEndState() ? "true" : "false");
         int entryId = formDataService.insertInto(existingForm.get(), values);
+        System.out.println("Vihit---"+entryId);
+        formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entryId);
         if(!logEntry.isEndState()) {
             Form form = existingForm.get();
             State nextState = form.getWorkflow().getStates().stream().filter(st->st.getLabel().equals(logEntry.getState())).findFirst().get();

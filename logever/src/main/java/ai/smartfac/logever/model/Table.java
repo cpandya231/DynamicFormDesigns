@@ -13,7 +13,9 @@ public class Table {
         typeToSqlMapping = new HashMap<>();
         typeToSqlMapping.put("text", "text");
         typeToSqlMapping.put("DATETIME", "DATETIME");
+        typeToSqlMapping.put("datetime", "DATETIME");
         typeToSqlMapping.put("INT","INT");
+        typeToSqlMapping.put("grid", "INT");
     }
     public String getName() {
         return name;
@@ -21,6 +23,14 @@ public class Table {
 
     public void setName(String name) {
         this.name = "f_"+String.join("_",name.trim().toLowerCase().split(" "))+"_lgs";
+    }
+
+    public void setGridTableName(String name) {
+        this.name = "g_"+String.join("_",name.trim().toLowerCase().split(" "))+"_lgs";
+    }
+
+    public void setGridAuditTableName(String name) {
+        this.name = "g_"+String.join("_",name.trim().toLowerCase().split(" "))+"_history_lgs";
     }
 
     public ArrayList<ColumnDef> getColumnDefs() {
@@ -43,9 +53,16 @@ public class Table {
         return "state,log_create_dt,created_by,log_update_dt,updated_by";
     }
 
+    public String getGridDefaultColumns() {
+        return "log_entry_id,state,log_create_dt,created_by,comment,log_update_dt,updated_by";
+    }
 
     public String getDefaultMetadataColumns() {
         return "state,log_entry_id,comment,log_create_dt,created_by";
+    }
+
+    public String getGridDefaultMetadataColumns() {
+        return "state,grid_entry_id,log_entry_id,comment,log_create_dt,created_by";
     }
 
     private String auditTableFor(Table table) {
@@ -95,9 +112,31 @@ public class Table {
         return insertStmt;
     }
 
+    public String buildGridInsertStatement(String columns, Map<String,String> values) {
+        String insertStmt = "INSERT INTO "+this.getName()+ "(";
+        List<String> filledColumns = Arrays.stream((columns+","+getGridDefaultColumns()).split(",")).filter(column->values.containsKey(column)).collect(Collectors.toList());
+
+        insertStmt = insertStmt + String.join(",",filledColumns);
+        insertStmt = insertStmt + ") VALUES (" +
+                String.join(",",filledColumns.stream().map(col->"'"+values.get(col)+"'").collect(Collectors.toList())) +
+                ")";
+        return insertStmt;
+    }
+
     public String buildInsertMetadataStatement(String columns, Map<String,String> values) {
         String insertStmt = "INSERT INTO "+this.getName()+ "(";
         List<String> filledColumns = Arrays.stream((columns+","+getDefaultMetadataColumns()).split(",")).filter(column->values.containsKey(column)).collect(Collectors.toList());
+
+        insertStmt = insertStmt + String.join(",",filledColumns);
+        insertStmt = insertStmt + ") VALUES (" +
+                String.join(",",filledColumns.stream().map(col->"'"+values.get(col)+"'").collect(Collectors.toList())) +
+                ")";
+        return insertStmt;
+    }
+
+    public String buildGridInsertMetadataStatement(String columns, Map<String,String> values) {
+        String insertStmt = "INSERT INTO "+this.getName()+ "(";
+        List<String> filledColumns = Arrays.stream((columns+","+getGridDefaultMetadataColumns()).split(",")).filter(column->values.containsKey(column)).collect(Collectors.toList());
 
         insertStmt = insertStmt + String.join(",",filledColumns);
         insertStmt = insertStmt + ") VALUES (" +

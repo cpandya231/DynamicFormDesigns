@@ -1,8 +1,6 @@
 package ai.smartfac.logever.entity;
 
-import ai.smartfac.logever.model.ColumnConstraints;
-import ai.smartfac.logever.model.ColumnDef;
-import ai.smartfac.logever.model.FormTemplate;
+import ai.smartfac.logever.model.*;
 import ai.smartfac.logever.model.Table;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -196,6 +194,7 @@ public class Form {
         columnDefs.add(new ColumnDef("log_update_dt", "DATETIME", new ColumnConstraints(false, false, true, "NULL ON UPDATE CURRENT_TIMESTAMP")));
         columnDefs.add(new ColumnDef("updated_by", "text", new ColumnConstraints(false, false, false, null)));
         table.setColumnDefs(columnDefs);
+        System.out.println(table.showCreateTable());
         return table.showCreateTable();
     }
 
@@ -216,6 +215,61 @@ public class Form {
         columnDefs.add(new ColumnDef("updated_by", "text", new ColumnConstraints(false, false, false, null)));
         table.setColumnDefs(columnDefs);
         return table.showCreateTable();
+    }
+
+    public ArrayList<String> makeCreateGridTableStmt() {
+        List<ArrayList<Control>> gridControls = getGrids();
+        ArrayList<String> createStmts = new ArrayList<>();
+        if(gridControls.size() > 0) {
+            gridControls.forEach(controls-> {
+                Control gridControl = controls.get(0);
+                Table table = new Table();
+                table.setGridTableName(this.getName() +" "+ gridControl.getLabel());
+
+                ArrayList<ColumnDef> columnDefs = new ArrayList<>();
+                gridControl.getControls().stream().forEach(control-> {
+                    columnDefs.add(new ColumnDef(control.getKey(), control.getType(), new ColumnConstraints(control.isRequired(), false, false, null)));
+                });
+
+                columnDefs.add(new ColumnDef("id", "INT", new ColumnConstraints(true, false, true, "AUTO_INCREMENT")));
+                columnDefs.add(new ColumnDef("log_entry_id", "INT", new ColumnConstraints(true, false, false, null)));
+                columnDefs.add(new ColumnDef("log_create_dt", "DATETIME", new ColumnConstraints(true, false, true, "CURRENT_TIMESTAMP")));
+                columnDefs.add(new ColumnDef("created_by", "text", new ColumnConstraints(true, false, false, null)));
+                columnDefs.add(new ColumnDef("log_update_dt", "DATETIME", new ColumnConstraints(false, false, true, "NULL ON UPDATE CURRENT_TIMESTAMP")));
+                columnDefs.add(new ColumnDef("updated_by", "text", new ColumnConstraints(false, false, false, null)));
+                table.setColumnDefs(columnDefs);
+                createStmts.add(table.showCreateTable());
+            });
+        }
+        return createStmts;
+    }
+
+    public ArrayList<String> makeCreateGridHistoryTableStmt() {
+        List<ArrayList<Control>> gridControls = getGrids();
+        ArrayList<String> createStmts = new ArrayList<>();
+        if(gridControls.size() > 0) {
+            gridControls.forEach(controls-> {
+                Control gridControl = controls.get(0);
+                Table table = new Table();
+                table.setGridAuditTableName(this.getName() +" "+ gridControl.getLabel());
+
+                ArrayList<ColumnDef> columnDefs = new ArrayList<>();
+                gridControl.getControls().stream().forEach(control-> {
+                    columnDefs.add(new ColumnDef(control.getKey(), control.getType(), new ColumnConstraints(control.isRequired(), false, false, null)));
+                });
+
+                columnDefs.add(new ColumnDef("id", "INT", new ColumnConstraints(true, false, true, "AUTO_INCREMENT")));
+                columnDefs.add(new ColumnDef("grid_entry_id", "INT", new ColumnConstraints(true, false, false, null)));
+                columnDefs.add(new ColumnDef("history_log_entry_id", "INT", new ColumnConstraints(true, false, false, null)));
+                columnDefs.add(new ColumnDef("log_create_dt", "DATETIME", new ColumnConstraints(true, false, true, "CURRENT_TIMESTAMP")));
+                columnDefs.add(new ColumnDef("created_by", "text", new ColumnConstraints(true, false, false, null)));
+                columnDefs.add(new ColumnDef("comment", "LONGTEXT", new ColumnConstraints(false, false, false, null)));
+                columnDefs.forEach(cd->cd.setConstraints(new ColumnConstraints(cd.getConstraints().isRequired(),false,cd.getConstraints().isDefaults(),cd.getConstraints().getDefaultValue())));
+                table.setColumnDefs(columnDefs);
+                createStmts.add(table.showCreateTable());
+            });
+        }
+        return createStmts;
     }
 
     public String makeCreateMetaDataTableStmt() {
@@ -287,6 +341,14 @@ public class Form {
         return table.buildInsertStatement(this.getColumns(), values);
     }
 
+    public String makeGridInsertValuesStmt(String name,Map<String, String> values) {
+        Table table = new Table();
+        table.setGridTableName(this.getName()+" "+name);
+        String columns = getGrids().stream().filter(controls->controls.get(0).getKey().equalsIgnoreCase(name)).findFirst().get()
+                        .get(0).getControls().stream().map(ctrol->ctrol.getKey()).collect(Collectors.joining(","));
+        System.out.println(table.buildGridInsertStatement(columns, values));
+        return table.buildGridInsertStatement(columns, values);
+    }
 
     public String makeInsertMetadataValuesStmt(Map<String, String> values) {
         Table table = new Table();
@@ -294,6 +356,14 @@ public class Form {
 
         return table.buildInsertMetadataStatement(this.getColumns(), values);
     }
+    public String makeGridInsertMetadataValuesStmt(String name,Map<String, String> values) {
+        Table table = new Table();
+        table.setGridAuditTableName(this.getName()+" "+name);
+        String columns = getGrids().stream().filter(controls->controls.get(0).getKey().equalsIgnoreCase(name)).findFirst().get()
+                .get(0).getControls().stream().map(ctrol->ctrol.getKey()).collect(Collectors.joining(","));
+        return table.buildGridInsertMetadataStatement(columns, values);
+    }
+
 
     public String makeInsertMasterValuesStmt(Map<String, String> values) {
         Table table = new Table();
@@ -325,6 +395,12 @@ public class Form {
 
     public String getMasterTableName() {
         return "mstr_" + this.getName();
+    }
+
+    public List<ArrayList<Control>> getGrids() {
+        Gson gson = new Gson();
+        FormTemplate formTemplate = gson.fromJson(this.getTemplate(), FormTemplate.class);
+        return formTemplate.getControls().stream().filter(controls->controls.get(0).getType().equalsIgnoreCase("grid")).collect(Collectors.toList());
     }
 
     public App getApp() {

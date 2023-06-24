@@ -1,5 +1,7 @@
 package ai.smartfac.logever.model;
 
+import java.util.ArrayList;
+
 public class Control {
     private String label;
     private String type;
@@ -7,6 +9,7 @@ public class Control {
     private String key;
     private String selectValues;
     private String placeholder;
+    private ArrayList<Control> controls;
 
     public String getLabel() {
         return label;
@@ -54,5 +57,13 @@ public class Control {
 
     public void setPlaceholder(String placeholder) {
         this.placeholder = placeholder;
+    }
+
+    public ArrayList<Control> getControls() {
+        return controls;
+    }
+
+    public void setControls(ArrayList<Control> controls) {
+        this.controls = controls;
     }
 }
