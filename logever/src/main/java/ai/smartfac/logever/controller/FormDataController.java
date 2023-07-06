@@ -2,6 +2,8 @@ package ai.smartfac.logever.controller;
 
 import ai.smartfac.logever.entity.*;
 import ai.smartfac.logever.model.DataQuery;
+import ai.smartfac.logever.model.DataQueryWithGrids;
+import ai.smartfac.logever.model.GridDataQuery;
 import ai.smartfac.logever.model.LogEntry;
 import ai.smartfac.logever.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -223,5 +225,10 @@ public class FormDataController {
         }
     }
 
-
+    @GetMapping("/grid/{formId}/{logEntryId}")
+    private ResponseEntity<?> getGridDataFor(@PathVariable(name = "formId") int formId,
+                                               @PathVariable(name = "logEntryId") int logEntryId) {
+        Optional<Form> existingForm = formService.getFormById(formId);
+        return new ResponseEntity<>(formDataService.getGridsFor(existingForm.get(),logEntryId), HttpStatus.OK);
+    }
 }

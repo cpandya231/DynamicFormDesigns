@@ -1,9 +1,7 @@
 package ai.smartfac.logever.service;
 
 import ai.smartfac.logever.entity.*;
-import ai.smartfac.logever.model.DataQuery;
-import ai.smartfac.logever.model.GridLogEntry;
-import ai.smartfac.logever.model.Table;
+import ai.smartfac.logever.model.*;
 import ai.smartfac.logever.util.ApplicationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -164,6 +162,24 @@ public class FormDataService {
         String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " WHERE log_entry_id=" + entryId + " ORDER BY log_create_dt desc";
         return jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet, selectCols.split(",")));
+    }
+
+    public ArrayList<GridDataQuery> getGridsFor(Form form, int logEntryId) {
+        Table table = new Table();
+        ArrayList<GridDataQuery> grids = new ArrayList<>();
+        if(form.getGrids().size() > 0) {
+            form.getGrids().stream().forEach(gridCtrl -> {
+                table.setGridTableName(form.getName()+" "+gridCtrl.get(0).getKey());
+                String columns = gridCtrl.get(0).getControls().stream().map(ctrl -> ctrl.getKey()).collect(Collectors.joining(","));
+                String select = "id,log_entry_id," + columns;
+                String gridSelectStmt = "SELECT " + select + " from " + table.getName() + " where log_entry_id ='"+logEntryId+"'";
+
+                List<DataQuery> gridDataQuery = jdbcTemplate.query(gridSelectStmt,
+                        (resultSet, rowNum) -> new DataQuery(resultSet, select.split(",")));
+                grids.add(new GridDataQuery(gridCtrl.get(0).getKey(), gridDataQuery, select));
+            });
+        }
+        return grids;
     }
 
     public void saveLogEntryMetadata(Form form, Map<String, String> metaDataValues) {
