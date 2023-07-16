@@ -1,10 +1,7 @@
 package ai.smartfac.logever.controller;
 
 import ai.smartfac.logever.entity.*;
-import ai.smartfac.logever.model.DataQuery;
-import ai.smartfac.logever.model.DataQueryWithGrids;
-import ai.smartfac.logever.model.GridDataQuery;
-import ai.smartfac.logever.model.LogEntry;
+import ai.smartfac.logever.model.*;
 import ai.smartfac.logever.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,27 +47,30 @@ public class FormDataController {
         values.put("state", logEntry.getState());
         values.put("created_by", SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
         values.put("endState", logEntry.isEndState() ? "true" : "false");
-        int entryId = formDataService.insertInto(existingForm.get(), values);
-        System.out.println("Vihit---"+entryId);
-        formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entryId);
+        Entry entry = formDataService.insertInto(existingForm.get(), values);
+        System.out.println("Vihit---"+entry.getEntryId());
+        formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entry);
         if(!logEntry.isEndState()) {
             Form form = existingForm.get();
             State nextState = form.getWorkflow().getStates().stream().filter(st->st.getLabel().equals(logEntry.getState())).findFirst().get();
             List<PendingEntry> pendingEntries = new ArrayList<>();
             nextState.getRoles().forEach(r->{
-                nextState.getDepartments().forEach(d-> {
-                    if(d.getName().equalsIgnoreCase("Initiator Department")) {
-                        departmentService.getAllUnder(user.getDepartment()).forEach(aD-> {
-                            pendingEntries.add(new PendingEntry(form.getId(),entryId,null,r.getId(),aD.getId()));
-                        });
-                    } else {
-                        departmentService.getAllUnder(d).forEach(aD-> {
-                            pendingEntries.add(new PendingEntry(form.getId(),entryId,null,r.getId(),aD.getId()));
-                        });
-                    }
-                });
+                if(!r.getRole().equalsIgnoreCase("initiator")) {
+                    nextState.getDepartments().forEach(d-> {
+                        if(d.getName().equalsIgnoreCase("Initiator Department")) {
+                            departmentService.getAllUnder(user.getDepartment()).forEach(aD-> {
+                                pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),null,r.getId(),aD.getId()));
+                            });
+                        } else {
+                            departmentService.getAllUnder(d).forEach(aD-> {
+                                pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),null,r.getId(),aD.getId()));
+                            });
+                        }
+                    });
+                } else {
+                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),user.getUsername(),null,null));
+                }
             });
-
             pendingEntryService.saveAll(pendingEntries);
         }
 

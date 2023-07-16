@@ -162,7 +162,8 @@ public class Form {
         ArrayList<ColumnDef> columnDefs = new ArrayList<>();
         formTemplate.getControls().stream().forEach(controls-> {
             controls.stream().forEach(control-> {
-                columnDefs.add(new ColumnDef(control.getKey(), control.getType(), new ColumnConstraints(control.isRequired(), false, false, null)));
+                if(!control.getType().equalsIgnoreCase("grid"))
+                    columnDefs.add(new ColumnDef(control.getKey(), control.getType(), new ColumnConstraints(control.isRequired(), false, false, null)));
             });
         });
 

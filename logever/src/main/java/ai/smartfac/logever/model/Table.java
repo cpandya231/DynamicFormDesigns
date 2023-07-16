@@ -62,7 +62,7 @@ public class Table {
     }
 
     public String getGridDefaultMetadataColumns() {
-        return "state,grid_entry_id,log_entry_id,comment,log_create_dt,created_by";
+        return "state,grid_entry_id,history_log_entry_id,comment,log_create_dt,created_by";
     }
 
     private String auditTableFor(Table table) {
