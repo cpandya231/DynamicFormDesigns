@@ -351,6 +351,13 @@ public class Form {
         return table.buildGridInsertStatement(columns, values);
     }
 
+    public String makeGridDeleteValuesStmt(String name,Map<String, String> values) {
+        Table table = new Table();
+        table.setGridTableName(this.getName()+" "+name);
+        System.out.println(table.buildGridDeleteStatement(values));
+        return table.buildGridDeleteStatement(values);
+    }
+
     public String makeInsertMetadataValuesStmt(Map<String, String> values) {
         Table table = new Table();
         table.setName(this.getMetadataTableName());
@@ -378,6 +385,15 @@ public class Form {
         table.setName(this.getName());
 
         return table.buildUpdateStatement(this.getColumns(), values);
+    }
+
+    public String makeGridUpdateStatement(String name, Map<String,String> values) {
+        Table table = new Table();
+        table.setGridTableName(this.getName()+" "+name);
+        String columns = getGrids().stream().filter(controls->controls.get(0).getKey().equalsIgnoreCase(name)).findFirst().get()
+                .get(0).getControls().stream().map(ctrol->ctrol.getKey()).collect(Collectors.joining(","));
+        System.out.println(table.buildGridUpdateStatement(columns,values));
+        return table.buildGridUpdateStatement(columns,values);
     }
 
     public String makeUpdateMasterStmt(Map<String, String> values) {

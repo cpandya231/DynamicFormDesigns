@@ -123,6 +123,16 @@ public class Table {
         return insertStmt;
     }
 
+    public String buildGridDeleteStatement(Map<String,String> values) {
+        String deleteStmt = "DELETE FROM "+this.getName();
+        if(values.get("id")!=null) {
+            deleteStmt = deleteStmt + " WHERE id = '"+values.get("id")+"'";
+        } else {
+            deleteStmt = deleteStmt + " WHERE 1 = 2";
+        }
+        return deleteStmt;
+    }
+
     public String buildInsertMetadataStatement(String columns, Map<String,String> values) {
         String insertStmt = "INSERT INTO "+this.getName()+ "(";
         List<String> filledColumns = Arrays.stream((columns+","+getDefaultMetadataColumns()).split(",")).filter(column->values.containsKey(column)).collect(Collectors.toList());
@@ -146,6 +156,15 @@ public class Table {
     }
 
     public String buildUpdateStatement(String columns, Map<String,String> values) {
+        String updateStmt = "UPDATE "+this.getName()+" SET ";
+        List<String> filledColumns = Arrays.stream((columns+","+getDefaultColumns()).split(",")).filter(column->values.containsKey(column))
+                .map(col->col + "="+"'"+values.get(col)+"'").collect(Collectors.toList());
+        updateStmt = updateStmt + String.join(",",filledColumns);
+        updateStmt = updateStmt + " WHERE id='"+Integer.parseInt(values.get("id"))+"'";
+        return updateStmt;
+    }
+
+    public String buildGridUpdateStatement(String columns, Map<String,String> values) {
         String updateStmt = "UPDATE "+this.getName()+" SET ";
         List<String> filledColumns = Arrays.stream((columns+","+getDefaultColumns()).split(",")).filter(column->values.containsKey(column))
                 .map(col->col + "="+"'"+values.get(col)+"'").collect(Collectors.toList());

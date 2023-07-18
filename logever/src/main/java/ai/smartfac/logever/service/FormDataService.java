@@ -101,7 +101,7 @@ public class FormDataService {
                             connection -> connection.prepareStatement(form.makeGridInsertValuesStmt(gridValue.getName(),values), new String[]{"id"}), keyHolder);
                     var insertedId = keyHolder.getKey().intValue();
                     values.put("grid_entry_id", insertedId + "");
-                    values.put("history_log_id",entry.getHistoryEntryId()+"");
+                    values.put("history_log_entry_id",entry.getHistoryEntryId()+"");
                     jdbcTemplate.execute(form.makeGridInsertMetadataValuesStmt(gridValue.getName(),values));
                 });
             });
@@ -109,15 +109,44 @@ public class FormDataService {
     }
 
     @Transactional
-    public void update(Form form, Map<String, String> values) {
+    public Entry update(Form form, Map<String, String> values) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
+        System.out.println(keyHolder.getKey());
         jdbcTemplate.update(
                 connection -> connection.prepareStatement(form.makeUpdateStmt(values), new String[]{"id"}), keyHolder);
+        var insertedId = Integer.parseInt(values.get("id"));
         values.put("created_by", values.get("updated_by"));
-        jdbcTemplate.execute(form.makeInsertMetadataValuesStmt(values));
+
+        jdbcTemplate.update(
+                connection -> connection.prepareStatement(form.makeInsertMetadataValuesStmt(values), new String[]{"id"}), keyHolder);
+        var insertedHistoryId = keyHolder.getKey().intValue();
         values.remove("log_entry_id");
         if (values.get("endState").equalsIgnoreCase("true") && form.getType().equalsIgnoreCase("master")) {
             jdbcTemplate.execute(form.makeUpdateMasterStmt(values));
+        }
+        return new Entry(insertedId,insertedHistoryId);
+    }
+
+    @Transactional
+    public void update(Form form, ArrayList<GridLogEntry> gridValues, Entry entry) {
+        if(form.getGrids().size() > 0) {
+            gridValues.forEach(gridValue-> {
+                gridValue.getData().forEach(values-> {
+                    values.put("log_entry_id", entry.getEntryId()+"");
+                    values.put("history_log_entry_id",entry.getHistoryEntryId()+"");
+                    KeyHolder keyHolder = new GeneratedKeyHolder();
+                    var insertedId = 0;
+                    jdbcTemplate.update(
+                            connection -> connection.prepareStatement(form.makeGridDeleteValuesStmt(gridValue.getName(), values)));
+                    jdbcTemplate.update(
+                            connection -> connection.prepareStatement(form.makeGridInsertValuesStmt(gridValue.getName(), values), new String[]{"id"}), keyHolder);
+                    insertedId = keyHolder.getKey().intValue();
+
+                    values.put("grid_entry_id", insertedId + "");
+                    values.put("history_log_id",entry.getHistoryEntryId()+"");
+                    jdbcTemplate.execute(form.makeGridInsertMetadataValuesStmt(gridValue.getName(),values));
+                });
+            });
         }
     }
 

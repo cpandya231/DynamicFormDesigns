@@ -48,14 +48,13 @@ public class FormDataController {
         values.put("created_by", SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
         values.put("endState", logEntry.isEndState() ? "true" : "false");
         Entry entry = formDataService.insertInto(existingForm.get(), values);
-        System.out.println("Vihit---"+entry.getEntryId());
         formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entry);
         if(!logEntry.isEndState()) {
             Form form = existingForm.get();
             State nextState = form.getWorkflow().getStates().stream().filter(st->st.getLabel().equals(logEntry.getState())).findFirst().get();
             List<PendingEntry> pendingEntries = new ArrayList<>();
             nextState.getRoles().forEach(r->{
-                if(!r.getRole().equalsIgnoreCase("initiator")) {
+                if(!r.getRole().equalsIgnoreCase("Initiator")) {
                     nextState.getDepartments().forEach(d-> {
                         if(d.getName().equalsIgnoreCase("Initiator Department")) {
                             departmentService.getAllUnder(user.getDepartment()).forEach(aD-> {
@@ -89,7 +88,8 @@ public class FormDataController {
         values.put("log_entry_id", logEntry.getId() + "");
         values.put("endState", logEntry.isEndState() ? "true" : "false");
         values.remove("log_update_dt");
-        formDataService.update(existingForm.get(), values);
+        Entry entry = formDataService.update(existingForm.get(), values);
+        formDataService.update(existingForm.get(), logEntry.getGridData(),entry);
         pendingEntryService.removeAllFor(existingForm.get().getId(),logEntry.getId());
         if(!logEntry.isEndState()) {
             Form form = existingForm.get();
