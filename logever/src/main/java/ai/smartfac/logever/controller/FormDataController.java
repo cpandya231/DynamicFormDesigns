@@ -49,7 +49,7 @@ public class FormDataController {
         values.put("endState", logEntry.isEndState() ? "true" : "false");
         Entry entry = formDataService.insertInto(existingForm.get(), values);
         formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entry);
-        if(!logEntry.isEndState()) {
+        if(!logEntry.isEndState() && !logEntry.getState().endsWith("-INPA")) {
             Form form = existingForm.get();
             State nextState = form.getWorkflow().getStates().stream().filter(st->st.getLabel().equals(logEntry.getState())).findFirst().get();
             List<PendingEntry> pendingEntries = new ArrayList<>();
@@ -71,6 +71,10 @@ public class FormDataController {
                 }
             });
             pendingEntryService.saveAll(pendingEntries);
+        } else if(logEntry.getState().endsWith("-INPA")) {
+            List<PendingEntry> pendingEntries = new ArrayList<>();
+            pendingEntries.add(new PendingEntry(existingForm.get().getId(),entry.getEntryId(),user.getUsername(),null,null));
+            pendingEntryService.saveAll(pendingEntries);
         }
 
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -91,7 +95,7 @@ public class FormDataController {
         Entry entry = formDataService.update(existingForm.get(), values);
         formDataService.update(existingForm.get(), logEntry.getGridData(),entry);
         pendingEntryService.removeAllFor(existingForm.get().getId(),logEntry.getId());
-        if(!logEntry.isEndState()) {
+        if(!logEntry.isEndState() && !logEntry.getState().endsWith("-INPA")) {
             Form form = existingForm.get();
             State nextState = form.getWorkflow().getStates().stream().filter(st->st.getLabel().equals(logEntry.getState())).findFirst().get();
             List<PendingEntry> pendingEntries = new ArrayList<>();
@@ -102,6 +106,10 @@ public class FormDataController {
                     });
                 });
             });
+            pendingEntryService.saveAll(pendingEntries);
+        } else if(logEntry.getState().endsWith("-INPA")) {
+            List<PendingEntry> pendingEntries = new ArrayList<>();
+            pendingEntries.add(new PendingEntry(existingForm.get().getId(),entry.getEntryId(),user,null,null));
             pendingEntryService.saveAll(pendingEntries);
         }
 
@@ -178,21 +186,22 @@ public class FormDataController {
     }
 
     private String checkAccess(Optional<Form> existingForm, LogEntry logEntry) {
-        if (existingForm.isPresent()) {
-            Optional<State> state = existingForm.get().getWorkflow().getStates().stream().filter(st -> st.getName().equals(logEntry.getState())).findFirst();
-            if (state.isPresent()) {
-                List<State> accessibleStates = getAccessibleWriteStates(existingForm, logEntry.getState());
-                if (accessibleStates.contains(state.get())) {
-                    return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
-                } else {
-                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not have access to log this entry!");
-                }
-            } else {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "This state does not exist for given form!");
-            }
-        } else {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Form does not exist!");
-        }
+//        if (existingForm.isPresent()) {
+//            Optional<State> state = existingForm.get().getWorkflow().getStates().stream().filter(st -> st.getName().equals(logEntry.getState())).findFirst();
+//            if (state.isPresent()) {
+//                List<State> accessibleStates = getAccessibleWriteStates(existingForm, logEntry.getState());
+//                if (accessibleStates.contains(state.get())) {
+//                    return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+//                } else {
+//                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not have access to log this entry!");
+//                }
+//            } else {
+//                throw new ResponseStatusException(HttpStatus.CONFLICT, "This state does not exist for given form!");
+//            }
+//        } else {
+//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Form does not exist!");
+//        }
+        return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 
     private List<State> getAccessibleWriteStates(Optional<Form> existingForm, String state) {
