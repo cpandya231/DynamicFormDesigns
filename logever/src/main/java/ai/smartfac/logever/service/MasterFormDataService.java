@@ -62,14 +62,14 @@ public class MasterFormDataService {
                 (resultSet, rowNum) -> new DataQuery(resultSet, finalColumns.split(",")));
     }
 
-    public void updateEntryState(Form masterForm, String masterTableEntryId, String stateValue, Map<String, String> value) {
-        var result = getAllFor(masterForm, "id", masterTableEntryId, "entry_state");
+    public void updateEntryState(Form masterForm, String masterTableEntryId, String stateColumn, String stateValue, Map<String, String> value) {
+        var result = getAllFor(masterForm, "id", masterTableEntryId, stateColumn);
         if (result.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("No data found for id %s in master table %s", masterTableEntryId, masterForm.getName()));
         }
         var entryInProgress =
-                result.stream().filter(dataQuery -> stateValue.equalsIgnoreCase(dataQuery.getData().get("entry_state"))).findFirst();
+                result.stream().filter(dataQuery -> stateValue.equalsIgnoreCase(dataQuery.getData().get(stateColumn))).findFirst();
 
         if (entryInProgress.isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -77,7 +77,7 @@ public class MasterFormDataService {
         }
         Map<String, String> masterValues = new HashMap<>();
         masterValues.put("id", masterTableEntryId);
-        masterValues.put("entry_state", stateValue);
+        masterValues.put(stateColumn, stateValue);
         masterValues.put("metadata", value.get("metadata"));
         jdbcTemplate.execute(masterForm.makeUpdateMasterEntryStateStmt(masterValues));
     }

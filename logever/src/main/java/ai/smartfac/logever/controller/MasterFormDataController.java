@@ -78,6 +78,7 @@ public class MasterFormDataController {
     @PutMapping("/{formName}")
     public ResponseEntity<?> updateMasterEntryState(@PathVariable(name = "formName") String formName,
                                                     @RequestParam(name = "id") String masterTableEntryId,
+                                                    @RequestParam(name="stateColumn") String stateColumn,
                                                     @RequestParam(name = "stateValue") String stateValue,
                                                     @RequestBody Map<String, String> value ) {
         Optional<Form> existingForm = formService.getFormByName(formName);
@@ -86,7 +87,7 @@ public class MasterFormDataController {
             throw new RuntimeException("No form found for " + formName);
         }
 
-        masterFormDataService.updateEntryState(existingForm.get(), masterTableEntryId, stateValue,value);
+        masterFormDataService.updateEntryState(existingForm.get(), masterTableEntryId, stateColumn, stateValue,value);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -151,7 +152,7 @@ public class MasterFormDataController {
 
 
     @GetMapping("/reference/{formName}/{colName}")
-    public ResponseEntity<?> getReferenceDta(@PathVariable(name="formName") String formName
+    public ResponseEntity<?> getReferenceData(@PathVariable(name="formName") String formName
             , @PathVariable(name="colName") String colName, @RequestParam(name = "where") String where) {
         Form master = formService.getFormByName(formName).get();
         return new ResponseEntity<>(masterFormDataService.getReferenceData(master,colName,where),HttpStatus.OK);
