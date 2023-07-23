@@ -193,7 +193,11 @@ public class FormDataService {
     public List<DataQuery> getLogEntryMetadata(Form form, int entryId) {
         Table table = new Table();
         table.setName(form.getMetadataTableName());
-        String selectCols = "id," + form.getColumns() + ",log_entry_id,state,log_create_dt,created_by,comment";
+        String gridColumns = form.getGrids().stream().map(grid->grid.get(0).getKey()).collect(Collectors.joining(","));
+        String queryColumns = Arrays.stream(form.getColumns().split(",")).filter(col-> Arrays.stream(gridColumns.split(",")).filter(c->c.equalsIgnoreCase(col)).count()==0).collect(Collectors.joining(","));
+        System.out.println(gridColumns);
+        System.out.println(queryColumns);
+        String selectCols = "id," + queryColumns + ",log_entry_id,state,log_create_dt,created_by,comment";
         String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " WHERE log_entry_id=" + entryId + " ORDER BY log_create_dt desc";
         return jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet, selectCols.split(",")));
