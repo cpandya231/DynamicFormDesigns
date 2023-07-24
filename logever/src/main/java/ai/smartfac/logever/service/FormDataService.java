@@ -94,7 +94,7 @@ public class FormDataService {
     public void insertInto(Form form, ArrayList<GridLogEntry> gridValues, Entry entry) {
         if(form.getGrids().size() > 0) {
             gridValues.forEach(gridValue-> {
-                gridValue.getData().forEach(values-> {
+                if(gridValue.getData()!=null) gridValue.getData().forEach(values-> {
                     values.put("log_entry_id", entry.getEntryId()+"");
                     KeyHolder keyHolder = new GeneratedKeyHolder();
                     jdbcTemplate.update(

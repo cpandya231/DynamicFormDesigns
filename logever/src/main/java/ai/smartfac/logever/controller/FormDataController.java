@@ -100,11 +100,15 @@ public class FormDataController {
             State nextState = form.getWorkflow().getStates().stream().filter(st->st.getLabel().equals(logEntry.getState())).findFirst().get();
             List<PendingEntry> pendingEntries = new ArrayList<>();
             nextState.getRoles().forEach(r->{
-                nextState.getDepartments().forEach(d-> {
-                    departmentService.getAllUnder(d).forEach(aD-> {
-                        pendingEntries.add(new PendingEntry(form.getId(),logEntry.getId(),null,r.getId(),aD.getId()));
+                if(!r.getRole().equalsIgnoreCase("Initiator")) {
+                    nextState.getDepartments().forEach(d -> {
+                        departmentService.getAllUnder(d).forEach(aD -> {
+                            pendingEntries.add(new PendingEntry(form.getId(), logEntry.getId(), null, r.getId(), aD.getId()));
+                        });
                     });
-                });
+                } else {
+                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),logEntry.getData().get("initiator"),null,null));
+                }
             });
             pendingEntryService.saveAll(pendingEntries);
         } else if(logEntry.getState().endsWith("-INPA")) {
