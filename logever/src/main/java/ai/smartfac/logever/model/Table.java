@@ -117,16 +117,17 @@ public class Table {
         List<String> filledColumns = Arrays.stream((columns+","+getGridDefaultColumns()).split(",")).filter(column->values.containsKey(column)).collect(Collectors.toList());
 
         insertStmt = insertStmt + String.join(",",filledColumns);
+        filledColumns.stream().forEach(col->System.out.println("Value for "+col+" "+values.get(col)));
         insertStmt = insertStmt + ") VALUES (" +
-                String.join(",",filledColumns.stream().map(col->"'"+values.get(col)+"'").collect(Collectors.toList())) +
+                String.join(",",filledColumns.stream().map(col->"'"+(values.get(col)==null || values.get(col).equalsIgnoreCase("null")?"":values.get(col))+"'").collect(Collectors.toList())) +
                 ")";
         return insertStmt;
     }
 
-    public String buildGridDeleteStatement(Map<String,String> values) {
+    public String buildGridDeleteStatement(int id) {
         String deleteStmt = "DELETE FROM "+this.getName();
-        if(values.get("id")!=null) {
-            deleteStmt = deleteStmt + " WHERE id = '"+values.get("id")+"'";
+        if(id > 0) {
+            deleteStmt = deleteStmt + " WHERE log_entry_id = '"+id+"'";
         } else {
             deleteStmt = deleteStmt + " WHERE 1 = 2";
         }
@@ -150,7 +151,7 @@ public class Table {
 
         insertStmt = insertStmt + String.join(",",filledColumns);
         insertStmt = insertStmt + ") VALUES (" +
-                String.join(",",filledColumns.stream().map(col->"'"+values.get(col)+"'").collect(Collectors.toList())) +
+                String.join(",",filledColumns.stream().map(col->"'"+(values.get(col)==null || values.get(col).equalsIgnoreCase("null")?"":values.get(col))+"'").collect(Collectors.toList())) +
                 ")";
         return insertStmt;
     }

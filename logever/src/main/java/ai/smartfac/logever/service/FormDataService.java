@@ -111,7 +111,6 @@ public class FormDataService {
     @Transactional
     public Entry update(Form form, Map<String, String> values) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        System.out.println(keyHolder.getKey());
         jdbcTemplate.update(
                 connection -> connection.prepareStatement(form.makeUpdateStmt(values), new String[]{"id"}), keyHolder);
         var insertedId = Integer.parseInt(values.get("id"));
@@ -131,13 +130,13 @@ public class FormDataService {
     public void update(Form form, ArrayList<GridLogEntry> gridValues, Entry entry) {
         if(form.getGrids().size() > 0) {
             gridValues.forEach(gridValue-> {
+                jdbcTemplate.update(
+                        connection -> connection.prepareStatement(form.makeGridDeleteValuesStmt(gridValue.getName(), entry.getEntryId())));
                 gridValue.getData().forEach(values-> {
                     values.put("log_entry_id", entry.getEntryId()+"");
                     values.put("history_log_entry_id",entry.getHistoryEntryId()+"");
                     KeyHolder keyHolder = new GeneratedKeyHolder();
                     var insertedId = 0;
-                    jdbcTemplate.update(
-                            connection -> connection.prepareStatement(form.makeGridDeleteValuesStmt(gridValue.getName(), values)));
                     jdbcTemplate.update(
                             connection -> connection.prepareStatement(form.makeGridInsertValuesStmt(gridValue.getName(), values), new String[]{"id"}), keyHolder);
                     insertedId = keyHolder.getKey().intValue();
@@ -201,6 +200,26 @@ public class FormDataService {
         String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " WHERE log_entry_id=" + entryId + " ORDER BY log_create_dt desc";
         return jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet, selectCols.split(",")));
+    }
+
+    public ArrayList<GridDataQuery> getLogEntryGridMetadata(Form form, int entryId) {
+        Table table = new Table();
+        Table auditTable = new Table();
+        ArrayList<GridDataQuery> grids = new ArrayList<>();
+        if(form.getGrids().size() > 0) {
+            form.getGrids().stream().forEach(gridCtrl -> {
+                table.setName(form.getMetadataTableName());
+                auditTable.setGridAuditTableName(form.getName()+" "+gridCtrl.get(0).getKey());
+                String columns = gridCtrl.get(0).getControls().stream().map(ctrl -> ctrl.getKey()).collect(Collectors.joining(","));
+                String select = "id,grid_entry_id,history_log_entry_id,log_create_dt," + columns;
+                String gridSelectStmt = "SELECT " + select + " from " + auditTable.getName() + " where history_log_entry_id in (SELECT id from "+table.getName()+" where log_entry_id ='"+entryId+"')";
+                System.out.println(gridSelectStmt);
+                List<DataQuery> gridDataQuery = jdbcTemplate.query(gridSelectStmt,
+                        (resultSet, rowNum) -> new DataQuery(resultSet, select.split(",")));
+                grids.add(new GridDataQuery(gridCtrl.get(0).getKey(), gridDataQuery, select));
+            });
+        }
+        return grids;
     }
 
     public ArrayList<GridDataQuery> getGridsFor(Form form, int logEntryId) {

@@ -162,6 +162,16 @@ public class FormDataController {
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
     }
 
+    @GetMapping("/grid/metadata/{formId}/{entryId}")
+    public ResponseEntity<?> getLogEntryGridMetadata(@PathVariable(name = "formId") int formId,
+                                                 @PathVariable(name = "entryId") int entryId) {
+        Optional<Form> existingForm = formService.getFormById(formId);
+
+        var dataQueried = formDataService.getLogEntryGridMetadata(existingForm.get(), entryId);
+
+        return new ResponseEntity<>(dataQueried, HttpStatus.OK);
+    }
+
     @PostMapping("/metadata/{formId}/{entryId}")
     public ResponseEntity<?> saveLogEntryMetadata(@PathVariable(name = "formId") int formId,
                                                   @PathVariable(name = "entryId") int entryId,

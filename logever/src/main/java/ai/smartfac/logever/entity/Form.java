@@ -351,11 +351,11 @@ public class Form {
         return table.buildGridInsertStatement(columns, values);
     }
 
-    public String makeGridDeleteValuesStmt(String name,Map<String, String> values) {
+    public String makeGridDeleteValuesStmt(String name,int id) {
         Table table = new Table();
         table.setGridTableName(this.getName()+" "+name);
-        System.out.println(table.buildGridDeleteStatement(values));
-        return table.buildGridDeleteStatement(values);
+        System.out.println(table.buildGridDeleteStatement(id));
+        return table.buildGridDeleteStatement(id);
     }
 
     public String makeInsertMetadataValuesStmt(Map<String, String> values) {
