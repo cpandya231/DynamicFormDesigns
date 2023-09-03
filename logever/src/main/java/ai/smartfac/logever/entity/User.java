@@ -37,6 +37,9 @@ public class User implements UserDetails {
     @Column(nullable=false,name = "date_of_birth")
     @JsonFormat(pattern="yyyy-MM-dd")
     private Date dateOfBirth;
+    private String employee_code;
+    private String windows_id;
+    private String reporting_manager;
     @Column(nullable=false)
     private String password;
     private String code;
@@ -249,5 +252,29 @@ public class User implements UserDetails {
 
     public void setDesignation(String designation) {
         this.designation = designation;
+    }
+
+    public String getEmployee_code() {
+        return employee_code;
+    }
+
+    public void setEmployee_code(String employee_code) {
+        this.employee_code = employee_code;
+    }
+
+    public String getWindows_id() {
+        return windows_id;
+    }
+
+    public void setWindows_id(String windows_id) {
+        this.windows_id = windows_id;
+    }
+
+    public String getReporting_manager() {
+        return reporting_manager;
+    }
+
+    public void setReporting_manager(String reporting_manager) {
+        this.reporting_manager = reporting_manager;
     }
 }

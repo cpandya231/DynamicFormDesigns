@@ -65,6 +65,10 @@ public class UserController {
                 existingUser.get().setRoles(user.getRoles());
                 userUpdated = true;
             }
+            if(user.getReporting_manager()!=null && user.getReporting_manager()!=existingUser.get().getReporting_manager()) {
+                existingUser.get().setReporting_manager(user.getReporting_manager());
+                userUpdated = true;
+            }
             if(user.getEmail()!=null && !user.getEmail().isEmpty() && (existingUser.get().getEmail()==null || existingUser.get().getEmail().equals(user.getEmail()))) {
                 existingUser.get().setEmail(user.getEmail());
                 userUpdated = true;

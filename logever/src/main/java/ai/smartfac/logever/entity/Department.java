@@ -11,6 +11,9 @@ public class Department {
     private String name;
     private String code;
     private String site;
+    @ManyToOne
+    @JoinColumn(name = "hod")
+    private User hod;
     @Column(name = "parent_id",nullable = false)
     private Integer parentId;
 
@@ -61,5 +64,13 @@ public class Department {
 
     public void setSite(String site) {
         this.site = site;
+    }
+
+    public User getHod() {
+        return hod;
+    }
+
+    public void setHod(User hod) {
+        this.hod = hod;
     }
 }
