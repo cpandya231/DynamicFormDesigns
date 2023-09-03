@@ -48,6 +48,8 @@ public class DepartmentController {
                 existingDepartment.get().setCode(department.getCode());
             if(department.getParentId()!=null && !department.getParentId().equals(existingDepartment.get().getParentId()))
                 existingDepartment.get().setParentId(department.getParentId());
+            if(department.getHod()!=null && !department.getHod().equals(existingDepartment.get().getHod()))
+                existingDepartment.get().setHod(department.getHod());
             if(department.getSite()!=null && !department.getSite().equals(existingDepartment.get().getSite()))
                 existingDepartment.get().setSite(department.getSite());
             updatedDepartment = departmentService.save(existingDepartment.get());
