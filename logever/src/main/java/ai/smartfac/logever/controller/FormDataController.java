@@ -39,13 +39,17 @@ public class FormDataController {
     @Autowired
     PendingEntryService pendingEntryService;
 
+    @Autowired
+    private EmailService emailService;
+
     @PostMapping("/{formId}")
     public ResponseEntity<?> logEntry(@PathVariable(name = "formId") int formId, @RequestBody LogEntry logEntry) {
         Optional<Form> existingForm = formService.getFormById(formId);
-        User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()).get();
+        String username = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        User user = userService.getUserByUsername(username).get();
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
-        values.put("created_by", SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
+        values.put("created_by", username);
         values.put("endState", logEntry.isEndState() ? "true" : "false");
         Entry entry = formDataService.insertInto(existingForm.get(), values);
         formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entry);
@@ -76,7 +80,11 @@ public class FormDataController {
             pendingEntries.add(new PendingEntry(existingForm.get().getId(),entry.getEntryId(),user.getUsername(),null,null));
             pendingEntryService.saveAll(pendingEntries);
         }
-
+        EmailDetails details = new EmailDetails();
+        details.setSubject("DigitEdgy : EUAM : New Request Created");
+        details.setRecipient(user.getEmail());
+        details.setMsgBody("Hello "+user.getFirst_name()+",\n\nYour request has been submitted!\n\nThanks & Regards,\nTeam Digitedgy.");
+        String status = emailService.sendSimpleMail(details);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 

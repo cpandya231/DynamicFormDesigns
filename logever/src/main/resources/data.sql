@@ -94,13 +94,13 @@ WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'UPPER_AND_LOWER_REQD'
 ) LIMIT 1 ^;
 
-INSERT INTO settings (type,`key`,`value`)
-SELECT * FROM (SELECT 'SMTP','SMTP_SERVER_IP','') AS tmp
+INSERT INTO settings (type,`key`, app_key,`value`)
+SELECT * FROM (SELECT 'SMTP','SMTP_SERVER_IP','spring.mail.host','') AS tmp
 WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'SMTP_SERVER_IP'
 ) LIMIT 1 ^;
-INSERT INTO settings (type,`key`,`value`)
-SELECT * FROM (SELECT 'SMTP','SMTP_SERVER_PORT','') AS tmp
+INSERT INTO settings (type,`key`,app_key,`value`)
+SELECT * FROM (SELECT 'SMTP','SMTP_SERVER_PORT','spring.mail.port','') AS tmp
 WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'SMTP_SERVER_PORT'
 ) LIMIT 1 ^;
@@ -109,13 +109,13 @@ SELECT * FROM (SELECT 'SMTP','FROM_EMAIL','') AS tmp
 WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'FROM_EMAIL'
 ) LIMIT 1 ^;
-INSERT INTO settings (type,`key`,`value`)
-SELECT * FROM (SELECT 'SMTP','USERNAME','') AS tmp
+INSERT INTO settings (type,`key`,app_key,`value`)
+SELECT * FROM (SELECT 'SMTP','USERNAME','spring.mail.username','') AS tmp
 WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'USERNAME'
 ) LIMIT 1 ^;
-INSERT INTO settings (type,`key`,`value`)
-SELECT * FROM (SELECT 'SMTP','PASSWORD','') AS tmp
+INSERT INTO settings (type,`key`,app_key,`value`)
+SELECT * FROM (SELECT 'SMTP','PASSWORD','spring.mail.password','') AS tmp
 WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'PASSWORD'
 ) LIMIT 1 ^;

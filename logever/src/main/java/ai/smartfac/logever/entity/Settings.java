@@ -20,6 +20,9 @@ public class Settings {
     @Column(nullable = false,name = "`key`")
     private String key;
 
+    @Column(nullable = true, columnDefinition = "VARCHAR(1000) DEFAULT NULL")
+    private String app_key;
+
     @Column(nullable = false)
     private String value;
 
@@ -77,5 +80,13 @@ public class Settings {
 
     public void setUpdatedDt(String updatedDt) {
         this.updatedDt = updatedDt;
+    }
+
+    public String getApp_key() {
+        return app_key;
+    }
+
+    public void setApp_key(String app_key) {
+        this.app_key = app_key;
     }
 }
