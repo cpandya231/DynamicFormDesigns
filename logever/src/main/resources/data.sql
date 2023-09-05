@@ -21,7 +21,20 @@ SELECT * FROM (SELECT 'ROLE_ADMIN','Administrator role for the Application','adm
 WHERE NOT EXISTS (
     SELECT role FROM role WHERE role = 'ROLE_ADMIN'
 ) LIMIT 1 ^;
-
+INSERT INTO role (id,role,description,created_by,create_dt)
+SELECT * FROM (SELECT '-1','INITIATOR','Initiator role for an individual','admin',current_timestamp) AS tmp
+WHERE NOT EXISTS (
+    SELECT role FROM role WHERE role = 'INITIATOR'
+) LIMIT 1 ^;
+SELECT * FROM (SELECT '-2','INITIATOR MANAGER','Reporting Manager role for an individual','admin',current_timestamp) AS tmp
+WHERE NOT EXISTS (
+    SELECT role FROM role WHERE role = 'INITIATOR MANAGER'
+) LIMIT 1 ^;
+INSERT INTO role (id,role,description,created_by,create_dt)
+SELECT * FROM (SELECT '-3','INITIATOR HOD','HOD role for an individual','admin',current_timestamp) AS tmp
+WHERE NOT EXISTS (
+    SELECT role FROM role WHERE role = 'INITIATOR HOD'
+) LIMIT 1 ^;
 
 INSERT INTO role_permission(role_id,permission_id)
 SELECT * FROM (SELECT 1 as role_id,1 as permission_id) AS tmp

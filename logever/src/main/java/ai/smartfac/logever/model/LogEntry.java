@@ -8,6 +8,7 @@ public class LogEntry {
     private int id;
     private String state;
     private boolean endState;
+    private String initiator;
     private Map<String,String> data;
     private ArrayList<GridLogEntry> gridData;
 
@@ -49,5 +50,13 @@ public class LogEntry {
 
     public void setGridData(ArrayList<GridLogEntry> gridData) {
         this.gridData = gridData;
+    }
+
+    public String getInitiator() {
+        return initiator;
+    }
+
+    public void setInitiator(String initiator) {
+        this.initiator = initiator;
     }
 }

@@ -59,17 +59,25 @@ public class FormDataController {
             List<PendingEntry> pendingEntries = new ArrayList<>();
             nextState.getRoles().forEach(r->{
                 if(!r.getRole().equalsIgnoreCase("Initiator")) {
-                    nextState.getDepartments().forEach(d-> {
-                        if(d.getName().equalsIgnoreCase("Initiator Department")) {
-                            departmentService.getAllUnder(user.getDepartment()).forEach(aD-> {
-                                pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),null,r.getId(),aD.getId()));
+                    if(!r.getRole().equalsIgnoreCase("Initiator Manager")) {
+                        if(!r.getRole().equalsIgnoreCase("Initiator HOD")) {
+                            nextState.getDepartments().forEach(d -> {
+                                if (d.getName().equalsIgnoreCase("Initiator Department")) {
+                                    departmentService.getAllUnder(user.getDepartment()).forEach(aD -> {
+                                        pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), null, r.getId(), aD.getId()));
+                                    });
+                                } else {
+                                    departmentService.getAllUnder(d).forEach(aD -> {
+                                        pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), null, r.getId(), aD.getId()));
+                                    });
+                                }
                             });
                         } else {
-                            departmentService.getAllUnder(d).forEach(aD-> {
-                                pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),null,r.getId(),aD.getId()));
-                            });
+                            pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),user.getDepartment().getHod(),null,null));
                         }
-                    });
+                    } else {
+                        pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),user.getReporting_manager(),null,null));
+                    }
                 } else {
                     pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),user.getUsername(),null,null));
                 }
@@ -92,7 +100,7 @@ public class FormDataController {
     public ResponseEntity<?> updateLogEntry(@PathVariable(name = "formId") int formId, @RequestBody LogEntry logEntry) {
         Optional<Form> existingForm = formService.getFormById(formId);
         String user = checkAccess(existingForm, logEntry);
-
+        User initiator = userService.getUserByUsername(logEntry.getInitiator()).get();
         Map<String, String> values = logEntry.getData();
         values.put("state", logEntry.getState());
         values.put("updated_by", user);
@@ -109,13 +117,21 @@ public class FormDataController {
             List<PendingEntry> pendingEntries = new ArrayList<>();
             nextState.getRoles().forEach(r->{
                 if(!r.getRole().equalsIgnoreCase("Initiator")) {
-                    nextState.getDepartments().forEach(d -> {
-                        departmentService.getAllUnder(d).forEach(aD -> {
-                            pendingEntries.add(new PendingEntry(form.getId(), logEntry.getId(), null, r.getId(), aD.getId()));
-                        });
-                    });
+                    if(!r.getRole().equalsIgnoreCase("Initiator Manager")) {
+                        if(!r.getRole().equalsIgnoreCase("Initiator HOD")) {
+                            nextState.getDepartments().forEach(d -> {
+                                departmentService.getAllUnder(d).forEach(aD -> {
+                                    pendingEntries.add(new PendingEntry(form.getId(), logEntry.getId(), null, r.getId(), aD.getId()));
+                                });
+                            });
+                        } else {
+                            pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getHod(),null,null));
+                        }
+                    } else {
+                        pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getReporting_manager(),null,null));
+                    }
                 } else {
-                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),logEntry.getData().get("initiator"),null,null));
+                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getUsername(),null,null));
                 }
             });
             pendingEntryService.saveAll(pendingEntries);
