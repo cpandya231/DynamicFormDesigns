@@ -6,6 +6,7 @@ import ai.smartfac.logever.repository.RoleRepository;
 import ai.smartfac.logever.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class UserService implements ApplicationListener<AuthenticationSuccessEve
 
     @Override
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
+        System.out.println(((UsernamePasswordAuthenticationToken)event.getSource()).getName());
         String userName = ((User) event.getAuthentication().
                 getPrincipal()).getUsername();
         User user = this.userRepository.findByUsername(userName).get();

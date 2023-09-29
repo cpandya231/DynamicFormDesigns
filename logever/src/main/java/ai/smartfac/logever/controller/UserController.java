@@ -74,7 +74,8 @@ public class UserController {
                 userUpdated = true;
             }
             if(user.getPassword()!=null && !user.getPassword().isEmpty()
-                    && !bCryptPasswordEncoder.matches(user.getPassword(),existingUser.get().getPassword())) {
+                    && !user.getPassword().equalsIgnoreCase(existingUser.get().getPassword())) {
+                System.out.println("Password updated");
                 existingUser.get().setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
                 existingUser.get().setLastPasswordChangedDate(new Date(System.currentTimeMillis()));
                 userUpdated = true;

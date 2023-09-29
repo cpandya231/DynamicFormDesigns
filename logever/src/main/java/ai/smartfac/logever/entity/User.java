@@ -44,6 +44,7 @@ public class User implements UserDetails {
     private String password;
     private String code;
     private String designation;
+    private Date hireDate;
     @ManyToOne
     @JoinColumn(name = "department_id")
     private Department department;
@@ -276,5 +277,13 @@ public class User implements UserDetails {
 
     public void setReporting_manager(String reporting_manager) {
         this.reporting_manager = reporting_manager;
+    }
+
+    public Date getHireDate() {
+        return hireDate;
+    }
+
+    public void setHireDate(Date hireDate) {
+        this.hireDate = hireDate;
     }
 }
