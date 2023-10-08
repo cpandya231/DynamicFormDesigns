@@ -37,13 +37,15 @@ public class User implements UserDetails {
     @Column(nullable=false,name = "date_of_birth")
     @JsonFormat(pattern="yyyy-MM-dd")
     private Date dateOfBirth;
-    private String employee_code;
+    @Column(name = "employee_code", nullable = false)
+    private String employeeCode;
     private String windows_id;
     private String reporting_manager;
     @Column(nullable=false)
     private String password;
     private String code;
     private String designation;
+    @JsonFormat(pattern="yyyy-MM-dd")
     private Date hireDate;
     @ManyToOne
     @JoinColumn(name = "department_id")
@@ -256,11 +258,11 @@ public class User implements UserDetails {
     }
 
     public String getEmployee_code() {
-        return employee_code;
+        return employeeCode;
     }
 
     public void setEmployee_code(String employee_code) {
-        this.employee_code = employee_code;
+        this.employeeCode = employee_code;
     }
 
     public String getWindows_id() {

@@ -57,4 +57,8 @@ public class UserService implements ApplicationListener<AuthenticationSuccessEve
 
         return userRepository.save(newUser);
     }
+
+    public User getUserByEmployeeCode(String employeeCode) {
+        return userRepository.findByEmployeeCode(employeeCode).get();
+    }
 }

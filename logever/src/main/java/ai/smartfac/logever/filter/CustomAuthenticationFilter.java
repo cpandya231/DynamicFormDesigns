@@ -71,9 +71,12 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 .withClaim("user_id",user.getId())
                 .withClaim("windows_id",user.getWindows_id())
                 .withClaim("designation",user.getDesignation())
-                .withClaim("hire_date",user.getHireDate())
+                .withClaim("hire_date",user.getHireDate().toString())
                 .withClaim("site",user.getDepartment().getSite())
                 .sign(algo);
+
+
+        System.out.println(user.getHireDate());
 
         String refreshToken = JWT.create()
                 .withSubject(user.getUsername())

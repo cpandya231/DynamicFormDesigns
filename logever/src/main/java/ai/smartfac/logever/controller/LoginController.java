@@ -50,6 +50,17 @@ public class LoginController {
                         .withIssuer(request.getRequestURL().toString())
                         .withClaim("role",user.getAuthorities().stream().filter(f->f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                         .withClaim("authority",user.getAuthorities().stream().filter(f->!f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                        .withClaim("firstName",user.getFirst_name())
+                        .withClaim("lastName",user.getLast_name())
+                        .withClaim("department",user.getDepartment().getName())
+                        .withClaim("reporting_manager",user.getReporting_manager())
+                        .withClaim("email",user.getEmail())
+                        .withClaim("employee_code",user.getEmployee_code())
+                        .withClaim("user_id",user.getId())
+                        .withClaim("windows_id",user.getWindows_id())
+                        .withClaim("designation",user.getDesignation())
+                        .withClaim("hire_date",user.getHireDate().toString())
+                        .withClaim("site",user.getDepartment().getSite())
                         .sign(algo);
 
                 Map<String,String> tokens = new HashMap<>();

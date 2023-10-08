@@ -5,6 +5,7 @@ import ai.smartfac.logever.entity.User;
 import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.model.MultiSelectResponse;
 import ai.smartfac.logever.model.Table;
+import ai.smartfac.logever.model.TextResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -24,14 +25,15 @@ public class CustomService {
         Table table = new Table();
         table.setName("EUAM");
         Table metaTable = new Table();
-        String selectCols = "required_roles,access_type";
-        String selectStmt = "SELECT required_roles, access_type from " + table.getName() + " l where l.application_name = '"+application+"' and l."+idType+" ='"+employeeID+"' and" +
-                " l.state = 'Done' order by log_update_dt desc, log_create_dt desc limit 1";
+        String selectCols = "required_roles,application_request_type";
+        String selectStmt = "SELECT required_roles, application_request_type from " + table.getName() + " l where l.application_name = '"+application+
+                "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and" +
+                " l.state = 'Acknowledge and Close' order by log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);
 
         List<DataQuery> result =  jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
-        if(result.size() > 0 && !result.get(0).getData().get("access_type").equalsIgnoreCase("De-activation")) {
+        if(result.size() > 0 && !result.get(0).getData().get("application_request_type").equalsIgnoreCase("De-activation")) {
             output.add("Role Change");
             output.add("Password Reset/Unlock");
             output.add("De-Activation");
@@ -43,8 +45,9 @@ public class CustomService {
     }
 
     public MultiSelectResponse getAccessRoles(String employeeID, String application, String idType) {
-        String selectColumns = "required_roles,access_type";
-        String selectStmt = "SELECT required_roles, access_type from f_euam_lgs l where l.application_name = '"+application+"' and l."+idType+" ='"+employeeID+"' and l.state = 'Done' order by log_update_dt desc, log_create_dt desc limit 1";
+        String selectColumns = "required_roles,application_request_type";
+        String selectStmt = "SELECT required_roles, application_request_type from f_euam_lgs l where l.application_name = '"+application+"' " +
+                "and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and l.state = 'Acknowledge and Close' order by log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);
 
         List<DataQuery> resultOne =  jdbcTemplate.query(selectStmt,
@@ -58,13 +61,29 @@ public class CustomService {
         List<DataQuery> result =  jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
         allRoles = new ArrayList<>(result.stream().map(d->d.getData().get("roles")).collect(Collectors.toList()));
-        if(resultOne.size() > 0 && !resultOne.get(0).getData().get("access_type").equalsIgnoreCase("De-activation")) {
+        if(resultOne.size() > 0 && !resultOne.get(0).getData().get("application_request_type").equalsIgnoreCase("De-activation")) {
             String roles = resultOne.get(0).getData().get("required_roles");
             System.out.println(roles);
             ArrayList<String> userRoles = new ArrayList<>(Arrays.asList(roles.split(",")));
             return new MultiSelectResponse(allRoles,userRoles);
         } else {
             return new MultiSelectResponse(allRoles,new ArrayList<>());
+        }
+    }
+
+    public TextResponseModel getExistingID(String employeeID, String application) {
+        String selectCols = "allocated_user_id";
+        String selectStmt = "SELECT allocated_user_id from f_euam_lgs l where l.application_name = '"+application+
+                "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and" +
+                " l.state = 'Acknowledge and Close' and l.application_request_type = 'Activation' order by log_update_dt desc, log_create_dt desc limit 1";
+        System.out.println(selectStmt);
+
+        List<DataQuery> result =  jdbcTemplate.query(selectStmt,
+                (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
+        if(result.size() > 0) {
+            return new TextResponseModel(result.get(0).getData().get("allocated_user_id"));
+        } else {
+            return new TextResponseModel("User ID not found");
         }
     }
 }

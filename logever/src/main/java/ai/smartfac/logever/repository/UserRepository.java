@@ -10,4 +10,5 @@ public interface UserRepository extends CrudRepository<User,Integer> {
 
     @Query("select u from User u join fetch u.roles where u.username = ?1")
     Optional<User> findByUsername(String username);
+    Optional<User> findByEmployeeCode(String employee_code);
 }
