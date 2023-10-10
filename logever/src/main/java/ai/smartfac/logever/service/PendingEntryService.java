@@ -20,7 +20,7 @@ public class PendingEntryService {
     }
 
     public Iterable<PendingEntry> getAllForUser(User user) {
-        return pendingEntryRepository.getAllForRoleAndDepartmentOrUser(user.getRoles().stream().collect(Collectors.toList()).get(0).getId(),
+        return pendingEntryRepository.getAllForRoleAndDepartmentOrUser(user.getRoles().stream().map(role->role.getId()).collect(Collectors.toList()),
                 user.getDepartment().getId(),user.getUsername());
     }
 
