@@ -23,7 +23,7 @@ public class CustomService {
     public List<String> getAllAccessTypes(String employeeID, String application, String idType) {
         ArrayList<String> output = new ArrayList<String>();
         Table table = new Table();
-        table.setName("EUAM");
+        table.setName("E_UAM");
         Table metaTable = new Table();
         String selectCols = "required_roles,application_request_type";
         String selectStmt = "SELECT required_roles, application_request_type from " + table.getName() + " l where l.application_name = '"+application+
@@ -46,7 +46,7 @@ public class CustomService {
 
     public MultiSelectResponse getAccessRoles(String employeeID, String application, String idType) {
         String selectColumns = "required_roles,application_request_type";
-        String selectStmt = "SELECT required_roles, application_request_type from f_euam_lgs l where l.application_name = '"+application+"' " +
+        String selectStmt = "SELECT required_roles, application_request_type from f_e_uam_lgs l where l.application_name = '"+application+"' " +
                 "and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and l.state = 'Acknowledge and Close' order by log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);
 
@@ -73,7 +73,7 @@ public class CustomService {
 
     public TextResponseModel getExistingID(String employeeID, String application) {
         String selectCols = "allocated_user_id";
-        String selectStmt = "SELECT allocated_user_id from f_euam_lgs l where l.application_name = '"+application+
+        String selectStmt = "SELECT allocated_user_id from f_e_uam_lgs l where l.application_name = '"+application+
                 "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and" +
                 " l.state = 'Acknowledge and Close' and l.application_request_type = 'Activation' order by log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);

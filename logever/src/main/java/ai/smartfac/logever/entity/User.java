@@ -45,6 +45,8 @@ public class User implements UserDetails {
     private String password;
     private String code;
     private String designation;
+    @Column(nullable = false)
+    @CreationTimestamp
     @JsonFormat(pattern="yyyy-MM-dd")
     private Date hireDate;
     @ManyToOne
