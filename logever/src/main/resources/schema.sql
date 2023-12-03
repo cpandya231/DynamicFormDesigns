@@ -403,6 +403,21 @@ BEGIN
     SET V_NEW_STATE = concat(V_NEW_STATE,' ParentID updated: ',NEW.parent_id);
     SET V_CHECK = 1;
     END IF;
+    IF NEW.hod <> OLD.hod THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' HOD updated: ',OLD.hod);
+    SET V_NEW_STATE = concat(V_NEW_STATE,' HOD updated: ',NEW.hod);
+    SET V_CHECK = 1;
+    END IF;
+    IF NEW.designee1 <> OLD.designee1 THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' Designee-1 updated: ',OLD.designee1);
+    SET V_NEW_STATE = concat(V_NEW_STATE,' Designee-1 updated: ',NEW.designee1);
+    SET V_CHECK = 1;
+    END IF;
+    IF NEW.designee2 <> OLD.designee2 THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' Designee-2 updated: ',OLD.designee2);
+    SET V_NEW_STATE = concat(V_NEW_STATE,' Designee-2 updated: ',NEW.designee2);
+    SET V_CHECK = 1;
+    END IF;
     IF NEW.code <> OLD.code THEN
     SET V_PREV_STATE = concat(V_PREV_STATE,' Code updated: ',OLD.code);
     SET V_NEW_STATE = concat(V_NEW_STATE,' Code updated: ',NEW.code);

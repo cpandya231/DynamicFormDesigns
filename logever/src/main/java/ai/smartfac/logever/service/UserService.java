@@ -61,4 +61,8 @@ public class UserService implements ApplicationListener<AuthenticationSuccessEve
     public User getUserByEmployeeCode(String employeeCode) {
         return userRepository.findByEmployeeCode(employeeCode).get();
     }
+
+    public Optional<User> getUserById(int employeeId) {
+        return userRepository.findById(employeeId);
+    }
 }

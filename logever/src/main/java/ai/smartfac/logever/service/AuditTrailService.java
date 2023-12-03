@@ -43,7 +43,7 @@ public class AuditTrailService {
                                              Integer pageSize) {
 
         Page<AuditTrail> auditTrailPage;
-        Date date = Date.from(ZonedDateTime.now().minusMonths(1).toInstant());
+        Date date = Date.from(ZonedDateTime.now().minusMonths(12).toInstant());
 
         Timestamp startDateTimestamp = new Timestamp(date.getTime());
         Timestamp endDateTimestamp = Timestamp.from(Instant.now());

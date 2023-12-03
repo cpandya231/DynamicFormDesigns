@@ -15,4 +15,5 @@ public interface AuditTrailRepository extends CrudRepository<AuditTrail,Integer>
 
     Page<AuditTrail> findByUserNameAndAuditDtBetween(String username, Timestamp startDate, Timestamp endDate, Pageable sortedByDateDesc);
     Page<AuditTrail> findByAuditDtBetween(Timestamp startDate, Timestamp endDate, Pageable sortedByDateDesc);
+    Page<AuditTrail> findAll(Pageable sortedByDateDesc);
 }

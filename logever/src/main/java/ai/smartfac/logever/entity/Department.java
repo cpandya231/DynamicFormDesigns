@@ -12,6 +12,8 @@ public class Department {
     private String code;
     private String site;
     private String hod;
+    private String designee1;
+    private String designee2;
     @Column(name = "parent_id",nullable = false)
     private Integer parentId;
 
@@ -70,5 +72,21 @@ public class Department {
 
     public void setHod(String hod) {
         this.hod = hod;
+    }
+
+    public String getDesignee1() {
+        return designee1;
+    }
+
+    public void setDesignee1(String designee1) {
+        this.designee1 = designee1;
+    }
+
+    public String getDesignee2() {
+        return designee2;
+    }
+
+    public void setDesignee2(String designee2) {
+        this.designee2 = designee2;
     }
 }

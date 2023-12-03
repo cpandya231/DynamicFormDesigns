@@ -56,11 +56,11 @@ public class FormDataService {
                 nextState.getDepartments().forEach(d-> {
                     if(d.getName().equalsIgnoreCase("Initiator Department")) {
                         departmentService.getAllUnder(user.getDepartment()).forEach(aD-> {
-                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId()));
+                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId(),values.get("created_by")));
                         });
                     } else {
                         departmentService.getAllUnder(d).forEach(aD-> {
-                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId()));
+                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId(),values.get("created_by")));
                         });
                     }
                 });
@@ -160,7 +160,7 @@ public class FormDataService {
         String gridCols = form.getGrids().stream().flatMap(f->f.stream().map(grid->grid.getKey())).collect(Collectors.joining(","));
         String selectCols = "l.id," + Arrays.stream(form.getColumns().split(",")).filter(c-> Arrays.stream(gridCols.split(",")).filter(gc->gc.equalsIgnoreCase(c)).count() == 0).map(s->"l."+s).collect(Collectors.joining(",")) + ",l.state,l.log_create_dt,l.created_by,l.log_update_dt,l.updated_by";
         String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " l inner join pending_entry p on l.id=p.entry_id and p.form_id='"+form.getId()+"' where (p.assigned_role in ("+userRoles
-                +") and p.assigned_department="+userDept+") or p.assigned_user = '"+user.getUsername()+"'";
+                +") and p.assigned_department="+userDept+" and p.entry_created_by <> '"+ user.getUsername() +"') or p.assigned_user = '"+user.getUsername()+"'";
         System.out.println(selectStmt);
 
         return jdbcTemplate.query(selectStmt,

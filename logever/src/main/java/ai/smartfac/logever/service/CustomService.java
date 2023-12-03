@@ -13,12 +13,16 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class CustomService {
     @Autowired
     JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    UserService userService;
 
     public List<String> getAllAccessTypes(String employeeID, String application, String idType) {
         ArrayList<String> output = new ArrayList<String>();
@@ -30,16 +34,30 @@ public class CustomService {
                 "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and" +
                 " l.state = 'Acknowledge and Close' order by log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);
+        Optional<User> user = userService.getUserById(Integer.parseInt(employeeID));
+        Boolean userDisabled = false;
+
+        if(user.isPresent()) {
+            userDisabled = !user.get().getIsActive();
+        }
 
         List<DataQuery> result =  jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
         if(result.size() > 0 && !result.get(0).getData().get("application_request_type").equalsIgnoreCase("De-activation")) {
-            output.add("Role Change");
-            output.add("Password Reset/Unlock");
-            output.add("De-Activation");
+            if(userDisabled) {
+                output.add("De-Activation");
+                return output;
+            }
+            else {
+                output.add("Role Change");
+                output.add("Password Reset/Unlock");
+                output.add("De-Activation");
+                return output;
+            }
+        } else if(!userDisabled) {
+            output.add("Activation");
             return output;
         } else {
-            output.add("Activation");
             return output;
         }
     }

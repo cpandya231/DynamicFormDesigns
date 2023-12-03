@@ -1,6 +1,9 @@
 package ai.smartfac.logever.entity;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 public class PendingEntry {
@@ -18,6 +21,12 @@ public class PendingEntry {
     private Integer assignedRole;
 
     private Integer assignedDepartment;
+
+    private String entryCreatedBy;
+
+    @Column(name = "create_dt")
+    @CreationTimestamp
+    private Timestamp createDt;
 
     public Integer getId() {
         return id;
@@ -67,14 +76,31 @@ public class PendingEntry {
         this.entryId = entryId;
     }
 
+    public String getEntryCreatedBy() {
+        return entryCreatedBy;
+    }
+
+    public void setEntryCreatedBy(String entryCreatedBy) {
+        this.entryCreatedBy = entryCreatedBy;
+    }
+
+    public Timestamp getCreateDt() {
+        return createDt;
+    }
+
+    public void setCreateDt(Timestamp createDt) {
+        this.createDt = createDt;
+    }
+
     public PendingEntry() {
     }
 
-    public PendingEntry(Integer formId, Integer entryId, String assignedUser, Integer assignedRole, Integer assignedDepartment) {
+    public PendingEntry(Integer formId, Integer entryId, String assignedUser, Integer assignedRole, Integer assignedDepartment, String entryCreatedBy) {
         this.formId = formId;
         this.entryId = entryId;
         this.assignedUser = assignedUser;
         this.assignedRole = assignedRole;
         this.assignedDepartment = assignedDepartment;
+        this.entryCreatedBy = entryCreatedBy;
     }
 }

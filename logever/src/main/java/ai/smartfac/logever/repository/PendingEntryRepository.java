@@ -10,7 +10,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 public interface PendingEntryRepository extends CrudRepository<PendingEntry,Integer> {
-    @Query(value = "Select p from PendingEntry p where (p.assignedRole IN (:assignedRoles) and p.assignedDepartment=:assignedDepartment) or p.assignedUser=:assignedUser")
+    @Query(value = "Select p from PendingEntry p where (p.assignedRole IN (:assignedRoles) and p.assignedDepartment=:assignedDepartment and p.entryCreatedBy<>:assignedUser) or p.assignedUser=:assignedUser")
     public Iterable<PendingEntry> getAllForRoleAndDepartmentOrUser(@Param("assignedRoles") List<Integer> assignedRoles, @Param("assignedDepartment") Integer assignedDepartment, @Param("assignedUser") String assignedUser);
 
     @Modifying
