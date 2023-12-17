@@ -34,11 +34,14 @@ public class CustomService {
                 "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and" +
                 " l.state = 'Acknowledge and Close' order by log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);
-        Optional<User> user = userService.getUserById(Integer.parseInt(employeeID));
+        User user;
         Boolean userDisabled = false;
+        try {
+            user = userService.getUserByEmployeeCode(employeeID);
+            userDisabled = !user.getIsActive();
 
-        if(user.isPresent()) {
-            userDisabled = !user.get().getIsActive();
+        } catch (Exception ex) {
+            System.out.println("No user found for "+employeeID);
         }
 
         List<DataQuery> result =  jdbcTemplate.query(selectStmt,

@@ -132,35 +132,35 @@ public class FormDataController {
                         if(!r.getRole().equalsIgnoreCase("Initiator HOD")) {
                             nextState.getDepartments().forEach(d -> {
                                 departmentService.getAllUnder(d).forEach(aD -> {
-                                    pendingEntries.add(new PendingEntry(form.getId(), logEntry.getId(), null, r.getId(), aD.getId(), values.get("created_by")));
+                                    pendingEntries.add(new PendingEntry(form.getId(), logEntry.getId(), null, r.getId(), aD.getId(), initiator.getUsername()));
                                 });
                             });
                         } else {
                             if(initiator.getUsername().equalsIgnoreCase(initiator.getDepartment().getHod())) {
                                 if(initiator.getDepartment().getParentId() > 0) {
                                     Department parentDept = departmentService.getDepartmentById(initiator.getDepartment().getParentId()).get();
-                                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),parentDept.getHod(),null,null, values.get("created_by")));
+                                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),parentDept.getHod(),null,null, initiator.getUsername()));
                                 } else {
                                     if(initiator.getDepartment().getDesignee1()!=null && !initiator.getDepartment().getDesignee1().isEmpty())
-                                        pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee1(),null,null, values.get("created_by")));
+                                        pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee1(),null,null, initiator.getUsername()));
                                     if(initiator.getDepartment().getDesignee1()!=null && !initiator.getDepartment().getDesignee2().isEmpty())
-                                        pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee2(),null,null, values.get("created_by")));
+                                        pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee2(),null,null, initiator.getUsername()));
                                 }
                             } else
-                                pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getHod(),null,null, values.get("created_by")));
+                                pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getHod(),null,null, initiator.getUsername()));
 
                         }
                     } else {
-                        pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getReporting_manager(),null,null, values.get("created_by")));
+                        pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getReporting_manager(),null,null, initiator.getUsername()));
                     }
                 } else {
-                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getUsername(),null,null, values.get("created_by")));
+                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getUsername(),null,null, initiator.getUsername()));
                 }
             });
             pendingEntryService.saveAll(pendingEntries);
         } else if(logEntry.getState().endsWith("-INPA")) {
             List<PendingEntry> pendingEntries = new ArrayList<>();
-            pendingEntries.add(new PendingEntry(existingForm.get().getId(),entry.getEntryId(),user,null,null, values.get("created_by")));
+            pendingEntries.add(new PendingEntry(existingForm.get().getId(),entry.getEntryId(),user,null,null, initiator.getUsername()));
             pendingEntryService.saveAll(pendingEntries);
         }
 
