@@ -107,4 +107,13 @@ public class CustomService {
             return new TextResponseModel("User ID not found");
         }
     }
+
+    public List<DataQuery> fetchAllPendingEntries(String startDt) {
+        String selectCols = "create_dt,assigned_department,assigned_user,entry_id,form_id,pending_hod";
+        String selectStmt = "SELECT create_dt,assigned_department,assigned_user,entry_id,form_id,pending_hod from pending_entry where create_dt < '"+startDt+"'";
+        System.out.println(selectStmt);
+        List<DataQuery> result =  jdbcTemplate.query(selectStmt,
+                (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
+        return  result;
+    }
 }

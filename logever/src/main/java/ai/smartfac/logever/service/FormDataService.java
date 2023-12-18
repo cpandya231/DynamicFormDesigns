@@ -56,11 +56,12 @@ public class FormDataService {
                 nextState.getDepartments().forEach(d-> {
                     if(d.getName().equalsIgnoreCase("Initiator Department")) {
                         departmentService.getAllUnder(user.getDepartment()).forEach(aD-> {
-                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId(),values.get("created_by")));
+                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId(),values.get("created_by"),aD.getHod()));
                         });
                     } else {
                         departmentService.getAllUnder(d).forEach(aD-> {
-                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId(),values.get("created_by")));
+                            pendingEntries.add(new PendingEntry(form.getId(),insertedId,null,r.getId(),aD.getId()
+                                    ,values.get("created_by"), aD.getHod()));
                         });
                     }
                 });

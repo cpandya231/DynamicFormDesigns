@@ -24,6 +24,8 @@ public class PendingEntry {
 
     private String entryCreatedBy;
 
+    private String pendingHod;
+
     @Column(name = "create_dt")
     @CreationTimestamp
     private Timestamp createDt;
@@ -92,15 +94,25 @@ public class PendingEntry {
         this.createDt = createDt;
     }
 
+    public String getPendingHod() {
+        return pendingHod;
+    }
+
+    public void setPendingHod(String pendingHod) {
+        this.pendingHod = pendingHod;
+    }
+
     public PendingEntry() {
     }
 
-    public PendingEntry(Integer formId, Integer entryId, String assignedUser, Integer assignedRole, Integer assignedDepartment, String entryCreatedBy) {
+    public PendingEntry(Integer formId, Integer entryId, String assignedUser, Integer assignedRole, Integer assignedDepartment,
+                        String entryCreatedBy, String pendingHod) {
         this.formId = formId;
         this.entryId = entryId;
         this.assignedUser = assignedUser;
         this.assignedRole = assignedRole;
         this.assignedDepartment = assignedDepartment;
         this.entryCreatedBy = entryCreatedBy;
+        this.pendingHod = pendingHod;
     }
 }
