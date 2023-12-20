@@ -91,6 +91,12 @@ public class FormDataController {
                             } else
                                 pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),user.getDepartment().getHod(),null,null
                                         , values.get("created_by"), userService.getUserByUsername(user.getDepartment().getHod()).get().getDepartment().getHod()));
+                                if(user.getDepartment().getDesignee1()!=null && !user.getDepartment().getDesignee1().isEmpty())
+                                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),user.getDepartment().getDesignee1(),null,null,
+                                            values.get("created_by"), userService.getUserByUsername(user.getDepartment().getHod()).get().getDepartment().getHod()));
+                                if(user.getDepartment().getDesignee2()!=null && !user.getDepartment().getDesignee2().isEmpty())
+                                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),user.getDepartment().getDesignee2(),null,null
+                                            , values.get("created_by"), userService.getUserByUsername(user.getDepartment().getHod()).get().getDepartment().getHod()));
                         }
                     } else {
                         pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),user.getReporting_manager(),null,null
@@ -162,7 +168,12 @@ public class FormDataController {
                             } else
                                 pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getHod(),null,null
                                         , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getHod()).get().getDepartment().getHod()));
-
+                                if(initiator.getDepartment().getDesignee1()!=null && !initiator.getDepartment().getDesignee1().isEmpty())
+                                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee1(),null,null
+                                            , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee1()).get().getDepartment().getHod()));
+                                if(initiator.getDepartment().getDesignee1()!=null && !initiator.getDepartment().getDesignee2().isEmpty())
+                                    pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee2(),null,null
+                                        , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee2()).get().getDepartment().getHod()));
                         }
                     } else {
                         pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getReporting_manager(),null,null
