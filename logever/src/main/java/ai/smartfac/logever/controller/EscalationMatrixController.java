@@ -14,6 +14,7 @@ import ai.smartfac.logever.entity.EmailDetails;
 import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +36,10 @@ public class EscalationMatrixController {
     @Autowired
     FormService formService;
 
-    @Scheduled(cron = "0 0 9 * * *")
+    @Value("${app.url}") private String appUrl;
+
+//    @Scheduled(cron = "0 0 9 * * *")
+    @Scheduled(fixedRate = 5000)
     public void sendEscalations() {
         LocalDate currentDate = LocalDate.now();
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -67,7 +71,19 @@ public class EscalationMatrixController {
         });
         groupedResults.keySet().forEach(x-> {
             String text=
-                    "<table style=\"border: 1px solid white; border-collapse: collapse\"\n" +
+                    "<div\n" +
+                            "      style=\"\n" +
+                            "        font-size: 16px;\n" +
+                            "        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
+                            "          'Lucida Sans', Arial, sans-serif;\n" +
+                            "      \"\n" +
+                            "    >\n" +
+                            "      Dear "+x+",<br />\n" +
+                            "      Below mentioned user access management requests are pending for action and\n" +
+                            "      approval\n" +
+                            "    </div>\n" +
+                            "    <br />" +
+                            "<table style=\"border: 1px solid white; border-collapse: collapse\"\n" +
                             "      width='100%' border='1' align='center'>"
                             + "<tr style=\"\n" +
                             "          border: 1px solid white;\n" +
@@ -79,7 +95,7 @@ public class EscalationMatrixController {
                             "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                             "            'Lucida Sans', Arial, sans-serif;\n" +
                             "        \" align='center'>"
-                            + "<td colspan='4'><b>Pending from 24 hrs</b></td>"
+                            + "<td colspan='6'><b>Pending from 24 hrs</b></td>"
                             + "</tr>"
                             + "<tr style=\"\n" +
                             "          border: 1px solid white;\n" +
@@ -91,10 +107,12 @@ public class EscalationMatrixController {
                             "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                             "            'Lucida Sans', Arial, sans-serif;\n" +
                             "        \" align='center'>"
+                            + "<td><b>Request ID</b></td>"
+                            + "<td><b>Initiated By</b></td>"
+                            + "<td><b>Initiated On</b></td>"
                             + "<td><b>Assigned Department</b></td>"
                             + "<td><b>Assigned User</b></td>"
-                            + "<td><b>Form</b></td>"
-                            + "<td><b>Entry ID</b></td>"
+                            + "<td><b>System Type</b></td>"
                             + "</tr>";
             text = text + groupedResults.get(x).stream().filter(y-> {
                 long diffHrs = Duration.between(LocalDateTime.parse(y.get("create_dt").toString().split("\\.")[0], DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),finalCurrTime).toHours();
@@ -112,10 +130,14 @@ public class EscalationMatrixController {
                         "          line-height: 28px;\n" +
                         "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                         "            'Lucida Sans', Arial, sans-serif;\n" +
-                        "        \" align='center'>"+"<td>" + assignedDept + "</td>"
+                        "        \" align='center'>"
+                        + "<td>" + y.get("entry_id") + "</td>"
+                        + "<td>" + y.get("entry_created_by") + "</td>"
+                        + "<td>" + y.get("log_create_dt") + "</td>"
+                        + "<td>" + assignedDept + "</td>"
                         + "<td>" + assignedUser + "</td>"
-                        + "<td>" + formService.getFormById(Integer.parseInt(y.get("form_id").toString())).get().getName() + "</td>"
-                        + "<td>" + y.get("entry_id") + "</td>"+"</tr>";
+                        + "<td>" + y.get("request_type") + "</td>"
+                        + "</tr>";
             }).collect(Collectors.joining()) + "</table><br>";
 
             text = text + "<table style=\"border: 1px solid white; border-collapse: collapse\"\n" +
@@ -130,7 +152,7 @@ public class EscalationMatrixController {
                     "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                     "            'Lucida Sans', Arial, sans-serif;\n" +
                     "        \" align='center'>"
-                    + "<td colspan='4'><b>Pending from 36 hrs</b></td>"
+                    + "<td colspan='6'><b>Pending from 36 hrs</b></td>"
                     + "</tr>"
                     + "<tr style=\"\n" +
                     "          border: 1px solid white;\n" +
@@ -142,10 +164,12 @@ public class EscalationMatrixController {
                     "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                     "            'Lucida Sans', Arial, sans-serif;\n" +
                     "        \" align='center'>"
+                    + "<td><b>Request ID</b></td>"
+                    + "<td><b>Initiated By</b></td>"
+                    + "<td><b>Initiated On</b></td>"
                     + "<td><b>Assigned Department</b></td>"
                     + "<td><b>Assigned User</b></td>"
-                    + "<td><b>Form</b></td>"
-                    + "<td><b>Entry ID</b></td>"
+                    + "<td><b>System Type</b></td>"
                     + "</tr>";
 
             text = text + groupedResults.get(x).stream().filter(y-> {
@@ -164,10 +188,14 @@ public class EscalationMatrixController {
                         "          line-height: 28px;\n" +
                         "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                         "            'Lucida Sans', Arial, sans-serif;\n" +
-                        "        \" align='center'>"+"<td>" + assignedDept + "</td>"
+                        "        \" align='center'>"
+                        + "<td>" + y.get("entry_id") + "</td>"
+                        + "<td>" + y.get("entry_created_by") + "</td>"
+                        + "<td>" + y.get("log_create_dt") + "</td>"
+                        + "<td>" + assignedDept + "</td>"
                         + "<td>" + assignedUser + "</td>"
-                        + "<td>" + formService.getFormById(Integer.parseInt(y.get("form_id").toString())).get().getName() + "</td>"
-                        + "<td>" + y.get("entry_id") + "</td>"+"</tr>";
+                        + "<td>" + y.get("request_type") + "</td>"
+                        + "</tr>";
             }).collect(Collectors.joining()) + "</table><br>";
 
             text = text + "<table style=\"border: 1px solid white; border-collapse: collapse\"\n" +
@@ -182,7 +210,7 @@ public class EscalationMatrixController {
                     "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                     "            'Lucida Sans', Arial, sans-serif;\n" +
                     "        \" align='center'>"
-                    + "<td colspan='4'><b>Pending from 72 hrs</b></td>"
+                    + "<td colspan='6'><b>Pending from 72 hrs</b></td>"
                     + "</tr>"
                     + "<tr style=\"\n" +
                     "          border: 1px solid white;\n" +
@@ -194,10 +222,12 @@ public class EscalationMatrixController {
                     "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                     "            'Lucida Sans', Arial, sans-serif;\n" +
                     "        \" align='center'>"
+                    + "<td><b>Request ID</b></td>"
+                    + "<td><b>Initiated By</b></td>"
+                    + "<td><b>Initiated On</b></td>"
                     + "<td><b>Assigned Department</b></td>"
                     + "<td><b>Assigned User</b></td>"
-                    + "<td><b>Form</b></td>"
-                    + "<td><b>Entry ID</b></td>"
+                    + "<td><b>System Type</b></td>"
                     + "</tr>";
 
             text = text + groupedResults.get(x).stream().filter(y-> {
@@ -216,17 +246,35 @@ public class EscalationMatrixController {
                         "          line-height: 28px;\n" +
                         "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                         "            'Lucida Sans', Arial, sans-serif;\n" +
-                        "        \" align='center'>"+"<td>" + assignedDept + "</td>"
+                        "        \" align='center'>"
+                        + "<td>" + y.get("entry_id") + "</td>"
+                        + "<td>" + y.get("entry_created_by") + "</td>"
+                        + "<td>" + y.get("log_create_dt") + "</td>"
+                        + "<td>" + assignedDept + "</td>"
                         + "<td>" + assignedUser + "</td>"
-                        + "<td>" + formService.getFormById(Integer.parseInt(y.get("form_id").toString())).get().getName() + "</td>"
-                        + "<td>" + y.get("entry_id") + "</td>"+"</tr>";
-            }).collect(Collectors.joining()) + "</table><br><br><br><br>";
+                        + "<td>" + y.get("request_type") + "</td>"
+                        + "</tr>";
+            }).collect(Collectors.joining()) + "</table><br><br><br>";
 
-            text = text + "<div\n" +
+            text = text + "<br />\n" +
+                    "    <div\n" +
+                    "      style=\"\n" +
+                    "        font-size: 16px;\n" +
+                    "        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
+                    "          'Lucida Sans', Arial, sans-serif;\n" +
+                    "      \"\n" +
+                    "    >\n" +
+                    "      To view details, kindly navigate through\n" +
+                    "      <a target=\"_blank\" href=\""+appUrl+"\">Flux-Intelligent</a\n" +
+                    "      >!<br />\n" +
+                    "      <br />\n" +
+                    "      Regards,<br />\n" +
+                    "    </div>\n" +
+                    "    <div\n" +
                     "      style=\"\n" +
                     "        width: 100%;\n" +
                     "        display: flex;\n" +
-                    "        justify-content: center;\n" +
+                    "        justify-content: flex-start;\n" +
                     "        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                     "          'Lucida Sans', Arial, sans-serif;\n" +
                     "        color: #48c6c5;\n" +
