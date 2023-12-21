@@ -38,8 +38,8 @@ public class EscalationMatrixController {
 
     @Value("${app.url}") private String appUrl;
 
-//    @Scheduled(cron = "0 0 9 * * *")
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(cron = "0 0 9 * * *")
+//    @Scheduled(fixedRate = 5000)
     public void sendEscalations() {
         LocalDate currentDate = LocalDate.now();
         LocalDateTime currentDateTime = LocalDateTime.now();
