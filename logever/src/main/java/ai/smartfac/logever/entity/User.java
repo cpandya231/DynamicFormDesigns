@@ -74,6 +74,9 @@ public class User implements UserDetails {
     @Column(name = "last_login_dt")
     private Timestamp lastLoginDt;
 
+    @Transient
+    private String fullName;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -289,5 +292,9 @@ public class User implements UserDetails {
 
     public void setHireDate(Date hireDate) {
         this.hireDate = hireDate;
+    }
+
+    public String getFullName() {
+        return first_name + " " + last_name;
     }
 }

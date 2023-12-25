@@ -73,6 +73,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 .withClaim("designation",user.getDesignation())
                 .withClaim("hire_date",user.getHireDate().toString())
                 .withClaim("site",user.getDepartment().getSite())
+                .withClaim("fullName",user.getFullName())
                 .sign(algo);
 
 

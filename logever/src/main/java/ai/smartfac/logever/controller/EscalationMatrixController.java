@@ -39,7 +39,6 @@ public class EscalationMatrixController {
     @Value("${app.url}") private String appUrl;
 
     @Scheduled(cron = "0 0 9 * * *")
-//    @Scheduled(fixedRate = 5000)
     public void sendEscalations() {
         LocalDate currentDate = LocalDate.now();
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -95,7 +94,7 @@ public class EscalationMatrixController {
                             "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                             "            'Lucida Sans', Arial, sans-serif;\n" +
                             "        \" align='center'>"
-                            + "<td colspan='6'><b>Pending from 24 hrs</b></td>"
+                            + "<td colspan='6'><b>Pending from 1 day</b></td>"
                             + "</tr>"
                             + "<tr style=\"\n" +
                             "          border: 1px solid white;\n" +
@@ -116,7 +115,7 @@ public class EscalationMatrixController {
                             + "</tr>";
             text = text + groupedResults.get(x).stream().filter(y-> {
                 long diffHrs = Duration.between(LocalDateTime.parse(y.get("create_dt").toString().split("\\.")[0], DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),finalCurrTime).toHours();
-                if(diffHrs > 24 && diffHrs <= 36)
+                if(diffHrs >= 24 && diffHrs < 72)
                     return true;
                 else
                     return false;
@@ -152,7 +151,7 @@ public class EscalationMatrixController {
                     "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                     "            'Lucida Sans', Arial, sans-serif;\n" +
                     "        \" align='center'>"
-                    + "<td colspan='6'><b>Pending from 36 hrs</b></td>"
+                    + "<td colspan='6'><b>Pending from 3 days</b></td>"
                     + "</tr>"
                     + "<tr style=\"\n" +
                     "          border: 1px solid white;\n" +
@@ -174,7 +173,7 @@ public class EscalationMatrixController {
 
             text = text + groupedResults.get(x).stream().filter(y-> {
                 long diffHrs = Duration.between(LocalDateTime.parse(y.get("create_dt").toString().split("\\.")[0], DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),finalCurrTime).toHours();
-                if(diffHrs >= 36 && diffHrs <= 72)
+                if(diffHrs >= 72 && diffHrs < 168)
                     return true;
                 else
                     return false;
@@ -210,7 +209,7 @@ public class EscalationMatrixController {
                     "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
                     "            'Lucida Sans', Arial, sans-serif;\n" +
                     "        \" align='center'>"
-                    + "<td colspan='6'><b>Pending from 72 hrs</b></td>"
+                    + "<td colspan='6'><b>Pending from 7 days</b></td>"
                     + "</tr>"
                     + "<tr style=\"\n" +
                     "          border: 1px solid white;\n" +
@@ -232,7 +231,7 @@ public class EscalationMatrixController {
 
             text = text + groupedResults.get(x).stream().filter(y-> {
                 long diffHrs = Duration.between(LocalDateTime.parse(y.get("create_dt").toString().split("\\.")[0], DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),finalCurrTime).toHours();
-                if(diffHrs > 72)
+                if(diffHrs > 168)
                     return true;
                 else
                     return false;
