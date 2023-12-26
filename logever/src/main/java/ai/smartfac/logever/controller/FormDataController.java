@@ -161,7 +161,7 @@ public class FormDataController {
                                     if(initiator.getDepartment().getDesignee1()!=null && !initiator.getDepartment().getDesignee1().isEmpty())
                                         pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee1(),null,null
                                                 , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee1()).get().getDepartment().getHod()));
-                                    if(initiator.getDepartment().getDesignee1()!=null && !initiator.getDepartment().getDesignee2().isEmpty())
+                                    if(initiator.getDepartment().getDesignee2()!=null && !initiator.getDepartment().getDesignee2().isEmpty())
                                         pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee2(),null,null
                                                 , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee2()).get().getDepartment().getHod()));
                                 }
@@ -171,7 +171,7 @@ public class FormDataController {
                                 if(initiator.getDepartment().getDesignee1()!=null && !initiator.getDepartment().getDesignee1().isEmpty())
                                     pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee1(),null,null
                                             , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee1()).get().getDepartment().getHod()));
-                                if(initiator.getDepartment().getDesignee1()!=null && !initiator.getDepartment().getDesignee2().isEmpty())
+                                if(initiator.getDepartment().getDesignee2()!=null && !initiator.getDepartment().getDesignee2().isEmpty())
                                     pendingEntries.add(new PendingEntry(form.getId(),entry.getEntryId(),initiator.getDepartment().getDesignee2(),null,null
                                         , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee2()).get().getDepartment().getHod()));
                         }
