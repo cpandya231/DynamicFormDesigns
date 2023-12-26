@@ -49,8 +49,8 @@ public class CustomController {
         return new ResponseEntity<>(textResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/access_type/{applicationName}")
-    public ResponseEntity<?> getRequiredAccessType(@PathVariable(name = "applicationName") String applicationName,
+    @GetMapping("/access_type/")
+    public ResponseEntity<?> getRequiredAccessType(@RequestParam(name = "applicationName") String applicationName,
                                                    @RequestParam(name = "employeeID", required = false) String employeeID,
                                                    @RequestParam(name = "other_employee_id", required = false) String other_employee_id,
                                                    @RequestParam(name = "service_engineer_id", required = false) String service_engineer_id) {
@@ -69,8 +69,8 @@ public class CustomController {
         }
     }
 
-    @GetMapping("/access_roles/{applicationName}")
-    public ResponseEntity<?> getRequiredAccessRoles(@PathVariable(name = "applicationName") String applicationName,
+    @GetMapping("/access_roles/")
+    public ResponseEntity<?> getRequiredAccessRoles(@RequestParam(name = "applicationName") String applicationName,
                                                    @RequestParam(name = "employeeID", required = false) String employeeID,
                                                    @RequestParam(name = "other_employee_id", required = false) String other_employee_id,
                                                    @RequestParam(name = "service_engineer_id", required = false) String service_engineer_id) {
@@ -89,8 +89,8 @@ public class CustomController {
         }
     }
 
-    @GetMapping("/existing_id/{applicationName}")
-    public ResponseEntity<?> getExistingID(@PathVariable(name = "applicationName") String applicationName,
+    @GetMapping("/existing_id/")
+    public ResponseEntity<?> getExistingID(@RequestParam(name = "applicationName") String applicationName,
                                                     @RequestParam(name = "employeeID", required = false) String employeeID,
                                                     @RequestParam(name = "other_employee_id", required = false) String other_employee_id,
                                                     @RequestParam(name = "service_engineer_id", required = false) String service_engineer_id) {

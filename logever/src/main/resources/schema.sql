@@ -403,24 +403,24 @@ BEGIN
     SET V_NEW_STATE = concat(V_NEW_STATE,' ParentID updated: ',NEW.parent_id);
     SET V_CHECK = 1;
     END IF;
-    IF NEW.hod <> OLD.hod THEN
-    SET V_PREV_STATE = concat(V_PREV_STATE,' HOD updated: ',OLD.hod);
-    SET V_NEW_STATE = concat(V_NEW_STATE,' HOD updated: ',NEW.hod);
+    IF coalesce(NEW.hod,'NULL') <> coalesce(OLD.hod,'NULL') THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' HOD updated: ',coalesce(OLD.hod,'NULL'));
+    SET V_NEW_STATE = concat(V_NEW_STATE,' HOD updated: ',coalesce(NEW.hod,'NULL'));
     SET V_CHECK = 1;
     END IF;
-    IF NEW.designee1 <> OLD.designee1 THEN
-    SET V_PREV_STATE = concat(V_PREV_STATE,' Designee-1 updated: ',OLD.designee1);
-    SET V_NEW_STATE = concat(V_NEW_STATE,' Designee-1 updated: ',NEW.designee1);
+    IF coalesce(NEW.designee1,'NULL') <> coalesce(OLD.designee1,'NULL') THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' Designee-1 updated: ',coalesce(OLD.designee1,'NULL'));
+    SET V_NEW_STATE = concat(V_NEW_STATE,' Designee-1 updated: ',coalesce(NEW.designee1,'NULL'));
     SET V_CHECK = 1;
     END IF;
-    IF NEW.designee2 <> OLD.designee2 THEN
-    SET V_PREV_STATE = concat(V_PREV_STATE,' Designee-2 updated: ',OLD.designee2);
-    SET V_NEW_STATE = concat(V_NEW_STATE,' Designee-2 updated: ',NEW.designee2);
+    IF coalesce(NEW.designee2,'NULL') <> coalesce(OLD.designee2,'NULL') THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' Designee-2 updated: ',coalesce(OLD.designee2,'NULL'));
+    SET V_NEW_STATE = concat(V_NEW_STATE,' Designee-2 updated: ',coalesce(NEW.designee2,'NULL'));
     SET V_CHECK = 1;
     END IF;
-    IF NEW.code <> OLD.code THEN
-    SET V_PREV_STATE = concat(V_PREV_STATE,' Code updated: ',OLD.code);
-    SET V_NEW_STATE = concat(V_NEW_STATE,' Code updated: ',NEW.code);
+    IF coalesce(NEW.code,'NULL') <> coalesce(OLD.code,'NULL') THEN
+    SET V_PREV_STATE = concat(V_PREV_STATE,' Code updated: ',coalesce(OLD.code,'NULL'));
+    SET V_NEW_STATE = concat(V_NEW_STATE,' Code updated: ',coalesce(NEW.code,'NULL'));
     SET V_CHECK = 1;
     END IF;
 
