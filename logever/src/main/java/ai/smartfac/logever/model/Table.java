@@ -107,7 +107,7 @@ public class Table {
 
         insertStmt = insertStmt + String.join(",",filledColumns);
         insertStmt = insertStmt + ") VALUES (" +
-                String.join(",",filledColumns.stream().map(col->"'"+values.get(col)+"'").collect(Collectors.toList())) +
+                String.join(",",filledColumns.stream().map(col->"'"+values.get(col).replaceAll("'","\'")+"'").collect(Collectors.toList())) +
                 ")";
         return insertStmt;
     }
@@ -119,7 +119,7 @@ public class Table {
         insertStmt = insertStmt + String.join(",",filledColumns);
         filledColumns.stream().forEach(col->System.out.println("Value for "+col+" "+values.get(col)));
         insertStmt = insertStmt + ") VALUES (" +
-                String.join(",",filledColumns.stream().map(col->"'"+(values.get(col)==null || values.get(col).equalsIgnoreCase("null")?"":values.get(col))+"'").collect(Collectors.toList())) +
+                String.join(",",filledColumns.stream().map(col->"'"+(values.get(col)==null || values.get(col).equalsIgnoreCase("null")?"":values.get(col).replaceAll("'","\'"))+"'").collect(Collectors.toList())) +
                 ")";
         return insertStmt;
     }
@@ -140,7 +140,7 @@ public class Table {
 
         insertStmt = insertStmt + String.join(",",filledColumns);
         insertStmt = insertStmt + ") VALUES (" +
-                String.join(",",filledColumns.stream().map(col->"'"+values.get(col)+"'").collect(Collectors.toList())) +
+                String.join(",",filledColumns.stream().map(col->"'"+values.get(col).replaceAll("'","\'")+"'").collect(Collectors.toList())) +
                 ")";
         return insertStmt;
     }
@@ -151,7 +151,7 @@ public class Table {
 
         insertStmt = insertStmt + String.join(",",filledColumns);
         insertStmt = insertStmt + ") VALUES (" +
-                String.join(",",filledColumns.stream().map(col->"'"+(values.get(col)==null || values.get(col).equalsIgnoreCase("null")?"":values.get(col))+"'").collect(Collectors.toList())) +
+                String.join(",",filledColumns.stream().map(col->"'"+(values.get(col)==null || values.get(col).equalsIgnoreCase("null")?"":values.get(col).replaceAll("'","\'"))+"'").collect(Collectors.toList())) +
                 ")";
         return insertStmt;
     }
@@ -159,7 +159,7 @@ public class Table {
     public String buildUpdateStatement(String columns, Map<String,String> values) {
         String updateStmt = "UPDATE "+this.getName()+" SET ";
         List<String> filledColumns = Arrays.stream((columns+","+getDefaultColumns()).split(",")).filter(column->values.containsKey(column))
-                .map(col->col + "="+"'"+values.get(col)+"'").collect(Collectors.toList());
+                .map(col->col + "="+"'"+values.get(col).replaceAll("'","\'")+"'").collect(Collectors.toList());
         updateStmt = updateStmt + String.join(",",filledColumns);
         updateStmt = updateStmt + " WHERE id='"+Integer.parseInt(values.get("id"))+"'";
         return updateStmt;
@@ -168,7 +168,7 @@ public class Table {
     public String buildGridUpdateStatement(String columns, Map<String,String> values) {
         String updateStmt = "UPDATE "+this.getName()+" SET ";
         List<String> filledColumns = Arrays.stream((columns+","+getDefaultColumns()).split(",")).filter(column->values.containsKey(column))
-                .map(col->col + "="+"'"+values.get(col)+"'").collect(Collectors.toList());
+                .map(col->col + "="+"'"+values.get(col).replaceAll("'","\'")+"'").collect(Collectors.toList());
         updateStmt = updateStmt + String.join(",",filledColumns);
         updateStmt = updateStmt + " WHERE id='"+Integer.parseInt(values.get("id"))+"'";
         return updateStmt;
@@ -180,8 +180,8 @@ public class Table {
 
         upsertStmt = upsertStmt + String.join(",",filledColumns);
         upsertStmt = upsertStmt + ") VALUES (" +
-                String.join(",",filledColumns.stream().map(col->"'"+values.get(col)+"'").collect(Collectors.toList())) +
-                ") ON DUPLICATE KEY UPDATE "+String.join(",",filledColumns.stream().map(col->col+"="+"'"+values.get(col)+"'").collect(Collectors.toList()));
+                String.join(",",filledColumns.stream().map(col->"'"+values.get(col).replaceAll("'","\'")+"'").collect(Collectors.toList())) +
+                ") ON DUPLICATE KEY UPDATE "+String.join(",",filledColumns.stream().map(col->col+"="+"'"+values.get(col).replaceAll("'","\'")+"'").collect(Collectors.toList()));
 
         return upsertStmt;
     }
@@ -190,7 +190,7 @@ public class Table {
     public String makeUpdateMasterEntryStateStmt(String columns, Map<String,String> values) {
         String updateStmt = "UPDATE "+this.getName()+" SET ";
         List<String> filledColumns = Arrays.stream((columns+","+getDefaultColumns()).split(",")).filter(values::containsKey)
-                .map(col->col + "="+"'"+values.get(col)+"'").collect(Collectors.toList());
+                .map(col->col + "="+"'"+values.get(col).replaceAll("'","\'")+"'").collect(Collectors.toList());
         updateStmt = updateStmt + String.join(",",filledColumns);
         updateStmt = updateStmt + " WHERE id='"+Integer.parseInt(values.get("id"))+"'";
         return updateStmt;
