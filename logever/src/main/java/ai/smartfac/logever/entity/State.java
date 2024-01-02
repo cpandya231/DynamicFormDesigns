@@ -35,6 +35,8 @@ public class State {
     private boolean endState;
     private boolean firstState;
 
+    @Column(columnDefinition = "text")
+    private String stateCondition;
     private String label;
 
     @JsonBackReference
@@ -172,5 +174,13 @@ public class State {
 
     public void setFirstState(boolean firstState) {
         this.firstState = firstState;
+    }
+
+    public String getStateCondition() {
+        return stateCondition;
+    }
+
+    public void setStateCondition(String stateCondition) {
+        this.stateCondition = stateCondition;
     }
 }

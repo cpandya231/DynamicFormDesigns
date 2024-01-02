@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
@@ -28,6 +29,9 @@ public class FormDataService {
 
     @Autowired
     PendingEntryService pendingEntryService;
+
+    @Autowired
+    FileStorageService fileStorageService;
 
     @Transactional
     public void bulkInsert(User user, Form form, ArrayList<Map<String,String>> records) {
@@ -73,7 +77,7 @@ public class FormDataService {
     }
 
     @Transactional
-    public Entry insertInto(Form form, Map<String, String> values) {
+    public Entry insertInto(Form form, Map<String, String> values, MultipartFile[] files) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 connection -> connection.prepareStatement(form.makeInsertValuesStmt(values), new String[]{"id"}), keyHolder);
@@ -88,6 +92,12 @@ public class FormDataService {
         if (values.get("endState").equalsIgnoreCase("true") && form.getType()!=null && form.getType().equalsIgnoreCase("master")) {
             jdbcTemplate.execute(form.makeInsertMasterValuesStmt(values));
         }
+
+        if(files!=null)
+            Arrays.asList(files).stream().forEach(file-> {
+                fileStorageService.save(file, form.getId()+"/"+insertedId+"_"+insertedHistoryId+"/"+file.getOriginalFilename());
+            });
+
         return new Entry(insertedId,insertedHistoryId);
     }
 
@@ -110,7 +120,7 @@ public class FormDataService {
     }
 
     @Transactional
-    public Entry update(Form form, Map<String, String> values) {
+    public Entry update(Form form, Map<String, String> values, MultipartFile[] files) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 connection -> connection.prepareStatement(form.makeUpdateStmt(values), new String[]{"id"}), keyHolder);
@@ -124,6 +134,13 @@ public class FormDataService {
         if (values.get("endState").equalsIgnoreCase("true") && form.getType().equalsIgnoreCase("master")) {
             jdbcTemplate.execute(form.makeUpdateMasterStmt(values));
         }
+
+        if(files!=null)
+            Arrays.asList(files).stream().forEach(file-> {
+                fileStorageService.save(file, form.getId()+"/"+insertedId+"_"+insertedHistoryId+"/"+file.getOriginalFilename());
+            });
+
+
         return new Entry(insertedId,insertedHistoryId);
     }
 
