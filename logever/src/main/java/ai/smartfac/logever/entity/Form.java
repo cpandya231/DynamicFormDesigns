@@ -162,7 +162,7 @@ public class Form {
         ArrayList<ColumnDef> columnDefs = new ArrayList<>();
         formTemplate.getControls().stream().forEach(controls-> {
             controls.stream().forEach(control-> {
-                if(!control.getType().equalsIgnoreCase("grid"))
+                if(!control.getType().equalsIgnoreCase("grid") && !control.getType().equalsIgnoreCase("section-heading"))
                     columnDefs.add(new ColumnDef(control.getKey(), control.getType(), new ColumnConstraints(control.isRequired(), false, false, null)));
             });
         });
