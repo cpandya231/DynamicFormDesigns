@@ -39,6 +39,8 @@ public class State {
     private String stateCondition;
     private String label;
 
+    private boolean sendNotification;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "workflow_id")
@@ -182,5 +184,13 @@ public class State {
 
     public void setStateCondition(String stateCondition) {
         this.stateCondition = stateCondition;
+    }
+
+    public boolean isSendNotification() {
+        return sendNotification;
+    }
+
+    public void setSendNotification(boolean sendNotification) {
+        this.sendNotification = sendNotification;
     }
 }

@@ -1,6 +1,7 @@
 package ai.smartfac.logever.controller;
 
 import ai.smartfac.logever.entity.User;
+import ai.smartfac.logever.service.EmailService;
 import ai.smartfac.logever.service.UserService;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -9,6 +10,7 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,6 +34,13 @@ public class LoginController {
 
     @Autowired
     UserService userService;
+
+    @Value("${app.session.timeout}")
+    private String sessionTimeout;
+
+    @Value("${app.session.timeout.alert}")
+    private String sessionTimeoutAlert;
+
 
     @GetMapping("/token/refresh")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -62,6 +71,8 @@ public class LoginController {
                         .withClaim("hire_date",user.getHireDate().toString())
                         .withClaim("site",user.getDepartment().getSite())
                         .withClaim("fullName",user.getFullName())
+                        .withClaim("sessionTimeout",sessionTimeout)
+                        .withClaim("sessionTimeoutAlert",sessionTimeoutAlert)
                         .sign(algo);
 
                 Map<String,String> tokens = new HashMap<>();

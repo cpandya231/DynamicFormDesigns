@@ -58,10 +58,10 @@ public class FormDataController {
             values.put("endState", logEntry.isEndState() ? "true" : "false");
             Entry entry = formDataService.insertInto(existingForm.get(), values, files);
             formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entry);
+            Form form = existingForm.get();
+            State nextState = form.getWorkflow().getStates().stream().filter(st->st.getName().equals(logEntry.getState())).findFirst().get();
+            List<PendingEntry> pendingEntries = new ArrayList<>();
             if(!logEntry.isEndState() && !logEntry.getState().endsWith("-INPA")) {
-                Form form = existingForm.get();
-                State nextState = form.getWorkflow().getStates().stream().filter(st->st.getName().equals(logEntry.getState())).findFirst().get();
-                List<PendingEntry> pendingEntries = new ArrayList<>();
                 nextState.getRoles().forEach(r->{
                     if(!r.getRole().equalsIgnoreCase("Initiator")) {
                         if(!r.getRole().equalsIgnoreCase("Initiator Manager")) {
@@ -114,16 +114,29 @@ public class FormDataController {
                 });
                 pendingEntryService.saveAll(pendingEntries);
             } else if(logEntry.getState().endsWith("-INPA")) {
-                List<PendingEntry> pendingEntries = new ArrayList<>();
+//                List<PendingEntry> pendingEntries = new ArrayList<>();
                 pendingEntries.add(new PendingEntry(existingForm.get().getId(),entry.getEntryId(),user.getUsername(),null,null
                         , values.get("created_by"), user.getDepartment().getHod()));
                 pendingEntryService.saveAll(pendingEntries);
             }
+
             EmailDetails details = new EmailDetails();
-            details.setSubject("DigitEdgy | Flux-Intelligent : "+existingForm.get().getName()+" : New Request Created");
+            details.setSubject("DigitEdgy | Flux-Intelligent : " + existingForm.get().getName() + " : New Request Created");
             details.setRecipient(user.getEmail());
-            details.setMsgBody("Hello "+user.getFirst_name()+",\n\nYour request has been submitted!\n\nThanks & Regards,\nTeam Digitedgy.");
-            String status = emailService.sendSimpleMail(details);
+            details.setMsgBody("Hello " + user.getFirst_name() + ",\n\nYour request has been submitted!\n\nThanks & Regards,\nTeam Digitedgy.");
+            emailService.sendSimpleMail(details);
+
+            if(nextState.isSendNotification()){
+                pendingEntries.forEach(pendingEntry -> {
+                    if(pendingEntry.getAssignedUser() != null && !pendingEntry.getAssignedUser().equalsIgnoreCase("")) {
+                        details.setSubject("DigitEdgy | Flux-Intelligent : " + existingForm.get().getName() + " : Request for action");
+                        User emailUser = userService.getUserByUsername(pendingEntry.getAssignedUser()).get();
+                        details.setRecipient(emailUser.getEmail());
+                        details.setMsgBody("Hello " + emailUser.getFirst_name() + ",\n\nThere is a pending request for you to act upon!\n\nThanks & Regards,\nTeam Digitedgy.");
+                        emailService.sendSimpleMail(details);
+                    }
+                });
+            }
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -149,10 +162,11 @@ public class FormDataController {
             Entry entry = formDataService.update(existingForm.get(), values, files);
             formDataService.update(existingForm.get(), logEntry.getGridData(), entry);
             pendingEntryService.removeAllFor(existingForm.get().getId(), logEntry.getId());
+            Form form = existingForm.get();
+            State nextState = form.getWorkflow().getStates().stream().filter(st -> st.getName().equals(logEntry.getState())).findFirst().get();
+            List<PendingEntry> pendingEntries = new ArrayList<>();
+
             if (!logEntry.isEndState() && !logEntry.getState().endsWith("-INPA")) {
-                Form form = existingForm.get();
-                State nextState = form.getWorkflow().getStates().stream().filter(st -> st.getName().equals(logEntry.getState())).findFirst().get();
-                List<PendingEntry> pendingEntries = new ArrayList<>();
                 nextState.getRoles().forEach(r -> {
                     if (!r.getRole().equalsIgnoreCase("Initiator")) {
                         if (!r.getRole().equalsIgnoreCase("Initiator Manager")) {
@@ -198,10 +212,22 @@ public class FormDataController {
                 });
                 pendingEntryService.saveAll(pendingEntries);
             } else if (logEntry.getState().endsWith("-INPA")) {
-                List<PendingEntry> pendingEntries = new ArrayList<>();
                 pendingEntries.add(new PendingEntry(existingForm.get().getId(), entry.getEntryId(), user, null, null
                         , initiator.getUsername(), userService.getUserByUsername(user).get().getDepartment().getHod()));
                 pendingEntryService.saveAll(pendingEntries);
+            }
+
+            if(nextState.isSendNotification()){
+                EmailDetails details = new EmailDetails();
+                pendingEntries.forEach(pendingEntry -> {
+                    if(pendingEntry.getAssignedUser() != null && !pendingEntry.getAssignedUser().equalsIgnoreCase("")) {
+                        details.setSubject("DigitEdgy | Flux-Intelligent : " + existingForm.get().getName() + " : Request for action");
+                        User emailUser = userService.getUserByUsername(pendingEntry.getAssignedUser()).get();
+                        details.setRecipient(emailUser.getEmail());
+                        details.setMsgBody("Hello " + emailUser.getFirst_name() + ",\n\nThere is a pending request for you to act upon!\n\nThanks & Regards,\nTeam Digitedgy.");
+                        emailService.sendSimpleMail(details);
+                    }
+                });
             }
 
             return new ResponseEntity<>(HttpStatus.CREATED);

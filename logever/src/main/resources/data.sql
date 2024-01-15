@@ -138,13 +138,13 @@ WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'CONFIRM_PASSWORD'
 ) LIMIT 1 ^;
 
-INSERT INTO settings (type,`key`,`value`)
-SELECT * FROM (SELECT 'SESSION','TIMEOUT','10') AS tmp
+INSERT INTO settings (type,`key`,app_key,`value`)
+SELECT * FROM (SELECT 'SESSION','TIMEOUT','app.session.timeout','10') AS tmp
 WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'TIMEOUT'
 ) LIMIT 1 ^;
-INSERT INTO settings (type,`key`,`value`)
-SELECT * FROM (SELECT 'SESSION','TIMEOUT_ALERT','10') AS tmp
+INSERT INTO settings (type,`key`,app_key,`value`)
+SELECT * FROM (SELECT 'SESSION','TIMEOUT_ALERT','app.session.timeout.alert','10') AS tmp
 WHERE NOT EXISTS (
     SELECT `key` FROM settings WHERE `key` = 'TIMEOUT_ALERT'
 ) LIMIT 1 ^;
