@@ -35,7 +35,9 @@ public class DBPropertyLoader implements EnvironmentPostProcessor {
             "spring.mail.host",
             "spring.mail.port",
             "spring.mail.username",
-            "spring.mail.password"
+            "spring.mail.password",
+            "app.session.timeout",
+            "app.session.timeout.alert"
     };
 
     /**

@@ -4,6 +4,7 @@ import ai.smartfac.logever.filter.CustomAuthenticationFilter;
 import ai.smartfac.logever.filter.CustomAuthorizationFilter;
 import ai.smartfac.logever.service.AppUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -24,6 +25,12 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Value("${app.session.timeout}")
+    private String sessionTimeout;
+
+    @Value("${app.session.timeout.alert}")
+    private String sessionTimeoutAlert;
+
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -32,9 +39,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean(), sessionTimeout, sessionTimeoutAlert);
         //customAuthenticationFilter.setFilterProcessesUrl("/login");
-
         http.cors().configurationSource(request -> {
             var cors = new CorsConfiguration();
             cors.setAllowedOrigins(List.of("*"));

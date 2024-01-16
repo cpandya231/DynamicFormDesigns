@@ -7,12 +7,14 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -31,12 +33,18 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    private String sessionTimeout;
+
+    private String sessionTimeoutAlert;
+
     public AuditTrailService auditTrailService;
 
     private AuthenticationManager authenticationManager;
 
-    public CustomAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, String sessionTimeout, String sessionTimeoutAlert) {
         this.authenticationManager = authenticationManager;
+        this.sessionTimeout = sessionTimeout;
+        this.sessionTimeoutAlert = sessionTimeoutAlert;
     }
 
     @Override
@@ -74,10 +82,9 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 .withClaim("hire_date",user.getHireDate().toString())
                 .withClaim("site",user.getDepartment().getSite())
                 .withClaim("fullName",user.getFullName())
+                .withClaim("sessionTimeout",sessionTimeout)
+                .withClaim("sessionTimeoutAlert",sessionTimeoutAlert)
                 .sign(algo);
-
-
-        System.out.println(user.getHireDate());
 
         String refreshToken = JWT.create()
                 .withSubject(user.getUsername())
