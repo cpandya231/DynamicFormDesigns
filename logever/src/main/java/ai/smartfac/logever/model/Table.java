@@ -72,7 +72,7 @@ public class Table {
     public String showCreateTable() {
         String createStmt = "CREATE TABLE "+this.getName()+" (\n";
         List<String> defs = columnDefs.stream().map(columnDef -> {
-            return "\t" + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"VARCHAR(255)")+" " + columnDef.getConstraints().toString();
+            return "\t" + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"text")+" " + columnDef.getConstraints().toString();
         }).collect(Collectors.toList());
         return createStmt + String.join(",",defs) + ", PRIMARY KEY(id))";
     }
@@ -80,7 +80,7 @@ public class Table {
     public String showCreateAuditTable() {
         String createStmt = "CREATE TABLE "+this.auditTableFor(this)+" (\n";
         List<String> defs = columnDefs.stream().map(columnDef -> {
-            return "\t" + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"VARCHAR(255)")+" " + columnDef.getConstraints().toString();
+            return "\t" + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"text")+" " + columnDef.getConstraints().toString();
         }).collect(Collectors.toList());
         return createStmt + String.join(",",defs) + ", PRIMARY KEY(id)))";
     }
@@ -88,7 +88,7 @@ public class Table {
     public String showAlterTable() {
         String alterStmt = "ALTER TABLE "+this.getName()+"\n";
         List<String> defs = alteredColumnDefs.stream().map(columnDef -> {
-            return "\t ADD " + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"VARCHAR(255)")+" " + columnDef.getConstraints().toString();
+            return "\t ADD " + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"text")+" " + columnDef.getConstraints().toString();
         }).collect(Collectors.toList());
         return alterStmt + String.join(",",defs);
     }
@@ -96,7 +96,7 @@ public class Table {
     public String showAlterAuditTable() {
         String alterStmt = "ALTER TABLE "+this.auditTableFor(this)+"\n";
         List<String> defs = alteredColumnDefs.stream().map(columnDef -> {
-            return "\t ADD " + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"VARCHAR(255)")+" " + columnDef.getConstraints().toString();
+            return "\t ADD " + columnDef.getColumnName()+" "+typeToSqlMapping.getOrDefault(columnDef.getType(),"text")+" " + columnDef.getConstraints().toString();
         }).collect(Collectors.toList());
         return alterStmt + String.join(",",defs) + ")";
     }
