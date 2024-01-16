@@ -38,8 +38,8 @@ public class State {
     @Column(columnDefinition = "text")
     private String stateCondition;
     private String label;
-
     private boolean sendNotification;
+    private String userAccessField;
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
@@ -192,5 +192,13 @@ public class State {
 
     public void setSendNotification(boolean sendNotification) {
         this.sendNotification = sendNotification;
+    }
+
+    public String getUserAccessField() {
+        return userAccessField;
+    }
+
+    public void setUserAccessField(String userAccessField) {
+        this.userAccessField = userAccessField;
     }
 }
