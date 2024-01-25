@@ -192,19 +192,31 @@ public class FormDataService {
         Table metaTable = new Table();
         metaTable.setName(form.getMetadataTableName());
         String gridCols = form.getGrids().stream().flatMap(f->f.stream().map(grid->grid.getKey())).collect(Collectors.joining(","));
-        String selectCols = "distinct l.id," + Arrays.stream(form.getColumns().split(",")).filter(c-> Arrays.stream(gridCols.split(",")).filter(gc->gc.equalsIgnoreCase(c)).count() == 0).map(s->"l."+s).collect(Collectors.joining(",")) + ",l.state,l.log_create_dt,l.created_by,l.log_update_dt,l.updated_by";
-        String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " l inner join "+metaTable.getName()+" h on l.id=h.log_entry_id";
 
         if (entryId != -1) {
+            String selectCols = "distinct l.id," + Arrays.stream(form.getColumns().split(",")).filter(c-> Arrays.stream(gridCols.split(",")).filter(gc->gc.equalsIgnoreCase(c)).count() == 0).map(s->"l."+s).collect(Collectors.joining(",")) + ",l.state,l.log_create_dt,l.created_by,l.log_update_dt,l.updated_by";
+            String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " l inner join "+metaTable.getName()+" h on l.id=h.log_entry_id";
             selectStmt += " WHERE id=" + entryId;
+            System.out.println(selectStmt);
+            return jdbcTemplate.query(selectStmt,
+                    (resultSet, rowNum) -> new DataQuery(resultSet, Arrays.stream(selectCols.split(",")).map(col->col.split("\\.")[1]).collect(Collectors.joining(",")).split(",")));
         } else if (filterByUsername) {
+            String selectCols = "distinct l.id," + Arrays.stream(form.getColumns().split(",")).filter(c-> Arrays.stream(gridCols.split(",")).filter(gc->gc.equalsIgnoreCase(c)).count() == 0).map(s->"l."+s).collect(Collectors.joining(",")) + ",l.state,l.log_create_dt,l.created_by,l.log_update_dt,l.updated_by";
+            String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " l inner join "+metaTable.getName()+" h on l.id=h.log_entry_id";
             selectStmt += " WHERE h.created_by=  '" + SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString() + "'";
+            System.out.println(selectStmt);
+            return jdbcTemplate.query(selectStmt,
+                    (resultSet, rowNum) -> new DataQuery(resultSet, Arrays.stream(selectCols.split(",")).map(col->col.split("\\.")[1]).collect(Collectors.joining(",")).split(",")));
+
+        } else {
+            String selectCols = "l.id," + Arrays.stream(form.getColumns().split(",")).filter(c-> Arrays.stream(gridCols.split(",")).filter(gc->gc.equalsIgnoreCase(c)).count() == 0).map(s->"l."+s).collect(Collectors.joining(",")) + ",l.state,l.log_create_dt,l.created_by,l.log_update_dt,l.updated_by";
+            String selectStmt = "SELECT " + selectCols + " from " + table.getName() + " l";
+            System.out.println(selectStmt);
+            return jdbcTemplate.query(selectStmt,
+                    (resultSet, rowNum) -> new DataQuery(resultSet, Arrays.stream(selectCols.split(",")).map(col->col.split("\\.")[1]).collect(Collectors.joining(",")).split(",")));
+
         }
 
-        System.out.println(selectStmt);
-
-        return jdbcTemplate.query(selectStmt,
-                (resultSet, rowNum) -> new DataQuery(resultSet, Arrays.stream(selectCols.split(",")).map(col->col.split("\\.")[1]).collect(Collectors.joining(",")).split(",")));
     }
 
     public List<DataQuery> getLogEntryMetadata(Form form, int entryId) {

@@ -44,6 +44,13 @@ public class FormController {
         return new ResponseEntity<>(forms, HttpStatus.OK);
     }
 
+    @GetMapping("/last-state-accessible-forms/")
+    public ResponseEntity<?> getLastStateAccessibleForms() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Iterable<Form> forms = formService.getLastStateAccessibleForms(userService.getUserByUsername(authentication.getPrincipal().toString()).get());
+        return new ResponseEntity<>(forms, HttpStatus.OK);
+    }
+
     @GetMapping("/{form}/")
     public ResponseEntity<?> getFormByName(@PathVariable(name = "form") String form) {
         Optional<Form> queriedForm = formService.getFormByName(form);

@@ -53,6 +53,19 @@ public class FormService {
         }).collect(Collectors.toList());
     }
 
+    public Iterable<Form> getLastStateAccessibleForms(User user) {
+        Iterable<Form> forms = formRepository.findAll();
+        return StreamSupport.stream(forms.spliterator(),false).filter(form-> {
+            return form.getWorkflow().getStates().stream().filter(st->st.isEndState()).filter(st -> {
+                Set<Department> authDepts = st.getDepartments();
+                boolean initDeptCheck = authDepts.stream().filter(d->d.getName().equalsIgnoreCase("Initiator Department")).count() > 0;
+                Set<Role> authRoles = st.getRoles();
+                return (authDepts.size() == 0 || initDeptCheck || departmentService.checkAccess(user.getDepartment(), authDepts)) && (authRoles.size() == 0 || roleService.hasAccess(user
+                        .getRoles(), authRoles));
+            }).count() > 0;
+        }).collect(Collectors.toList());
+    }
+
     public Iterable<Form> getForms(User user) {
         Iterable<Form> forms = formRepository.findAll();
         if (user.getAuthorities().stream().filter(auth -> auth.getAuthority().equals("ROLE_ADMIN")).count() > 0 || 1==1)

@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping("/entry")
@@ -155,7 +156,7 @@ public class FormDataController {
         try {
             LogEntry logEntry = new ObjectMapper().readValue(logEntryStr,LogEntry.class);
             Optional<Form> existingForm = formService.getFormById(formId);
-            String user = checkAccess(existingForm, logEntry);
+            String user = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
             User initiator = userService.getUserByUsername(logEntry.getInitiator()).get();
             Map<String, String> values = logEntry.getData();
             values.put("state", logEntry.getState());
@@ -262,6 +263,22 @@ public class FormDataController {
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
     }
 
+    @GetMapping("/{formId}/last-state/")
+    public ResponseEntity<?> getLastStateLogEntries(@PathVariable(name = "formId") int formId,
+                                           @RequestParam(name = "entryId", required = false, defaultValue = "-1") int entryId,
+                                           @RequestParam(name = "filterByUsername", required = false, defaultValue = "false") boolean filterByUsername,
+                                           @RequestParam(name = "filterByDepartment", required = false, defaultValue = "false") boolean filterByDepartment) {
+        Optional<Form> existingForm = formService.getFormById(formId);
+        User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()).get();
+        if(StreamSupport.stream(formService.getLastStateAccessibleForms(user).spliterator(),false).filter(f->f.getName().equalsIgnoreCase(existingForm.get().getName())).count() > 0){
+            List<DataQuery> dataQueried;
+            dataQueried = formDataService.getAllFor(existingForm.get(), entryId, false, filterByDepartment);
+            return new ResponseEntity<>(dataQueried, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @GetMapping("/{formId}/pending")
     public ResponseEntity<?> getPendingLogEntries(@PathVariable(name = "formId") int formId) {
         Optional<Form> existingForm = formService.getFormById(formId);
@@ -325,25 +342,6 @@ public class FormDataController {
         var dataQueried = formDataService.getAllFor(existingForm.get(), Arrays.stream(filters.split(";")).collect(Collectors.toMap(cond->cond.split(":")[0],cond->cond.split(":")[1])));
 
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
-    }
-
-    private String checkAccess(Optional<Form> existingForm, LogEntry logEntry) {
-//        if (existingForm.isPresent()) {
-//            Optional<State> state = existingForm.get().getWorkflow().getStates().stream().filter(st -> st.getName().equals(logEntry.getState())).findFirst();
-//            if (state.isPresent()) {
-//                List<State> accessibleStates = getAccessibleWriteStates(existingForm, logEntry.getState());
-//                if (accessibleStates.contains(state.get())) {
-//                    return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
-//                } else {
-//                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not have access to log this entry!");
-//                }
-//            } else {
-//                throw new ResponseStatusException(HttpStatus.CONFLICT, "This state does not exist for given form!");
-//            }
-//        } else {
-//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Form does not exist!");
-//        }
-        return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 
     private List<State> getAccessibleWriteStates(Optional<Form> existingForm, String state) {
