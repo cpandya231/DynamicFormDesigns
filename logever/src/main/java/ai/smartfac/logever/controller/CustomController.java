@@ -54,16 +54,12 @@ public class CustomController {
                                                    @RequestParam(name = "employeeID", required = false) String employeeID,
                                                    @RequestParam(name = "other_employee_id", required = false) String other_employee_id,
                                                    @RequestParam(name = "service_engineer_id", required = false) String service_engineer_id) {
-        String idType = "";
         if (!employeeID.equalsIgnoreCase("undefined")) {
-            idType = "employee_id";
-            return new ResponseEntity<>(customService.getAllAccessTypes(employeeID,applicationName,idType), HttpStatus.OK);
+            return new ResponseEntity<>(customService.getAllAccessTypes(employeeID,applicationName), HttpStatus.OK);
         } else if(!other_employee_id.equalsIgnoreCase("undefined")) {
-            idType = "other_employee_id";
-            return new ResponseEntity<>(customService.getAllAccessTypes(other_employee_id,applicationName,idType), HttpStatus.OK);
+            return new ResponseEntity<>(customService.getAllAccessTypes(other_employee_id,applicationName), HttpStatus.OK);
         } else if(!service_engineer_id.equalsIgnoreCase("undefined")) {
-            idType = service_engineer_id;
-            return new ResponseEntity<>(customService.getAllAccessTypes(service_engineer_id,applicationName,idType), HttpStatus.OK);
+            return new ResponseEntity<>(customService.getAllAccessTypes(service_engineer_id,applicationName), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
         }
@@ -74,16 +70,12 @@ public class CustomController {
                                                    @RequestParam(name = "employeeID", required = false) String employeeID,
                                                    @RequestParam(name = "other_employee_id", required = false) String other_employee_id,
                                                    @RequestParam(name = "service_engineer_id", required = false) String service_engineer_id) {
-        String idType = "";
         if (!employeeID.equalsIgnoreCase("undefined")) {
-            idType = "employee_id";
-            return new ResponseEntity<>(customService.getAccessRoles(employeeID,applicationName,idType), HttpStatus.OK);
+            return new ResponseEntity<>(customService.getAccessRoles(employeeID,applicationName), HttpStatus.OK);
         } else if(!other_employee_id.equalsIgnoreCase("undefined")) {
-            idType = "other_employee_id";
-            return new ResponseEntity<>(customService.getAccessRoles(other_employee_id,applicationName,idType), HttpStatus.OK);
+            return new ResponseEntity<>(customService.getAccessRoles(other_employee_id,applicationName), HttpStatus.OK);
         } else if(!service_engineer_id.equalsIgnoreCase("undefined")) {
-            idType = service_engineer_id;
-            return new ResponseEntity<>(customService.getAccessRoles(service_engineer_id,applicationName,idType), HttpStatus.OK);
+            return new ResponseEntity<>(customService.getAccessRoles(service_engineer_id,applicationName), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
         }
@@ -94,7 +86,6 @@ public class CustomController {
                                                     @RequestParam(name = "employeeID", required = false) String employeeID,
                                                     @RequestParam(name = "other_employee_id", required = false) String other_employee_id,
                                                     @RequestParam(name = "service_engineer_id", required = false) String service_engineer_id) {
-        String idType = "";
         if (!employeeID.equalsIgnoreCase("undefined")) {
             return new ResponseEntity<>(customService.getExistingID(employeeID,applicationName), HttpStatus.OK);
         } else if(!other_employee_id.equalsIgnoreCase("undefined")) {
@@ -104,6 +95,11 @@ public class CustomController {
         } else {
             return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
         }
+    }
+
+    @GetMapping("/computer_id/")
+    public ResponseEntity<?> getComputerIDs(@RequestParam(name = "user_account_type") String userAccountType) {
+        return new ResponseEntity<>(customService.getComputerIDs(userAccountType), HttpStatus.OK);
     }
 
 }

@@ -48,14 +48,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             cors.setAllowedHeaders(List.of("*"));
             return cors;
         }).and().csrf().disable();
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+//        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.authorizeRequests().antMatchers("/static/css/**", "/static/js/**");
         http.authorizeRequests().antMatchers("/login", "/token/refresh").permitAll();
         http.authorizeRequests().antMatchers("/master/entry/bulk/template/**").permitAll();
         http.authorizeRequests().antMatchers("/logout").permitAll();
         http.authorizeRequests().antMatchers("/users/register").permitAll();
-        http.authorizeRequests().antMatchers("/users/**").permitAll()
-                .and().formLogin();
-        http.authorizeRequests().anyRequest().authenticated();
+        http.authorizeRequests().antMatchers("/users/**").permitAll();
+//                .and().formLogin().loginPage("/index.html");
+        http.httpBasic().and().authorizeRequests().antMatchers("/").permitAll().and().csrf().disable();
+//        http.authorizeRequests().anyRequest().authenticated();
         http.addFilter(customAuthenticationFilter);
         http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
