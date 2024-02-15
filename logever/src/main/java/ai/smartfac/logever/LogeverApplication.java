@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.client.RestTemplate;
 
 @EnableJpaAuditing
 @SpringBootApplication
@@ -19,6 +20,11 @@ public class LogeverApplication {
 	@Bean
 	BCryptPasswordEncoder bCryptPasswordEncoder() {
 		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	RestTemplate restTemplate(){
+		return new RestTemplate();
 	}
 
 	public static void main(String[] args) {
