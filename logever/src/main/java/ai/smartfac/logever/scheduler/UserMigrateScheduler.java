@@ -8,17 +8,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 @Component
 public class UserMigrateScheduler {
@@ -31,6 +39,13 @@ public class UserMigrateScheduler {
     @Value("${user.migrate.url}")
     private String userMigrateUrl;
 
+    @Value("${custom.property.file.path:user-mapping.properties}")
+    private String propertyFilePath;
+
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
+    Properties properties = new Properties();
+
     //    @Scheduled(cron = "0 0 0 * * ?") // Run every 5 minutes
     @Scheduled(fixedRate = 5000)
     public void runScheduledTask() {
@@ -38,12 +53,33 @@ public class UserMigrateScheduler {
         LOGGER.info("Executing scheduled task...");
 //        List<User> users = getUsers();
 //        users.forEach(user -> userService.saveUser(user));
+        loadPropertiesFromClasspath(propertyFilePath);
         sample();
     }
+    public Properties loadPropertiesFromClasspath(String fileName) {
 
-    public void sample() {
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
         try {
+            // Load the resource file from the classpath
+            Resource resource = new ClassPathResource(fileName);
+
+            // Open an input stream to the resource
+            InputStream inputStream = resource.getInputStream();
+
+            // Load the properties from the input stream
+            properties.load(inputStream);
+
+            // Close the input stream
+            inputStream.close();
+        } catch (IOException e) {
+            System.out.println("Error reading properties file: " + e.getMessage());
+        }
+        return properties;
+    }
+    public void sample() {
+        try {
+
+            System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+
 // Get the initial context
             InitialDirContext ctx = new InitialDirContext();
 
@@ -58,6 +94,7 @@ public class UserMigrateScheduler {
 
 // Loop through the objects returned in the search
             while (objs.hasMoreElements()) {
+                User user = new User();
 // Each item is a SearchResult object
                 SearchResult match = (SearchResult) objs.nextElement();
 
@@ -76,13 +113,37 @@ public class UserMigrateScheduler {
 
 // Print out the attribute's value(s)
                     System.out.print(attr.getID() + " = ");
+                    StringBuilder value = new StringBuilder();
                     for (int i = 0; i < attr.size(); i++) {
-                        if (i > 0) System.out.print(", ");
-                        System.out.print(attr.get(i));
+                        if (i > 0) {
+                            value.append(",");
+                        }
+                        ;
+                        value.append(attr.get(i));
                     }
-                    System.out.println();
+
+                    var mappedName = properties.get(attr.getID());
+                    if(null !=mappedName){
+                        switch (mappedName.toString())
+                        {
+                            case "username":
+                                user.setUsername(value.toString());
+                                user.setEmployee_code(value.toString());
+                                break;
+                            case "first_name":
+                                user.setFirst_name(value.toString());
+                            default:
+                                break;
+                        }
+                    }
                 }
-                System.out.println("---------------------------------------");
+                if(null!=user.getUsername()){
+                    user.setDateOfBirth(Date.valueOf("1990-01-01"));
+                    user.setPassword(bCryptPasswordEncoder.encode("password"));
+                    user.setIsActive(true);
+                    userService.saveUser(user);
+                }
+
             }
         } catch (Exception exc) {
             exc.printStackTrace();
