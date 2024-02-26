@@ -9,11 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -23,38 +20,44 @@ import org.springframework.web.client.RestTemplate;
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.*;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Date;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 @Component
 public class UserMigrateScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DBPropertyLoader.class);
     @Autowired
-    private RestTemplate restTemplate;
-    @Autowired
     private UserService userService;
 
     @Value("${custom.property.file.path:user-mapping.properties}")
     private String propertyFilePath;
+    @Value("${enable.user.migration:false}")
+    private Boolean enableUserMigration;
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private RoleRepository roleRepository;
     Properties properties = new Properties();
-
+    //    @Scheduled(fixedRate = 5000) // Run every 5 seconds
     //    @Scheduled(cron = "0 0 0 * * ?") // Run every 5 minutes
     //    @Scheduled(cron = "0 0 * * * ?") // Run every midnight
     @Scheduled(cron = "0 0 * * * ?")
     public void runScheduledTask() {
         // Your task logic goes here
-        LOGGER.info("Executing scheduled task...");
-        loadPropertiesFromClasspath(propertyFilePath);
-        sample();
+        if(enableUserMigration){
+            LOGGER.info("Executing scheduled task...");
+            loadPropertiesFromClasspath(propertyFilePath);
+            sample();
+        }else{
+            LOGGER.info("User migration is disabled");
+        }
+
     }
     public Properties loadPropertiesFromClasspath(String fileName) {
 
