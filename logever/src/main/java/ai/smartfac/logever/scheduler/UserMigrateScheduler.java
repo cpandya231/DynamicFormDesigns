@@ -1,7 +1,9 @@
 package ai.smartfac.logever.scheduler;
 
 import ai.smartfac.logever.config.DBPropertyLoader;
+import ai.smartfac.logever.entity.Role;
 import ai.smartfac.logever.entity.User;
+import ai.smartfac.logever.repository.RoleRepository;
 import ai.smartfac.logever.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.naming.Context;
@@ -24,9 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 @Component
 public class UserMigrateScheduler {
@@ -44,15 +45,16 @@ public class UserMigrateScheduler {
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    private RoleRepository roleRepository;
     Properties properties = new Properties();
 
     //    @Scheduled(cron = "0 0 0 * * ?") // Run every 5 minutes
-    @Scheduled(fixedRate = 5000)
+    //    @Scheduled(cron = "0 0 * * * ?") // Run every midnight
+    @Scheduled(cron = "0 0 * * * ?")
     public void runScheduledTask() {
         // Your task logic goes here
         LOGGER.info("Executing scheduled task...");
-//        List<User> users = getUsers();
-//        users.forEach(user -> userService.saveUser(user));
         loadPropertiesFromClasspath(propertyFilePath);
         sample();
     }
@@ -137,11 +139,21 @@ public class UserMigrateScheduler {
                         }
                     }
                 }
-                if(null!=user.getUsername()){
+                if(null!=user.getUsername() && user.getUsername().length()>0){
                     user.setDateOfBirth(Date.valueOf("1990-01-01"));
                     user.setPassword(bCryptPasswordEncoder.encode("password"));
                     user.setIsActive(true);
+                    user.setCreatedBy(user.getUsername());
+                    user.setUpdatedBy(user.getUsername());
+                    if(CollectionUtils.isEmpty(user.getRoles())){
+                        Set<Role> roles = new HashSet<>();
+                        roles.add(roleRepository.findById(-1).get());
+                        user.setRoles(roles);
+                    }
+                    var existingUser=userService.getUserByUsername(user.getUsername());
+                    existingUser.ifPresent(value -> user.setId(value.getId()));
                     userService.saveUser(user);
+
                 }
 
             }
@@ -150,22 +162,5 @@ public class UserMigrateScheduler {
         }
     }
 
-    public List<User> getUsers() {
-        try {
-            ResponseEntity<List<User>> response = restTemplate.exchange(
-                    userMigrateUrl,  // Replace with your fake URL
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<>() {
-                    });
-            LOGGER.info("Got response status code {} body {}", response.getStatusCode(), response.getBody());
-            return response.getBody();
 
-        } catch (Exception e) {
-            LOGGER.error("Error occured while fetching users from {}", userMigrateUrl);
-            e.printStackTrace();
-        }
-        return new ArrayList<>();
-
-    }
 }

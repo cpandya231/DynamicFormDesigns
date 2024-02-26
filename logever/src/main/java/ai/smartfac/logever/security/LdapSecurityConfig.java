@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
+@Order(1)
 @Configuration
 @EnableWebSecurity
 public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {

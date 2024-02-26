@@ -20,7 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
-@Order(1)
+@Order(2)
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
