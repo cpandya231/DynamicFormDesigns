@@ -37,8 +37,6 @@ public class UserMigrateScheduler {
     private RestTemplate restTemplate;
     @Autowired
     private UserService userService;
-    @Value("${user.migrate.url}")
-    private String userMigrateUrl;
 
     @Value("${custom.property.file.path:user-mapping.properties}")
     private String propertyFilePath;
