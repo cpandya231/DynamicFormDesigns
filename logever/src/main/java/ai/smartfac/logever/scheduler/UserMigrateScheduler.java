@@ -23,9 +23,7 @@ import javax.naming.directory.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Date;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class UserMigrateScheduler {
@@ -38,6 +36,18 @@ public class UserMigrateScheduler {
     private String propertyFilePath;
     @Value("${enable.user.migration:false}")
     private Boolean enableUserMigration;
+
+    @Value("${ad.server.ip.address:180.190.51.100}")
+    private String adIpAddress;
+
+    @Value("${spring.ldap.embedded.port:389}")
+    private String adPort;
+
+    @Value("${ldap.username:username}")
+    private String ldapUserName;
+
+    @Value("${ldap.password:password}")
+    private String ldapPassword;
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -82,9 +92,18 @@ public class UserMigrateScheduler {
         try {
 
             System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+            // Set LDAP server address and port
+            Hashtable<String, String> env = new Hashtable<>();
+            env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+            env.put(Context.PROVIDER_URL, String.format("ldap://%s:%s",adIpAddress,adPort));
+
+// Specify authentication credentials if needed
+            env.put(Context.SECURITY_AUTHENTICATION, "simple");
+            env.put(Context.SECURITY_PRINCIPAL, ldapUserName);
+            env.put(Context.SECURITY_CREDENTIALS, ldapPassword);
 
 // Get the initial context
-            InitialDirContext ctx = new InitialDirContext();
+            InitialDirContext ctx = new InitialDirContext(env);
 
             SearchControls searchControls = new SearchControls();
             searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);

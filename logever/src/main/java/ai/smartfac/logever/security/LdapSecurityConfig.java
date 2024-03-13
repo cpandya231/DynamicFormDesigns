@@ -2,6 +2,7 @@ package ai.smartfac.logever.security;
 
 import ai.smartfac.logever.filter.CustomAuthenticationFilter;
 import ai.smartfac.logever.filter.CustomAuthorizationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -22,6 +23,11 @@ import java.util.List;
 @EnableWebSecurity
 public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Value("${ad.server.ip.address:180.190.51.100}")
+    private String adIpAddress;
+
+    @Value("${spring.ldap.embedded.port:389}")
+    private String adPort;
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth
@@ -29,7 +35,7 @@ public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
                 .userDnPatterns("uid={0},ou=people")
                 .groupSearchBase("ou=groups")
                 .contextSource()
-                    .url("ldap://localhost:8389/dc=springframework,dc=org")
+                    .url(String.format("ldap://%s:%s/dc=springframework,dc=org",adIpAddress,adPort))
                     .and()
                 .passwordCompare()
                     .passwordEncoder(new BCryptPasswordEncoder())
