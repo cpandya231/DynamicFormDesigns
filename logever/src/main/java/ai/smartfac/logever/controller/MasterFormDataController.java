@@ -92,6 +92,22 @@ public class MasterFormDataController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PutMapping("/{formName}/entry_state")
+    public ResponseEntity<?> updateMasterEntryStateOnly(@PathVariable(name = "formName") String formName,
+                                                    @RequestParam(name = "idCol") String idCol,
+                                                    @RequestParam(name = "idVal") String idVal,
+                                                    @RequestParam(name = "value") String value) {
+        Optional<Form> existingForm = formService.getFormByName(formName);
+
+        if (existingForm.isEmpty()) {
+            throw new RuntimeException("No form found for " + formName);
+        }
+
+        masterFormDataService.updateEntryState(existingForm.get(), idCol, idVal, "entry_state",value);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @GetMapping(path = "/bulk/template/{formId}")
     public ResponseEntity<?> downloadReport(@PathVariable Integer formId) throws IOException {
         Date now = new Date();

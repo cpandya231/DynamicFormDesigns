@@ -199,6 +199,18 @@ public class Form {
         return table.showCreateTable();
     }
 
+    public String renameTableStmt(String version) {
+        Table table = new Table();
+        table.setName(this.getName());
+        return "ALTER TABLE "+table.getName()+" rename "+table.getName()+"_"+version;
+    }
+
+    public String renameMasterTableStmt(String version) {
+        Table table = new Table();
+        table.setName(getMasterTableName());
+        return "ALTER TABLE "+table.getName()+" rename "+table.getName()+"_"+version;
+    }
+
     public String makeCreateMasterTableStmt() {
         Table table = new Table();
 
@@ -216,6 +228,20 @@ public class Form {
         columnDefs.add(new ColumnDef("updated_by", "text", new ColumnConstraints(false, false, false, null)));
         table.setColumnDefs(columnDefs);
         return table.showCreateTable();
+    }
+
+    public ArrayList<String> renameGridTableStmt(String version) {
+        List<ArrayList<Control>> gridControls = getGrids();
+        ArrayList<String> renameStmts = new ArrayList<>();
+        if(gridControls.size() > 0) {
+            gridControls.forEach(controls-> {
+                Control gridControl = controls.get(0);
+                Table table = new Table();
+                table.setGridTableName(this.getName() +" "+ gridControl.getLabel());
+                renameStmts.add("ALTER TABLE "+table.getName()+" rename "+table.getName()+"_"+version);
+            });
+        }
+        return renameStmts;
     }
 
     public ArrayList<String> makeCreateGridTableStmt() {
@@ -245,6 +271,20 @@ public class Form {
         return createStmts;
     }
 
+    public ArrayList<String> renameGridHistoryTableStmt(String version) {
+        List<ArrayList<Control>> gridControls = getGrids();
+        ArrayList<String> renameStmts = new ArrayList<>();
+        if(gridControls.size() > 0) {
+            gridControls.forEach(controls-> {
+                Control gridControl = controls.get(0);
+                Table table = new Table();
+                table.setGridAuditTableName(this.getName() +" "+ gridControl.getLabel());
+                renameStmts.add("ALTER TABLE "+table.getName()+" rename "+table.getName()+"_"+version);
+            });
+        }
+        return renameStmts;
+    }
+
     public ArrayList<String> makeCreateGridHistoryTableStmt() {
         List<ArrayList<Control>> gridControls = getGrids();
         ArrayList<String> createStmts = new ArrayList<>();
@@ -271,6 +311,13 @@ public class Form {
             });
         }
         return createStmts;
+    }
+
+    public String renameMetaDataTableStmt(String version) {
+        Table table = new Table();
+        table.setName(getMetadataTableName());
+
+        return "ALTER TABLE "+table.getName()+" rename "+table.getName()+"_"+version;
     }
 
     public String makeCreateMetaDataTableStmt() {
@@ -408,6 +455,13 @@ public class Form {
         table.setName(getMasterTableName());
         String columns = String.join(",", values.keySet());
         return table.makeUpdateMasterEntryStateStmt(columns, values);
+    }
+
+    public String makeUpdateMasterEntryStateStmtWithId(Map<String, String> values, String idCol) {
+        Table table = new Table();
+        table.setName(getMasterTableName());
+        String columns = String.join(",", values.keySet());
+        return table.makeUpdateMasterEntryStateStmtWithId(columns, values, idCol);
     }
 
     public String getMasterTableName() {

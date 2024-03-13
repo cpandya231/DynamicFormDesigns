@@ -85,41 +85,54 @@ public class FormService {
     }
 
     public Form save(Form form) {
-        if (form.getVersion() == 1 && form.getId() == null) {
-            jdbcTemplate.execute(form.makeCreateTableStmt());
-            jdbcTemplate.execute(form.makeCreateMetaDataTableStmt());
-            form.makeCreateGridTableStmt().forEach(stmt-> {
-                jdbcTemplate.execute(stmt);
-            });
-            form.makeCreateGridHistoryTableStmt().forEach(stmt-> {
-                jdbcTemplate.execute(stmt);
-            });
-            if(form.getType().equalsIgnoreCase("master"))
-                jdbcTemplate.execute(form.makeCreateMasterTableStmt());
-            form.setColumns(form.getColumns());
-            return formRepository.save(form);
-        }
-        return form;
+//        if (form.getVersion() == 1 && form.getId() == null) {
+        jdbcTemplate.execute(form.makeCreateTableStmt());
+        jdbcTemplate.execute(form.makeCreateMetaDataTableStmt());
+        form.makeCreateGridTableStmt().forEach(stmt-> {
+            jdbcTemplate.execute(stmt);
+        });
+        form.makeCreateGridHistoryTableStmt().forEach(stmt-> {
+            jdbcTemplate.execute(stmt);
+        });
+        if(form.getType().equalsIgnoreCase("master"))
+            jdbcTemplate.execute(form.makeCreateMasterTableStmt());
+        form.setColumns(form.getColumns());
+        return formRepository.save(form);
+//        }
     }
 
     public Iterable<Form> getFormsByApp(Integer appId) {
         return formRepository.findAllByAppId(appId);
     }
 
-    public Form update(Form form, String prevColumns) {
-        String alterStmt = form.makeAlterTableStmt(prevColumns);
-        String alterTableMetaDataStmt = form.makeAlterTableMetaDataStmt(prevColumns);
-        if (alterStmt.length() > 0) {
-            if(form.getType().equalsIgnoreCase("master")){
-                String alterMasterTableStmt = form.makeAlterMasterTableStmt(prevColumns);
-                jdbcTemplate.execute(alterMasterTableStmt);
-            }
-            jdbcTemplate.execute(alterStmt);
-            jdbcTemplate.execute(alterTableMetaDataStmt);
+    public Form update(Form form, boolean rename) {
+//        String alterStmt = form.makeAlterTableStmt(prevColumns);
+//        String alterTableMetaDataStmt = form.makeAlterTableMetaDataStmt(prevColumns);
+//        if (alterStmt.length() > 0) {
+//            if(form.getType().equalsIgnoreCase("master")){
+//                String alterMasterTableStmt = form.makeAlterMasterTableStmt(prevColumns);
+//                jdbcTemplate.execute(alterMasterTableStmt);
+//            }
+//            jdbcTemplate.execute(alterStmt);
+//            jdbcTemplate.execute(alterTableMetaDataStmt);
+//
+//        }
+        if (rename) {
+            jdbcTemplate.execute(form.renameTableStmt(form.getVersion() + ""));
+            jdbcTemplate.execute(form.renameMetaDataTableStmt(form.getVersion() + ""));
+            form.renameGridTableStmt(form.getVersion() + "").forEach(stmt -> {
+                jdbcTemplate.execute(stmt);
+            });
+            form.renameGridHistoryTableStmt(form.getVersion() + "").forEach(stmt -> {
+                jdbcTemplate.execute(stmt);
+            });
+            if (form.getType().equalsIgnoreCase("master"))
+                jdbcTemplate.execute(form.renameMasterTableStmt(form.getVersion() + ""));
 
+            return save(form);
+        } else {
+            return formRepository.save(form);
         }
-
-        return formRepository.save(form);
     }
 
     public Optional<Form> getFormByWorkflowId(Integer workflowId) {
