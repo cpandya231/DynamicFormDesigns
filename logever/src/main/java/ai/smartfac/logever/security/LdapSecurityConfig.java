@@ -22,20 +22,25 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
-
-    @Value("${ad.server.ip.address:180.190.51.100}")
+    @Value("${spring.ldap.urls:180.190.51.100}")
     private String adIpAddress;
 
-    @Value("${spring.ldap.embedded.port:389}")
-    private String adPort;
+    @Value("${spring.ldap.username:username}")
+    private String ldapUserName;
+
+    @Value("${spring.ldap.password:password}")
+    private String ldapPassword;
+
+    @Value("${spring.ldap.groups:password}")
+    private String ouGroups;
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth
                 .ldapAuthentication()
-                .userDnPatterns("uid={0},ou=people")
-                .groupSearchBase("ou=groups")
+                .userDnPatterns("uid={0}")
+                .groupSearchBase(ouGroups)
                 .contextSource()
-                    .url(String.format("ldap://%s:%s/dc=springframework,dc=org",adIpAddress,adPort))
+                    .url(String.format("%s/%s",adIpAddress,ldapUserName))
                     .and()
                 .passwordCompare()
                     .passwordEncoder(new BCryptPasswordEncoder())

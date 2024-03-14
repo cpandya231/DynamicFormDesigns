@@ -30,6 +30,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${app.session.timeout.alert}")
     private String sessionTimeoutAlert;
+    @Value("${spring.ldap.urls:180.190.51.100}")
+    private String adIpAddress;
+
+    @Value("${spring.ldap.username:username}")
+    private String ldapUserName;
+
+    @Value("${spring.ldap.password:password}")
+    private String ldapPassword;
+
+    @Value("${spring.ldap.groups:password}")
+    private String ouGroups;
+
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -62,20 +74,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(appUserDetailsService).passwordEncoder(bCryptPasswordEncoder);
-        auth
-                .ldapAuthentication()
-                .userDnPatterns("uid={0},ou=people")
-                .groupSearchBase("ou=groups")
-                .contextSource()
-                .url("ldap://localhost:8389/dc=springframework,dc=org")
-                .and()
-                .passwordCompare()
-                .passwordEncoder(new BCryptPasswordEncoder())
-                .passwordAttribute("userPassword");
-    }
+//    @Override
+//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        auth.userDetailsService(appUserDetailsService).passwordEncoder(bCryptPasswordEncoder);
+//        auth
+//                .ldapAuthentication()
+//                .userDnPatterns("uid={0}")
+//                .groupSearchBase(ouGroups)
+//                .contextSource()
+//                    .url(String.format("%s/%s",adIpAddress,ldapUserName))
+//                    .and()
+//                .passwordCompare()
+//                    .passwordEncoder(new BCryptPasswordEncoder())
+//                    .passwordAttribute("userPassword");
+//    }
 
     @Bean
     @Override

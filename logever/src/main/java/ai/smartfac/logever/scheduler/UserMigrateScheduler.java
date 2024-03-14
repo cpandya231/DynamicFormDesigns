@@ -37,18 +37,17 @@ public class UserMigrateScheduler {
     @Value("${enable.user.migration:false}")
     private Boolean enableUserMigration;
 
-    @Value("${ad.server.ip.address:180.190.51.100}")
+    @Value("${spring.ldap.urls:180.190.51.100}")
     private String adIpAddress;
 
-    @Value("${spring.ldap.embedded.port:389}")
-    private String adPort;
-
-    @Value("${ldap.username:username}")
+    @Value("${spring.ldap.username:username}")
     private String ldapUserName;
 
-    @Value("${ldap.password:password}")
+    @Value("${spring.ldap.password:password}")
     private String ldapPassword;
 
+    @Value("${spring.ldap.base:DC=JUBLCORP,DC=COM}")
+    private String baseDn;
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
@@ -57,7 +56,7 @@ public class UserMigrateScheduler {
     //    @Scheduled(fixedRate = 5000) // Run every 5 seconds
     //    @Scheduled(cron = "0 0 0 * * ?") // Run every 5 minutes
     //    @Scheduled(cron = "0 0 * * * ?") // Run every midnight
-    @Scheduled(cron = "0 0 * * * ?")
+    @Scheduled(fixedRate = 5000)
     public void runScheduledTask() {
         // Your task logic goes here
         if(enableUserMigration){
@@ -95,7 +94,7 @@ public class UserMigrateScheduler {
             // Set LDAP server address and port
             Hashtable<String, String> env = new Hashtable<>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-            env.put(Context.PROVIDER_URL, String.format("ldap://%s:%s",adIpAddress,adPort));
+            env.put(Context.PROVIDER_URL, adIpAddress);
 
 // Specify authentication credentials if needed
             env.put(Context.SECURITY_AUTHENTICATION, "simple");
@@ -111,7 +110,7 @@ public class UserMigrateScheduler {
 // Search for items with the specified attribute starting
 // at the top of the search tree
             NamingEnumeration<SearchResult> objs = ctx.search(
-                    "dc=springframework,dc=org",
+                    baseDn,
                     "(objectClass=*)", searchControls);
 
 // Loop through the objects returned in the search
