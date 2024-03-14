@@ -20,7 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
-@Order(1)
+
 @Configuration
 @EnableWebSecurity
 public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -54,7 +54,7 @@ public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        return new BCryptPasswordEncoder();
     }
 //    @Override
 //    protected void configure(HttpSecurity http) throws Exception {

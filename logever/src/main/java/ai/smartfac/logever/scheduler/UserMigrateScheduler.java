@@ -133,7 +133,7 @@ public class UserMigrateScheduler {
                     Attribute attr = (Attribute) e.nextElement();
 
 // Print out the attribute's value(s)
-                    System.out.print(attr.getID() + " = ");
+
                     StringBuilder value = new StringBuilder();
                     for (int i = 0; i < attr.size(); i++) {
                         if (i > 0) {
@@ -142,6 +142,7 @@ public class UserMigrateScheduler {
                         ;
                         value.append(attr.get(i));
                     }
+                    System.out.println(attr.getID() + " = "+ value);
 
                     var mappedName = properties.get(attr.getID());
                     if(null !=mappedName){
@@ -171,7 +172,7 @@ public class UserMigrateScheduler {
                     }
                     var existingUser=userService.getUserByUsername(user.getUsername());
                     existingUser.ifPresent(value -> user.setId(value.getId()));
-                    userService.saveUser(user);
+//                    userService.saveUser(user);
 
                 }
 

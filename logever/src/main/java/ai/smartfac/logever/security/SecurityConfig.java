@@ -15,12 +15,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
-@Order(2)
+@Order(1)
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -35,13 +37,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${spring.ldap.username:username}")
     private String ldapUserName;
+    @Value("${spring.ldap.base:dc=example,dc=com}")
+    private String ldapBase;
 
     @Value("${spring.ldap.password:password}")
     private String ldapPassword;
 
     @Value("${spring.ldap.groups:password}")
     private String ouGroups;
-
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -74,20 +77,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
-//    @Override
-//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//        auth.userDetailsService(appUserDetailsService).passwordEncoder(bCryptPasswordEncoder);
-//        auth
-//                .ldapAuthentication()
-//                .userDnPatterns("uid={0}")
-//                .groupSearchBase(ouGroups)
-//                .contextSource()
-//                    .url(String.format("%s/%s",adIpAddress,ldapUserName))
-//                    .and()
-//                .passwordCompare()
-//                    .passwordEncoder(new BCryptPasswordEncoder())
-//                    .passwordAttribute("userPassword");
-//    }
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+
+        auth
+                .ldapAuthentication()
+                .userDnPatterns("uid={0}")
+                .contextSource()
+                .url(String.format("%s/%s",adIpAddress,ldapBase))
+                .managerDn(ldapUserName) // Bind user DN
+                .managerPassword(ldapPassword)
+                .and()
+                .passwordCompare()
+                .passwordEncoder(passwordEncoder())
+                .passwordAttribute("password");
+    }
+
+    private PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     @Override
