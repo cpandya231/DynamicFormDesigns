@@ -12,6 +12,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -27,6 +29,8 @@ public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${spring.ldap.username:username}")
     private String ldapUserName;
+    @Value("${spring.ldap.base:dc=example,dc=com}")
+    private String ldapBase;
 
     @Value("${spring.ldap.password:password}")
     private String ldapPassword;
@@ -35,18 +39,23 @@ public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
     private String ouGroups;
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+
         auth
                 .ldapAuthentication()
                 .userDnPatterns("uid={0}")
-                .groupSearchBase(ouGroups)
                 .contextSource()
-                    .url(String.format("%s/%s",adIpAddress,ldapUserName))
-                    .and()
+                .url(String.format("%s/%s",adIpAddress,ldapBase))
+                .managerDn(ldapUserName) // Bind user DN
+                .managerPassword(ldapPassword)
+                .and()
                 .passwordCompare()
-                    .passwordEncoder(new BCryptPasswordEncoder())
-                    .passwordAttribute("userPassword");
+                .passwordEncoder(passwordEncoder())
+                .passwordAttribute("password");
     }
 
+    private PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
 //    @Override
 //    protected void configure(HttpSecurity http) throws Exception {
 //        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
