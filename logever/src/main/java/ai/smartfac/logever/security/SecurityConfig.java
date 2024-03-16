@@ -47,9 +47,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${spring.ldap.password:password}")
     private String ldapPassword;
 
-    @Value("${spring.ldap.groups:password}")
-    private String ouGroups;
-
+    @Value("${ldap.uid.attribute:uid}")
+    private String uidAttribute;
+    @Value("${ldap.password.attribute:password}")
+    private String passwordAttribute;
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -87,7 +88,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(appUserDetailsService).passwordEncoder(bCryptPasswordEncoder);
         auth
                 .ldapAuthentication()
-                .userDnPatterns("uid={0}")
+                .userDnPatterns(String.format("%s={0}",uidAttribute))
                 .contextSource()
                 .url(String.format("%s/%s", adIpAddress, ldapBase))
                 .managerDn(ldapUserName) // Bind user DN
@@ -95,7 +96,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .passwordCompare()
                 .passwordEncoder(passwordEncoder())
-                .passwordAttribute("sn");
+                .passwordAttribute(passwordAttribute);
     }
 
     private PasswordEncoder passwordEncoder() {
