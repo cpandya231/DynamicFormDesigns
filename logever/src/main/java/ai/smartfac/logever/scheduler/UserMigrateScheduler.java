@@ -28,7 +28,7 @@ import java.util.*;
 @Component
 public class UserMigrateScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DBPropertyLoader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserMigrateScheduler.class);
     @Autowired
     private UserService userService;
 
@@ -36,6 +36,9 @@ public class UserMigrateScheduler {
     private String propertyFilePath;
     @Value("${enable.user.migration:false}")
     private Boolean enableUserMigration;
+
+    @Value("${save.ldap.users:false}")
+    private Boolean saveLdapUsers;
 
     @Value("${spring.ldap.urls:180.190.51.100}")
     private String adIpAddress;
@@ -56,7 +59,7 @@ public class UserMigrateScheduler {
     @Autowired
     private RoleRepository roleRepository;
 
-    private boolean disableMigrationLog=false;
+    private boolean disableMigrationLog = false;
     Properties properties = new Properties();
     //    @Scheduled(fixedRate = 5000) // Run every 5 seconds
     //    @Scheduled(cron = "0 0 0 * * ?") // Run every 5 minutes
@@ -65,19 +68,20 @@ public class UserMigrateScheduler {
     @Scheduled(cron = "${cronExpression}")
     public void runScheduledTask() {
         // Your task logic goes here
-        if(enableUserMigration){
+        if (enableUserMigration) {
             LOGGER.info("Executing scheduled task...");
             loadPropertiesFromClasspath(propertyFilePath);
             sample();
-        }else{
-            if(!disableMigrationLog){
+        } else {
+            if (!disableMigrationLog) {
                 LOGGER.info("User migration is disabled");
-                disableMigrationLog=true;
+                disableMigrationLog = true;
             }
 
         }
 
     }
+
     public Properties loadPropertiesFromClasspath(String fileName) {
 
         try {
@@ -93,10 +97,11 @@ public class UserMigrateScheduler {
             // Close the input stream
             inputStream.close();
         } catch (IOException e) {
-            System.out.println("Error reading properties file: " + e.getMessage());
+            LOGGER.info("Error reading properties file: " + e.getMessage());
         }
         return properties;
     }
+
     public void sample() {
         try {
 
@@ -130,7 +135,7 @@ public class UserMigrateScheduler {
                 SearchResult match = (SearchResult) objs.nextElement();
 
 // Print out the node name
-                System.out.println("Found " + match.getName() + ":");
+                LOGGER.info("Found " + match.getName() + ":");
 
 // Get the node's attributes
                 Attributes attrs = match.getAttributes();
@@ -152,12 +157,11 @@ public class UserMigrateScheduler {
                         ;
                         value.append(attr.get(i));
                     }
-                    System.out.println(attr.getID() + " = "+ value);
+                    LOGGER.info(attr.getID() + " = " + value);
 
                     var mappedName = properties.get(attr.getID());
-                    if(null !=mappedName){
-                        switch (mappedName.toString())
-                        {
+                    if (null != mappedName) {
+                        switch (mappedName.toString()) {
                             case "username":
                                 user.setUsername(value.toString());
                                 user.setEmployee_code(value.toString());
@@ -169,21 +173,26 @@ public class UserMigrateScheduler {
                         }
                     }
                 }
-                if(null!=user.getUsername() && user.getUsername().length()>0){
+                if (null != user.getUsername() && user.getUsername().length() > 0) {
                     user.setDateOfBirth(Date.valueOf("1990-01-01"));
                     user.setPassword(bCryptPasswordEncoder.encode("password"));
                     user.setIsActive(true);
                     user.setCreatedBy(user.getUsername());
                     user.setUpdatedBy(user.getUsername());
-                    if(CollectionUtils.isEmpty(user.getRoles())){
+                    if (CollectionUtils.isEmpty(user.getRoles())) {
                         Set<Role> roles = new HashSet<>();
-                        var defaultRoleDB=roleRepository.findByRole(defaultRole);
+                        var defaultRoleDB = roleRepository.findByRole(defaultRole);
                         defaultRoleDB.ifPresent(roles::add);
                         user.setRoles(roles);
                     }
-                    var existingUser=userService.getUserByUsername(user.getUsername());
-                    existingUser.ifPresent(value -> user.setId(value.getId()));
-                    userService.saveUser(user);
+                    if (saveLdapUsers) {
+                        var existingUser = userService.getUserByUsername(user.getUsername());
+                        existingUser.ifPresent(value -> user.setId(value.getId()));
+                        userService.saveUser(user);
+                    }else{
+                        LOGGER.info("Save LDAP Users is disabled");
+                    }
+
 
                 }
 

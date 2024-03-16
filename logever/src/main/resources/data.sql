@@ -35,6 +35,12 @@ SELECT * FROM (SELECT '-3','INITIATOR HOD','HOD role for an individual','admin',
 WHERE NOT EXISTS (
     SELECT role FROM role WHERE role = 'INITIATOR HOD'
 ) LIMIT 1 ^;
+INSERT INTO role (role,description,created_by,create_dt)
+SELECT * FROM (SELECT 'ROLE_EUAM_USER','EUAM User role for the Application','admin',current_timestamp) AS tmp
+WHERE NOT EXISTS (
+    SELECT role FROM role WHERE role = 'ROLE_EUAM_USER'
+) LIMIT 1 ^;
+
 
 INSERT INTO role_permission(role_id,permission_id)
 SELECT * FROM (SELECT 1 as role_id,1 as permission_id) AS tmp
