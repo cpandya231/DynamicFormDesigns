@@ -13,6 +13,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
@@ -62,14 +64,46 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        User user = (User)authResult.getPrincipal();
-        Algorithm algo = Algorithm.HMAC256("secret");
-        String accessToken = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis()+10*60*1000))
-                .withIssuer(request.getRequestURL().toString())
-                .withClaim("role",user.getAuthorities().stream().filter(f->f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
-                .withClaim("authority",user.getAuthorities().stream().filter(f->!f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+        String accessToken="";
+        String refreshToken="";
+        if(authResult.getPrincipal() instanceof  LdapUserDetailsImpl){
+            LdapUserDetailsImpl user = (LdapUserDetailsImpl)authResult.getPrincipal();
+            Algorithm algo = Algorithm.HMAC256("secret");
+            accessToken = JWT.create()
+                    .withSubject(user.getUsername())
+                    .withExpiresAt(new Date(System.currentTimeMillis()+10*60*1000))
+                    .withIssuer(request.getRequestURL().toString())
+                    .withClaim("role",user.getAuthorities().stream().filter(f->f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                    .withClaim("authority",user.getAuthorities().stream().filter(f->!f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+//                .withClaim("firstName",user.getFirst_name())
+//                .withClaim("lastName",user.getLast_name())
+//                .withClaim("department",user.getDepartment().getName())
+//                .withClaim("reporting_manager",user.getReporting_manager())
+//                .withClaim("email",user.getEmail())
+//                .withClaim("employee_code",user.getEmployee_code())
+//                .withClaim("user_id",user.getId())
+//                .withClaim("windows_id",user.getWindows_id())
+//                .withClaim("designation",user.getDesignation())
+//                .withClaim("hire_date",user.getHireDate().toString())
+//                .withClaim("site",user.getDepartment().getSite())
+//                .withClaim("fullName",user.getFullName())
+                    .withClaim("sessionTimeout",sessionTimeout)
+                    .withClaim("sessionTimeoutAlert",sessionTimeoutAlert)
+                    .sign(algo);
+            refreshToken = JWT.create()
+                    .withSubject(user.getUsername())
+                    .withExpiresAt(new Date(System.currentTimeMillis()+10*60*1000))
+                    .withIssuer(request.getRequestURL().toString())
+                    .sign(algo);
+        } else{
+            User user = (User)authResult.getPrincipal();
+            Algorithm algo = Algorithm.HMAC256("secret");
+             accessToken = JWT.create()
+                    .withSubject(user.getUsername())
+                    .withExpiresAt(new Date(System.currentTimeMillis()+10*60*1000))
+                    .withIssuer(request.getRequestURL().toString())
+                    .withClaim("role",user.getAuthorities().stream().filter(f->f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                    .withClaim("authority",user.getAuthorities().stream().filter(f->!f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                 .withClaim("firstName",user.getFirst_name())
                 .withClaim("lastName",user.getLast_name())
                 .withClaim("department",user.getDepartment().getName())
@@ -82,15 +116,18 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 .withClaim("hire_date",user.getHireDate().toString())
                 .withClaim("site",user.getDepartment().getSite())
                 .withClaim("fullName",user.getFullName())
-                .withClaim("sessionTimeout",sessionTimeout)
-                .withClaim("sessionTimeoutAlert",sessionTimeoutAlert)
-                .sign(algo);
+                    .withClaim("sessionTimeout",sessionTimeout)
+                    .withClaim("sessionTimeoutAlert",sessionTimeoutAlert)
+                    .sign(algo);
 
-        String refreshToken = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis()+10*60*1000))
-                .withIssuer(request.getRequestURL().toString())
-                .sign(algo);
+            refreshToken = JWT.create()
+                    .withSubject(user.getUsername())
+                    .withExpiresAt(new Date(System.currentTimeMillis()+10*60*1000))
+                    .withIssuer(request.getRequestURL().toString())
+                    .sign(algo);
+
+        }
+
 
         Map<String,String> tokens = new HashMap<>();
         tokens.put("access_token",accessToken);

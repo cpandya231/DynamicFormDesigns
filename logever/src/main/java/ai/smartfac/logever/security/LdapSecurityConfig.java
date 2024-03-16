@@ -2,6 +2,8 @@ package ai.smartfac.logever.security;
 
 import ai.smartfac.logever.filter.CustomAuthenticationFilter;
 import ai.smartfac.logever.filter.CustomAuthorizationFilter;
+import ai.smartfac.logever.service.AppUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -21,9 +24,19 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.List;
 
 
+
+@Order(1)
 @Configuration
 @EnableWebSecurity
-public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
+public class LdapSecurityConfig
+        extends WebSecurityConfigurerAdapter
+{
+
+    @Value("${app.session.timeout}")
+    private String sessionTimeout;
+
+    @Value("${app.session.timeout.alert}")
+    private String sessionTimeoutAlert;
     @Value("${spring.ldap.urls:180.190.51.100}")
     private String adIpAddress;
 
@@ -37,6 +50,38 @@ public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${spring.ldap.groups:password}")
     private String ouGroups;
+
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    AppUserDetailsService appUserDetailsService;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean(), sessionTimeout, sessionTimeoutAlert);
+        //customAuthenticationFilter.setFilterProcessesUrl("/login");
+        http.cors().configurationSource(request -> {
+            var cors = new CorsConfiguration();
+            cors.setAllowedOrigins(List.of("*"));
+            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+            cors.setAllowedHeaders(List.of("*"));
+            return cors;
+        }).and().csrf().disable();
+//        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.authorizeRequests().antMatchers("/static/css/**", "/static/js/**");
+        http.authorizeRequests().antMatchers("/login", "/token/refresh").permitAll();
+        http.authorizeRequests().antMatchers("/master/entry/bulk/template/**").permitAll();
+        http.authorizeRequests().antMatchers("/logout").permitAll();
+        http.authorizeRequests().antMatchers("/users/register").permitAll();
+        http.authorizeRequests().antMatchers("/users/**").permitAll();
+//                .and().formLogin().loginPage("/index.html");
+        http.httpBasic().and().authorizeRequests().antMatchers("/").permitAll().and().csrf().disable();
+//        http.authorizeRequests().anyRequest().authenticated();
+        http.addFilter(customAuthenticationFilter);
+        http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+    }
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 
@@ -50,32 +95,12 @@ public class LdapSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .passwordCompare()
                 .passwordEncoder(passwordEncoder())
-                .passwordAttribute("password");
+                .passwordAttribute("sn");
     }
 
     private PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return NoOpPasswordEncoder.getInstance();
     }
-//    @Override
-//    protected void configure(HttpSecurity http) throws Exception {
-//        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
-//        //customAuthenticationFilter.setFilterProcessesUrl("/login");
-//        System.out.println("Authenticating Vihit");
-//        http.cors().configurationSource(request -> {
-//            var cors = new CorsConfiguration();
-//            cors.setAllowedOrigins(List.of("*"));
-//            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-//            cors.setAllowedHeaders(List.of("*"));
-//            return cors;
-//        }).and().csrf().disable();
-//        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-//        http.authorizeRequests().antMatchers("/login", "/token/refresh").permitAll();
-//        http.authorizeRequests().antMatchers("/master/entry/bulk/template/**").permitAll();
-//        http.authorizeRequests().antMatchers("/logout").permitAll();
-//        http.authorizeRequests().antMatchers("/users/register").permitAll();
-//        http.authorizeRequests().antMatchers("/users/**").permitAll()
-//                .and().formLogin();
-//        http.authorizeRequests().anyRequest().authenticated();
-//    }
+
 
 }

@@ -52,6 +52,8 @@ public class UserMigrateScheduler {
     BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private RoleRepository roleRepository;
+
+    private boolean disableMigrationLog=false;
     Properties properties = new Properties();
     //    @Scheduled(fixedRate = 5000) // Run every 5 seconds
     //    @Scheduled(cron = "0 0 0 * * ?") // Run every 5 minutes
@@ -64,7 +66,11 @@ public class UserMigrateScheduler {
             loadPropertiesFromClasspath(propertyFilePath);
             sample();
         }else{
-            LOGGER.info("User migration is disabled");
+            if(!disableMigrationLog){
+                LOGGER.info("User migration is disabled");
+                disableMigrationLog=true;
+            }
+
         }
 
     }
