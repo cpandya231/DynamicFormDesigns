@@ -63,8 +63,6 @@ public class DBPropertyLoader implements EnvironmentPostProcessor {
              PreparedStatement preparedStatement = connection.prepareStatement(
                      String.format("SELECT %s FROM %s WHERE %s = ?;", CONFIG_VALUE_COLUMN_NAME, CONFIG_TABLE_NAME,
                              CONFIG_KEY_COLUMN_NAME))) {
-            System.out.println("Running query : "+String.format("SELECT %s FROM %s WHERE %s = ?;", CONFIG_VALUE_COLUMN_NAME, CONFIG_TABLE_NAME,
-                    CONFIG_KEY_COLUMN_NAME));
             for (int i = 0; i < KEYS.length; i++) {
                 final int index = i;
                 String key = KEYS[index];
@@ -74,7 +72,6 @@ public class DBPropertyLoader implements EnvironmentPostProcessor {
                     // Populate all properties into the property source
                     while (resultSet.next()) {
                         propertySource.put(key, resultSet.getString(CONFIG_VALUE_COLUMN_NAME));
-                        System.out.println(resultSet.getString(CONFIG_VALUE_COLUMN_NAME));
                     }
                     resultSet.close();
                     preparedStatement.clearParameters();

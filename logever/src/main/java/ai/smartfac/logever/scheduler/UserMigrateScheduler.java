@@ -48,6 +48,9 @@ public class UserMigrateScheduler {
 
     @Value("${spring.ldap.base:DC=JUBLCORP,DC=COM}")
     private String baseDn;
+
+    @Value("${default_role:ROLE_EUAM_USER}")
+    private String defaultRole;
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
@@ -58,7 +61,8 @@ public class UserMigrateScheduler {
     //    @Scheduled(fixedRate = 5000) // Run every 5 seconds
     //    @Scheduled(cron = "0 0 0 * * ?") // Run every 5 minutes
     //    @Scheduled(cron = "0 0 * * * ?") // Run every midnight
-    @Scheduled(fixedRate = 5000)
+
+    @Scheduled(cron = "${cronExpression}")
     public void runScheduledTask() {
         // Your task logic goes here
         if(enableUserMigration){
@@ -173,12 +177,13 @@ public class UserMigrateScheduler {
                     user.setUpdatedBy(user.getUsername());
                     if(CollectionUtils.isEmpty(user.getRoles())){
                         Set<Role> roles = new HashSet<>();
-                        roles.add(roleRepository.findById(-1).get());
+                        var defaultRoleDB=roleRepository.findByRole(defaultRole);
+                        defaultRoleDB.ifPresent(roles::add);
                         user.setRoles(roles);
                     }
                     var existingUser=userService.getUserByUsername(user.getUsername());
                     existingUser.ifPresent(value -> user.setId(value.getId()));
-//                    userService.saveUser(user);
+                    userService.saveUser(user);
 
                 }
 

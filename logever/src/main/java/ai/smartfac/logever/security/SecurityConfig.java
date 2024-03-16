@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -15,14 +16,17 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
-@Order(2)
+
+@Order(1)
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -77,11 +81,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
-
-    @Bean
     @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+
+        auth.userDetailsService(appUserDetailsService).passwordEncoder(bCryptPasswordEncoder);
+        auth
+                .ldapAuthentication()
+                .userDnPatterns("uid={0}")
+                .contextSource()
+                .url(String.format("%s/%s", adIpAddress, ldapBase))
+                .managerDn(ldapUserName) // Bind user DN
+                .managerPassword(ldapPassword)
+                .and()
+                .passwordCompare()
+                .passwordEncoder(passwordEncoder())
+                .passwordAttribute("sn");
     }
 
+    private PasswordEncoder passwordEncoder() {
+        return NoOpPasswordEncoder.getInstance();
+    }
 }
