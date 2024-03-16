@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -15,10 +16,15 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
+
 
 @Order(1)
 @Configuration
@@ -30,7 +36,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${app.session.timeout.alert}")
     private String sessionTimeoutAlert;
+    @Value("${spring.ldap.urls:180.190.51.100}")
+    private String adIpAddress;
 
+    @Value("${spring.ldap.username:username}")
+    private String ldapUserName;
+    @Value("${spring.ldap.base:dc=example,dc=com}")
+    private String ldapBase;
+
+    @Value("${spring.ldap.password:password}")
+    private String ldapPassword;
+
+    @Value("${ldap.uid.attribute:uid}")
+    private String uidAttribute;
+    @Value("${ldap.password.attribute:password}")
+    private String passwordAttribute;
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -64,23 +84,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+
         auth.userDetailsService(appUserDetailsService).passwordEncoder(bCryptPasswordEncoder);
         auth
                 .ldapAuthentication()
-                .userDnPatterns("uid={0},ou=people")
-                .groupSearchBase("ou=groups")
+                .userDnPatterns(String.format("%s={0}",uidAttribute))
                 .contextSource()
-                .url("ldap://localhost:8389/dc=springframework,dc=org")
+                .url(String.format("%s/%s", adIpAddress, ldapBase))
+                .managerDn(ldapUserName) // Bind user DN
+                .managerPassword(ldapPassword)
                 .and()
                 .passwordCompare()
-                .passwordEncoder(new BCryptPasswordEncoder())
-                .passwordAttribute("userPassword");
+                .passwordEncoder(passwordEncoder())
+                .passwordAttribute(passwordAttribute);
     }
 
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    private PasswordEncoder passwordEncoder() {
+        return NoOpPasswordEncoder.getInstance();
     }
-
 }

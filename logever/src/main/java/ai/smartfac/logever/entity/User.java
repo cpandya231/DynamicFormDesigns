@@ -97,10 +97,11 @@ public class User implements UserDetails {
     public void setId(Integer id) {
         this.id = id;
     }
-
+    @Override
     public String getUsername() {
         return username;
     }
+
 
     public Department getDepartment() {
         return department;

@@ -34,8 +34,7 @@ public class UserService implements ApplicationListener<AuthenticationSuccessEve
     @Override
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
         System.out.println(((UsernamePasswordAuthenticationToken)event.getSource()).getName());
-        String userName = ((User) event.getAuthentication().
-                getPrincipal()).getUsername();
+        String userName = event.getAuthentication().getName();
         User user = this.userRepository.findByUsername(userName).get();
         user.setLastLoginDt(new Timestamp(System.currentTimeMillis()));
         user.setUpdatedBy(user.getUsername());
