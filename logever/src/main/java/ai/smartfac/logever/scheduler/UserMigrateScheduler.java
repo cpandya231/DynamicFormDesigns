@@ -1,9 +1,11 @@
 package ai.smartfac.logever.scheduler;
 
 import ai.smartfac.logever.config.DBPropertyLoader;
+import ai.smartfac.logever.entity.Department;
 import ai.smartfac.logever.entity.Role;
 import ai.smartfac.logever.entity.User;
 import ai.smartfac.logever.repository.RoleRepository;
+import ai.smartfac.logever.service.DepartmentService;
 import ai.smartfac.logever.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,8 @@ public class UserMigrateScheduler {
     @Value("${enable.user.migration:false}")
     private Boolean enableUserMigration;
 
+    @Value("${user.save.limit:1}")
+    private Integer userSaveLimit;
     @Value("${save.ldap.users:false}")
     private Boolean saveLdapUsers;
 
@@ -59,7 +63,11 @@ public class UserMigrateScheduler {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private DepartmentService departmentService;
     private boolean disableMigrationLog = false;
+
+    private int totalUsersSaved=0;
     Properties properties = new Properties();
     //    @Scheduled(fixedRate = 5000) // Run every 5 seconds
     //    @Scheduled(cron = "0 0 0 * * ?") // Run every 5 minutes
@@ -168,6 +176,18 @@ public class UserMigrateScheduler {
                                 break;
                             case "first_name":
                                 user.setFirst_name(value.toString());
+                            case "department":
+                                Department department=new Department();
+                                String deptName=value.toString();
+                                Optional< Department> departmentOptional =departmentService.getDepartmentByName(value.toString());
+                                if(departmentOptional.isEmpty()){
+                                    department.setName(deptName);
+                                    department.setParentId(0);
+                                    departmentService.save(department);
+                                }else{
+                                    department=departmentOptional.get();
+                                }
+                                user.setDepartment(department);
                             default:
                                 break;
                         }
@@ -186,9 +206,15 @@ public class UserMigrateScheduler {
                         user.setRoles(roles);
                     }
                     if (saveLdapUsers) {
-                        var existingUser = userService.getUserByUsername(user.getUsername());
-                        existingUser.ifPresent(value -> user.setId(value.getId()));
-                        userService.saveUser(user);
+                        if(userSaveLimit==-1 || totalUsersSaved< userSaveLimit){
+                            var existingUser = userService.getUserByUsername(user.getUsername());
+                            existingUser.ifPresent(value -> user.setId(value.getId()));
+                            userService.saveUser(user);
+                            totalUsersSaved++;
+                        } else{
+                            LOGGER.info("User save limit is reached totalUsersSaved {} userSaveLimit {}",totalUsersSaved,userSaveLimit);
+                        }
+
                     }else{
                         LOGGER.info("Save LDAP Users is disabled");
                     }
