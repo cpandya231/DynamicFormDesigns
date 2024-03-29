@@ -21,12 +21,15 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
 import javax.naming.directory.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
 import java.sql.Date;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class UserMigrateScheduler {
@@ -51,6 +54,10 @@ public class UserMigrateScheduler {
     @Value("${spring.ldap.username:username}")
     private String ldapUserName;
 
+    @Value("${specific.ldap.username:username}")
+    private String specificLdapUserName;
+
+
     @Value("${spring.ldap.password:password}")
     private String ldapPassword;
 
@@ -68,7 +75,7 @@ public class UserMigrateScheduler {
     private DepartmentService departmentService;
     private boolean disableMigrationLog = false;
 
-    private int totalUsersSaved=0;
+    private int totalUsersSaved = 0;
     Properties properties = new Properties();
 
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -165,79 +172,132 @@ public class UserMigrateScheduler {
 
 // Loop through the attributes
                 while (e.hasMoreElements()) {
-// Get the next attribute
-                    Attribute attr = (Attribute) e.nextElement();
-
-// Print out the attribute's value(s)
-
-                    StringBuilder value = new StringBuilder();
-                    for (int i = 0; i < attr.size(); i++) {
-                        if (i > 0) {
-                            value.append(",");
-                        }
-                        ;
-                        value.append(attr.get(i));
-                    }
-                    LOGGER.info(attr.getID() + " = " + value);
-
-                    var mappedName = properties.get(attr.getID());
-                    if (null != mappedName) {
-                        switch (mappedName.toString()) {
-                            case "username":
-                                user.setUsername(value.toString());
-                                user.setEmployee_code(value.toString());
-                                break;
-                            case "first_name":
-                                user.setFirst_name(value.toString());
-                            case "department":
-                                Department department=new Department();
-                                String deptName=value.toString();
-                                Optional< Department> departmentOptional =departmentService.getDepartmentByName(value.toString());
-                                if(departmentOptional.isEmpty()){
-                                    department.setName(deptName);
-                                    department.setParentId(0);
-                                    departmentService.save(department);
-                                }else{
-                                    department=departmentOptional.get();
-                                }
-                                user.setDepartment(department);
-                            default:
-                                break;
-                        }
-                    }
+                    populateUserObject(user, e);
                 }
-                if (null != user.getUsername() && user.getUsername().length() > 0) {
-                    user.setDateOfBirth(Date.valueOf("1990-01-01"));
-                    user.setPassword(bCryptPasswordEncoder.encode(generateRandomString(10)));
-                    user.setIsActive(true);
-                    user.setCreatedBy(user.getUsername());
-                    user.setUpdatedBy(user.getUsername());
-                    if (CollectionUtils.isEmpty(user.getRoles())) {
-                        Set<Role> roles = new HashSet<>();
-                        var defaultRoleDB = roleRepository.findByRole(defaultRole);
-                        defaultRoleDB.ifPresent(roles::add);
-                        user.setRoles(roles);
-                    }
-                    if (saveLdapUsers) {
-                        if(userSaveLimit==-1 || totalUsersSaved< userSaveLimit){
-                            var existingUser = userService.getUserByUsername(user.getUsername());
-                            existingUser.ifPresent(value -> user.setId(value.getId()));
-                            userService.saveUser(user);
-                            totalUsersSaved++;
-                        } else{
-                            LOGGER.info("User save limit is reached totalUsersSaved {} userSaveLimit {}",totalUsersSaved,userSaveLimit);
-                        }
-
-                    }else{
-                        LOGGER.info("Save LDAP Users is disabled");
-                    }
-
-
-                }
+                createOrUpdateUser(user, match);
 
             }
         } catch (Exception exc) {
             exc.printStackTrace();
+        }
+    }
+
+    private void populateUserObject(User user, NamingEnumeration<? extends Attribute> e) throws NamingException {
+        // Get the next attribute
+        Attribute attr = (Attribute) e.nextElement();
+
+// Print out the attribute's value(s)
+
+        StringBuilder value = new StringBuilder();
+        for (int i = 0; i < attr.size(); i++) {
+            if (i > 0) {
+                value.append(",");
+            }
+            ;
+            value.append(attr.get(i));
+        }
+//                    LOGGER.info(attr.getID() + " = " + value);
+
+        var mappedName = properties.get(attr.getID());
+        if (null != mappedName) {
+            switch (mappedName.toString()) {
+                case "username":
+                    user.setUsername(value.toString());
+                    break;
+                case "email":
+                    user.setEmail(value.toString());
+                    break;
+                case "first_name":
+                    user.setFirst_name(value.toString());
+                    break;
+                case "last_name":
+                    user.setLast_name(value.toString());
+                    break;
+                case "dateOfBirth":
+                    user.setDateOfBirth(Date.valueOf(value.toString()));
+                    break;
+                case "employeeCode":
+                    user.setEmployee_code(value.toString());
+                    break;
+                case "windows_id":
+                    user.setWindows_id(value.toString());
+                    break;
+                case "reporting_manager":
+                    var reportingManagerDN = value.toString();
+                    String pattern = "CN=([^,]+)";
+
+                    Pattern r = Pattern.compile(pattern);
+                    Matcher m = r.matcher(reportingManagerDN);
+
+                    if (m.find()) {
+                        String result = m.group(1); // Extract the first capturing group
+                        user.setReporting_manager(result);
+                    } else {
+                        user.setReporting_manager(reportingManagerDN);
+                    }
+
+                    break;
+                case "designation":
+                    user.setDesignation(value.toString());
+                    break;
+                case "department":
+                    Optional<Department> departmentOptional = departmentService.getDepartmentByName(value.toString());
+                    departmentOptional.ifPresent(user::setDepartment);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void createOrUpdateUser(User user, SearchResult match) {
+        if (null == user.getUsername() && user.getUsername().length() == 0) {
+            LOGGER.info("Username not found for {} ", match.getName());
+            return;
+        }
+        if (null == user.getDepartment()) {
+            LOGGER.info("Department Not Found for {}", user.getUsername());
+        }
+        if (null != user.getUsername() && user.getUsername().length() > 0) {
+            if (null == user.getDateOfBirth()) {
+                user.setDateOfBirth(Date.valueOf("1990-01-01"));
+            }
+
+            user.setPassword(bCryptPasswordEncoder.encode(generateRandomString(10)));
+            user.setIsActive(true);
+            user.setCreatedBy(user.getUsername());
+            user.setUpdatedBy(user.getUsername());
+            if (CollectionUtils.isEmpty(user.getRoles())) {
+                Set<Role> roles = new HashSet<>();
+                var defaultRoleDB = roleRepository.findByRole(defaultRole);
+                defaultRoleDB.ifPresent(roles::add);
+                user.setRoles(roles);
+            }
+            if (saveLdapUsers) {
+                if (userSaveLimit == -1 || totalUsersSaved < userSaveLimit) {
+                    var existingUser = userService.getUserByUsername(user.getUsername());
+                    existingUser.ifPresent(value -> user.setId(value.getId()));
+                    if (null != specificLdapUserName && !"".equals(specificLdapUserName)) {
+                        if (specificLdapUserName.equalsIgnoreCase(user.getUsername())) {
+                            LOGGER.info("Saving user {}", user.getUsername());
+                            userService.saveUser(user);
+                            totalUsersSaved++;
+                        }
+                    } else {
+                        LOGGER.info("Saving user {}", user.getUsername());
+                        userService.saveUser(user);
+                        totalUsersSaved++;
+                    }
+
+                } else {
+                    LOGGER.info("User save limit is reached totalUsersSaved {} userSaveLimit {}", totalUsersSaved, userSaveLimit);
+                }
+
+            } else {
+                LOGGER.info("Save LDAP Users is disabled");
+            }
+
+
         }
     }
 
