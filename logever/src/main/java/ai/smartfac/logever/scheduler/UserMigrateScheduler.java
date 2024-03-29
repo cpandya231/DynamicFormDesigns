@@ -251,7 +251,10 @@ public class UserMigrateScheduler {
     }
 
     private void createOrUpdateUser(User user, SearchResult match) {
-        if (null == user.getUsername() && user.getUsername().length() == 0) {
+        if(null==user){
+            return;
+        }
+        if (null == user.getUsername() || "".equals(user.getUsername())) {
             LOGGER.info("Username not found for {} ", match.getName());
             return;
         }
