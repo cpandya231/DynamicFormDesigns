@@ -45,7 +45,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     private String sessionTimeoutAlert;
 
     public AuditTrailService auditTrailService;
-    public  UserService userService;
+    public UserService userService;
 
     private AuthenticationManager authenticationManager;
 
@@ -72,6 +72,8 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         String accessToken = "";
         String refreshToken = "";
+        User user = null;
+        String username="";
         if (authResult.getPrincipal() instanceof LdapUserDetailsImpl) {
             LdapUserDetailsImpl userPrincipal = (LdapUserDetailsImpl) authResult.getPrincipal();
             if (userService == null) {
@@ -79,58 +81,33 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 WebApplicationContext webApplicationContext = WebApplicationContextUtils.getWebApplicationContext(servletContext);
                 userService = webApplicationContext.getBean(UserService.class);
             }
+            username=userPrincipal.getUsername();
             var userEntity = userService.getUserByUsername(userPrincipal.getUsername());
-            Algorithm algo = Algorithm.HMAC256("secret");
+
             if (userEntity.isPresent()) {
-                var user = userEntity.get();
-                var dept = user.getDepartment();
-                var deptName = "";
-                var deptSite = "";
-
-                if (null != dept) {
-                    deptSite = dept.getSite();
-                    deptName = dept.getName();
-                }
-                var hireDateStr="";
-                var hireDate=user.getHireDate();
-                if(null !=hireDate){
-                    hireDateStr=hireDate.toString();
-                }
-                accessToken = JWT.create()
-                        .withSubject(user.getUsername())
-                        .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
-                        .withIssuer(request.getRequestURL().toString())
-                        .withClaim("role", user.getAuthorities().stream().filter(f -> f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
-                        .withClaim("authority", user.getAuthorities().stream().filter(f -> !f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
-                        .withClaim("firstName", user.getFirst_name())
-                        .withClaim("lastName", user.getLast_name())
-
-                        .withClaim("reporting_manager", user.getReporting_manager())
-                        .withClaim("email", user.getEmail())
-                        .withClaim("employee_code", user.getEmployee_code())
-                        .withClaim("user_id", user.getId())
-                        .withClaim("windows_id", user.getWindows_id())
-                        .withClaim("designation", user.getDesignation())
-                        .withClaim("hire_date", hireDateStr)
-                        .withClaim("department", deptName)
-                        .withClaim("site", deptSite)
-                        .withClaim("fullName", user.getFullName())
-                        .withClaim("sessionTimeout", sessionTimeout)
-                        .withClaim("sessionTimeoutAlert", sessionTimeoutAlert)
-                        .sign(algo);
-                refreshToken = JWT.create()
-                        .withSubject(user.getUsername())
-                        .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
-                        .withIssuer(request.getRequestURL().toString())
-                        .sign(algo);
-            } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User %s not found in Database", userPrincipal.getUsername()));
+                user = userEntity.get();
             }
 
-
         } else {
-            User user = (User) authResult.getPrincipal();
+            user = (User) authResult.getPrincipal();
+            username=user.getUsername();
+        }
+
+        if (null != user) {
             Algorithm algo = Algorithm.HMAC256("secret");
+            var dept = user.getDepartment();
+            var deptName = "";
+            var deptSite = "";
+
+            if (null != dept) {
+                deptSite = dept.getSite();
+                deptName = dept.getName();
+            }
+            var hireDateStr = "";
+            var hireDate = user.getHireDate();
+            if (null != hireDate) {
+                hireDateStr = hireDate.toString();
+            }
             accessToken = JWT.create()
                     .withSubject(user.getUsername())
                     .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
@@ -139,28 +116,29 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                     .withClaim("authority", user.getAuthorities().stream().filter(f -> !f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                     .withClaim("firstName", user.getFirst_name())
                     .withClaim("lastName", user.getLast_name())
-                    .withClaim("department", user.getDepartment().getName())
+
                     .withClaim("reporting_manager", user.getReporting_manager())
                     .withClaim("email", user.getEmail())
                     .withClaim("employee_code", user.getEmployee_code())
                     .withClaim("user_id", user.getId())
                     .withClaim("windows_id", user.getWindows_id())
                     .withClaim("designation", user.getDesignation())
-                    .withClaim("hire_date", user.getHireDate().toString())
-                    .withClaim("site", user.getDepartment().getSite())
+                    .withClaim("hire_date", hireDateStr)
+                    .withClaim("department", deptName)
+                    .withClaim("site", deptSite)
                     .withClaim("fullName", user.getFullName())
                     .withClaim("sessionTimeout", sessionTimeout)
                     .withClaim("sessionTimeoutAlert", sessionTimeoutAlert)
                     .sign(algo);
-
             refreshToken = JWT.create()
                     .withSubject(user.getUsername())
                     .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
                     .withIssuer(request.getRequestURL().toString())
                     .sign(algo);
+        }else{
 
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User %s not found in Database", username));
         }
-
 
         Map<String, String> tokens = new HashMap<>();
         tokens.put("access_token", accessToken);

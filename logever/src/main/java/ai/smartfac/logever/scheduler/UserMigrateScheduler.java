@@ -24,6 +24,7 @@ import javax.naming.NamingEnumeration;
 import javax.naming.directory.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.SecureRandom;
 import java.sql.Date;
 import java.util.*;
 
@@ -69,6 +70,18 @@ public class UserMigrateScheduler {
 
     private int totalUsersSaved=0;
     Properties properties = new Properties();
+
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    public static String generateRandomString(int length) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int randomIndex = SECURE_RANDOM.nextInt(CHARACTERS.length());
+            sb.append(CHARACTERS.charAt(randomIndex));
+        }
+        return sb.toString();
+    }
     //    @Scheduled(fixedRate = 5000) // Run every 5 seconds
     //    @Scheduled(cron = "0 0 0 * * ?") // Run every 5 minutes
     //    @Scheduled(cron = "0 0 * * * ?") // Run every midnight
@@ -195,7 +208,7 @@ public class UserMigrateScheduler {
                 }
                 if (null != user.getUsername() && user.getUsername().length() > 0) {
                     user.setDateOfBirth(Date.valueOf("1990-01-01"));
-                    user.setPassword(bCryptPasswordEncoder.encode("password"));
+                    user.setPassword(bCryptPasswordEncoder.encode(generateRandomString(10)));
                     user.setIsActive(true);
                     user.setCreatedBy(user.getUsername());
                     user.setUpdatedBy(user.getUsername());

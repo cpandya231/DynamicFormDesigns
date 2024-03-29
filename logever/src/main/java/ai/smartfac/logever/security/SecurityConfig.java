@@ -88,18 +88,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(appUserDetailsService).passwordEncoder(bCryptPasswordEncoder);
         auth
                 .ldapAuthentication()
-                .userDnPatterns(String.format("%s={0}",uidAttribute))
+                .userSearchFilter(String.format("(%s={0})",uidAttribute))
+                .userSearchBase("")
                 .contextSource()
                 .url(String.format("%s/%s", adIpAddress, ldapBase))
-                .managerDn(ldapUserName) // Bind user DN
-                .managerPassword(ldapPassword)
-                .and()
-                .passwordCompare()
-                .passwordEncoder(passwordEncoder())
-                .passwordAttribute(passwordAttribute);
-    }
-
-    private PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+                .managerDn(ldapUserName)
+                .managerPassword(ldapPassword);
     }
 }
