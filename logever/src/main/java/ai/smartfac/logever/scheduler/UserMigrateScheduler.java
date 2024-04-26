@@ -269,6 +269,7 @@ public class UserMigrateScheduler {
         }
         if (null == user.getDepartment()) {
             LOGGER.info("Department Not Found for {}", user.getUsername());
+            return;
         }
         if (null != user.getUsername() && user.getUsername().length() > 0) {
             if (null == user.getDateOfBirth()) {
