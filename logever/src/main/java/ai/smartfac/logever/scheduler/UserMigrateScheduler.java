@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,6 +102,7 @@ public class UserMigrateScheduler {
             LOGGER.info("Executing scheduled task...");
             loadPropertiesFromClasspath(propertyFilePath);
             sample();
+            LOGGER.info("User migration complete");
         } else {
             if (!disableMigrationLog) {
                 LOGGER.info("User migration is disabled");
@@ -171,10 +174,16 @@ public class UserMigrateScheduler {
                 NamingEnumeration<? extends Attribute> e = attrs.getAll();
 
 // Loop through the attributes
-                while (e.hasMoreElements()) {
-                    populateUserObject(user, e);
+                try {
+                    while (e.hasMoreElements()) {
+                        populateUserObject(user, e);
+                    }
+                    createOrUpdateUser(user, match);
+                } catch (Exception exc) {
+                    exc.printStackTrace();
+                    LOGGER.info("Continuing migration script");
                 }
-                createOrUpdateUser(user, match);
+
 
             }
         } catch (Exception exc) {
@@ -251,7 +260,7 @@ public class UserMigrateScheduler {
     }
 
     private void createOrUpdateUser(User user, SearchResult match) {
-        if(null==user){
+        if (null == user) {
             return;
         }
         if (null == user.getUsername() || "".equals(user.getUsername())) {
@@ -266,20 +275,25 @@ public class UserMigrateScheduler {
                 user.setDateOfBirth(Date.valueOf("1990-01-01"));
             }
 
-            user.setPassword(bCryptPasswordEncoder.encode(generateRandomString(10)));
-            user.setIsActive(true);
-            user.setCreatedBy(user.getUsername());
-            user.setUpdatedBy(user.getUsername());
-            if (CollectionUtils.isEmpty(user.getRoles())) {
-                Set<Role> roles = new HashSet<>();
-                var defaultRoleDB = roleRepository.findByRole(defaultRole);
-                defaultRoleDB.ifPresent(roles::add);
-                user.setRoles(roles);
-            }
+
             if (saveLdapUsers) {
                 if (userSaveLimit == -1 || totalUsersSaved < userSaveLimit) {
                     var existingUser = userService.getUserByUsername(user.getUsername());
-                    existingUser.ifPresent(value -> user.setId(value.getId()));
+                    if (existingUser.isPresent()) {
+                        user = existingUser.get();
+                    } else {
+                        user.setPassword(bCryptPasswordEncoder.encode(generateRandomString(10)));
+                        user.setIsActive(true);
+                        user.setCreatedBy(user.getUsername());
+                        user.setUpdatedBy(user.getUsername());
+                        if (CollectionUtils.isEmpty(user.getRoles())) {
+                            Set<Role> roles = new HashSet<>();
+                            var defaultRoleDB = roleRepository.findByRole(defaultRole);
+                            defaultRoleDB.ifPresent(roles::add);
+                            user.setRoles(roles);
+                        }
+                    }
+
                     if (null != specificLdapUserName && !"".equals(specificLdapUserName)) {
                         if (specificLdapUserName.equalsIgnoreCase(user.getUsername())) {
                             LOGGER.info("Saving user {}", user.getUsername());
