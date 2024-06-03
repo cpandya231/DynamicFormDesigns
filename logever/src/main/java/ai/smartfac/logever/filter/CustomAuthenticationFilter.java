@@ -110,7 +110,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             }
             accessToken = JWT.create()
                     .withSubject(user.getUsername())
-                    .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
+                    .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
                     .withIssuer(request.getRequestURL().toString())
                     .withClaim("role", user.getAuthorities().stream().filter(f -> f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                     .withClaim("authority", user.getAuthorities().stream().filter(f -> !f.getAuthority().startsWith("ROLE_")).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
@@ -132,7 +132,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                     .sign(algo);
             refreshToken = JWT.create()
                     .withSubject(user.getUsername())
-                    .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
+                    .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
                     .withIssuer(request.getRequestURL().toString())
                     .sign(algo);
         }else{

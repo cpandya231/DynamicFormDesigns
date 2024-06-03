@@ -1,6 +1,7 @@
 package ai.smartfac.logever.controller;
 
 import ai.smartfac.logever.entity.User;
+import ai.smartfac.logever.model.DataQuery;
 import ai.smartfac.logever.model.MultiSelectResponse;
 import ai.smartfac.logever.model.TextResponseModel;
 import ai.smartfac.logever.service.CustomService;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -27,6 +29,13 @@ public class CustomController {
 
     @Autowired
     CustomService customService;
+
+    @GetMapping("/system_names/{category}")
+    public ResponseEntity<?> getSystemNames(@PathVariable(name = "category") String category) {
+        List<DataQuery> systemNames = customService.fetchSystemNamesWithID(category);
+        return new ResponseEntity<>(systemNames.stream().map(d->d.getData().get("systems")).distinct().collect(Collectors.toList())
+                , HttpStatus.OK);
+    }
 
     @GetMapping("/user-id-names")
     public ResponseEntity<?> getUsers() {
@@ -67,15 +76,16 @@ public class CustomController {
 
     @GetMapping("/access_roles/")
     public ResponseEntity<?> getRequiredAccessRoles(@RequestParam(name = "applicationName") String applicationName,
+                                                    @RequestParam(name = "applicationCategory") String applicationCategory,
                                                    @RequestParam(name = "employeeID", required = false) String employeeID,
                                                    @RequestParam(name = "other_employee_id", required = false) String other_employee_id,
                                                    @RequestParam(name = "service_engineer_id", required = false) String service_engineer_id) {
         if (!employeeID.equalsIgnoreCase("undefined")) {
-            return new ResponseEntity<>(customService.getAccessRoles(employeeID,applicationName), HttpStatus.OK);
+            return new ResponseEntity<>(customService.getAccessRoles(employeeID,applicationName, applicationCategory), HttpStatus.OK);
         } else if(!other_employee_id.equalsIgnoreCase("undefined")) {
-            return new ResponseEntity<>(customService.getAccessRoles(other_employee_id,applicationName), HttpStatus.OK);
+            return new ResponseEntity<>(customService.getAccessRoles(other_employee_id,applicationName, applicationCategory), HttpStatus.OK);
         } else if(!service_engineer_id.equalsIgnoreCase("undefined")) {
-            return new ResponseEntity<>(customService.getAccessRoles(service_engineer_id,applicationName), HttpStatus.OK);
+            return new ResponseEntity<>(customService.getAccessRoles(service_engineer_id,applicationName, applicationCategory), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
         }

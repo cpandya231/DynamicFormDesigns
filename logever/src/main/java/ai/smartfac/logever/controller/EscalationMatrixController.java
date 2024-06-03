@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import ai.smartfac.logever.entity.Department;
 import ai.smartfac.logever.entity.EmailDetails;
@@ -17,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import javax.transaction.Transactional;
 
 @Component
 public class EscalationMatrixController {
@@ -288,5 +291,109 @@ public class EscalationMatrixController {
         });
 
 
+    }
+
+    @Transactional
+    @Scheduled(cron = "${disableEmailAlertCron}")
+    public void sendUserDisablingDateAlerts() {
+        System.out.println("Running cron");
+        List<DataQuery> records = customService.fetchAllAccountsToBeDisabled();
+        if(records.size() > 0) {
+            String text = "<div\n" +
+                    "      style=\"\n" +
+                    "        font-size: 16px;\n" +
+                    "        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
+                    "          'Lucida Sans', Arial, sans-serif;\n" +
+                    "      \"\n" +
+                    "    >\n" +
+                    "      Dear System Admins,<br />\n" +
+                    "      Below mentioned user access management requests are to be disabled tomorrow." +
+                    "    </div>\n" +
+                    "    <br />" +
+                    "<table style=\"border: 1px solid white; border-collapse: collapse\"\n" +
+                    "      width='100%' border='1' align='center'>"
+                    + "<tr style=\"\n" +
+                    "          border: 1px solid white;\n" +
+                    "          border-collapse: collapse;\n" +
+                    "          background-color: #666;\n" +
+                    "          color: #48c6c5;\n" +
+                    "          font-size: 24px;\n" +
+                    "          line-height: 48px;\n" +
+                    "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
+                    "            'Lucida Sans', Arial, sans-serif;\n" +
+                    "        \" align='center'>"
+                    + "<td colspan='6'><b>Disabling date Tomorrow</b></td>"
+                    + "</tr>"
+                    + "<tr style=\"\n" +
+                    "          border: 1px solid white;\n" +
+                    "          border-collapse: collapse;\n" +
+                    "          background-color: #000000;\n" +
+                    "          color: white;\n" +
+                    "          font-size: 18px;\n" +
+                    "          line-height: 28px;\n" +
+                    "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
+                    "            'Lucida Sans', Arial, sans-serif;\n" +
+                    "        \" align='center'>"
+                    + "<td><b>Request ID</b></td>"
+                    + "<td><b>Service Engineer Name</b></td>"
+                    + "<td><b>Request Type</b></td>"
+                    + "<td><b>Application Name</b></td>"
+                    + "<td><b>Required Roles</b></td>"
+                    + "<td><b>User Disabling Date</b></td>"
+                    + "</tr>";
+
+            text = text + records.stream().map(record -> {
+                return "<tr style=\"\n" +
+                        "          border-bottom: 1px solid #6666665a;\n" +
+                        "          border-collapse: collapse;\n" +
+                        "          font-size: 18px;\n" +
+                        "          line-height: 28px;\n" +
+                        "          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
+                        "            'Lucida Sans', Arial, sans-serif;\n" +
+                        "        \" align='center'>"
+                        + "<td>" + record.getData().get("id") + "</td>"
+                        + "<td>" + record.getData().get("service_engineer_name") + "</td>"
+                        + "<td>" + record.getData().get("request_type") + "</td>"
+                        + "<td>" + record.getData().get("application_name") + "</td>"
+                        + "<td>" + record.getData().get("required_roles") + "</td>"
+                        + "<td>" + record.getData().get("user_disabling_date") + "</td>"
+                        + "</tr>";
+            }).collect(Collectors.joining()) + "</table><br><br><br>";
+
+            text = text + "<br />\n" +
+                    "    <div\n" +
+                    "      style=\"\n" +
+                    "        font-size: 16px;\n" +
+                    "        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
+                    "          'Lucida Sans', Arial, sans-serif;\n" +
+                    "      \"\n" +
+                    "    >\n" +
+                    "      To view details, kindly navigate through\n" +
+                    "      <a target=\"_blank\" href=\"" + appUrl + "\">Flux-Intelligent</a\n" +
+                    "      >!<br />\n" +
+                    "      <br />\n" +
+                    "      Regards,<br />\n" +
+                    "    </div>\n" +
+                    "    <div\n" +
+                    "      style=\"\n" +
+                    "        width: 100%;\n" +
+                    "        display: flex;\n" +
+                    "        justify-content: flex-start;\n" +
+                    "        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande',\n" +
+                    "          'Lucida Sans', Arial, sans-serif;\n" +
+                    "        color: #48c6c5;\n" +
+                    "        font-size: 20px;\n" +
+                    "      \"\n" +
+                    "    >\n" +
+                    "      Flux-Intelligent | DigitEdgy\n" +
+                    "    </div>";
+
+            final String emailText = text;
+            StreamSupport.stream(userService.getAllUsers().spliterator(), false).filter(user -> {
+                return user.getRoles().stream().filter(role -> role.getRole().equalsIgnoreCase("ROLE_SYSTEM_ADMIN")).count() > 0;
+            }).forEach(user -> {
+                String status = emailService.sendHtmlMail(new EmailDetails(user.getEmail(), emailText, "User Disabling Alert | Flux-Intelligent | DigitEdgy", null));
+            });
+        }
     }
 }

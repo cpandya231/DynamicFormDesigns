@@ -49,7 +49,7 @@ public class CustomService {
         Table metaTable = new Table();
         String selectCols = "id,required_roles,application_request_type,state";
         String selectStmt = "SELECT id, required_roles, application_request_type, state from " + table.getName() + " l where l.application_name = '"+application+
-                "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') order by log_update_dt desc, log_create_dt desc limit 1";
+                "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') order by log_update_dt is null desc, log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);
         User user;
         Boolean userDisabled = false;
@@ -65,10 +65,12 @@ public class CustomService {
                 (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
         if(result.size() > 0) {
             Map<String,String> firstRow = result.get(0).getData();
-            if(!firstRow.get("state").equalsIgnoreCase("Acknowledge and Close") && !firstRow.get("state").equalsIgnoreCase("Withdraw Request")) {
+            if(!firstRow.get("state").equalsIgnoreCase("Acknowledge and Close") && !firstRow.get("state").equalsIgnoreCase("Withdraw Request")
+                && !firstRow.get("state").equalsIgnoreCase("Deactivate and Close") && !firstRow.get("state").equalsIgnoreCase("Deactivated")) {
                 output.add("ERR: Request already in progress : Request ID - "+firstRow.get("id"));
                 return output;
-            } else if(firstRow.get("state").equalsIgnoreCase("Deactivate and Close")) {
+            } else if(firstRow.get("state").equalsIgnoreCase("Deactivate and Close") || firstRow.get("state").equalsIgnoreCase("Withdraw Request")
+             || firstRow.get("state").equalsIgnoreCase("Deactivated")) {
                 output.add("Activation");
                 return output;
             }
@@ -94,10 +96,10 @@ public class CustomService {
         return output;
     }
 
-    public MultiSelectResponse getAccessRoles(String employeeID, String application) {
-        String selectColumns = "required_roles,application_request_type";
-        String selectStmt = "SELECT required_roles, application_request_type from f_e_uam_lgs l where l.application_name = '"+application+"' " +
-                "and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and l.state = 'Acknowledge and Close' and l.application_request_type <> 'Password Reset/Unlock' order by log_update_dt desc, log_create_dt desc limit 1";
+    public MultiSelectResponse getAccessRoles(String employeeID, String application, String category) {
+        String selectColumns = "required_roles,application_request_type,state";
+        String selectStmt = "SELECT required_roles, application_request_type, state from f_e_uam_lgs l where l.application_name = '"+application+"' " +
+                "and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and l.state in ('Acknowledge and Close','Deactivated','Deactivate and Close') and l.application_request_type <> 'Password Reset/Unlock' order by log_update_dt is null desc, log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);
 
         List<DataQuery> resultOne =  jdbcTemplate.query(selectStmt,
@@ -105,13 +107,19 @@ public class CustomService {
 
         ArrayList<String> allRoles = new ArrayList<>();
         String selectCols = "roles";
-        selectStmt = "SELECT distinct system_role as roles from f_mstr_system_inventory_lgs l where l.system_name = '"+application+"'";
+        if(category.equalsIgnoreCase("Application")) {
+            selectStmt = "SELECT distinct system_role as roles from f_mstr_system_inventory_lgs l where l.system_name = '"+application+"'";
+        } else {
+            selectStmt = "SELECT distinct system_role as roles from f_mstr_system_inventory_lgs l where concat(l.system_name,' - ',l.system_id) = '"+application+"'";
+        }
         System.out.println(selectStmt);
 
         List<DataQuery> result =  jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
         allRoles = new ArrayList<>(result.stream().map(d->d.getData().get("roles")).collect(Collectors.toList()));
-        if(resultOne.size() > 0 && !resultOne.get(0).getData().get("application_request_type").equalsIgnoreCase("De-activation")) {
+        if(resultOne.size() > 0 && !resultOne.get(0).getData().get("application_request_type").equalsIgnoreCase("De-activation")
+                && !resultOne.get(0).getData().get("state").equalsIgnoreCase("Deactivated")
+                && !resultOne.get(0).getData().get("state").equalsIgnoreCase("Deactivate and Close")) {
             String roles = resultOne.get(0).getData().get("required_roles");
             System.out.println(roles);
             ArrayList<String> userRoles = new ArrayList<>(Arrays.asList(roles.split(",")));
@@ -125,7 +133,7 @@ public class CustomService {
         String selectCols = "allocated_user_id";
         String selectStmt = "SELECT allocated_user_id from f_e_uam_lgs l where l.application_name = '"+application+
                 "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and" +
-                " l.state = 'Acknowledge and Close' and l.application_request_type = 'Activation' order by log_update_dt desc, log_create_dt desc limit 1";
+                " l.state = 'Acknowledge and Close' and l.application_request_type = 'Activation' order by log_update_dt is null desc, log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);
 
         List<DataQuery> result =  jdbcTemplate.query(selectStmt,
@@ -140,6 +148,26 @@ public class CustomService {
     public List<DataQuery> fetchAllPendingEntries(String startDt) {
         String selectCols = "request_type,log_create_dt,entry_created_by,create_dt,assigned_department,assigned_user,entry_id,form_id,pending_hod";
         String selectStmt = "SELECT request_type,log_create_dt,entry_created_by,create_dt,assigned_department,assigned_user,entry_id,form_id,pending_hod from pending_entry p inner join f_e_uam_lgs f on p.entry_id = f.id where create_dt < '"+startDt+"'";
+        System.out.println(selectStmt);
+        List<DataQuery> result =  jdbcTemplate.query(selectStmt,
+                (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
+        return  result;
+    }
+
+    public List<DataQuery> fetchAllAccountsToBeDisabled() {
+        String selectCols = "id,service_engineer_name,request_type,application_name,required_roles,user_disabling_date";
+        String selectStmt = "SELECT id,service_engineer_name,request_type,application_name,required_roles,user_disabling_date from f_e_uam_lgs" +
+                " WHERE datediff(user_disabling_date,current_date) = 1";
+        System.out.println(selectStmt);
+        List<DataQuery> result =  jdbcTemplate.query(selectStmt,
+                (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
+        return  result;
+    }
+
+    public List<DataQuery> fetchSystemNamesWithID(String category) {
+        String selectCols = "systems";
+        String selectStmt = "select case when system_category in ('Laboratory System','Manufacturing System') then concat(system_name,' - ',system_id) else system_name end systems from f_mstr_system_inventory_lgs" +
+                " WHERE system_category='"+category+"' order by systems";
         System.out.println(selectStmt);
         List<DataQuery> result =  jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
