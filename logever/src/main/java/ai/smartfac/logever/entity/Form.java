@@ -380,6 +380,13 @@ public class Form {
         return table.buildInsertUpdateMasterStatement("id," + this.getColumns(), values);
     }
 
+    public String makeDeleteMasterDataStmt(Map<String,String> values) {
+        Table table = new Table();
+        table.setName(this.getMasterTableName());
+
+        return table.buildDeleteMasterStatement(this.getColumns(),values);
+    }
+
     public String makeUpdateStmt(Map<String, String> values) {
         Table table = new Table();
         table.setName(this.getName());

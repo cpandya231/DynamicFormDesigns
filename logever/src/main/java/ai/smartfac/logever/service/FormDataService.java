@@ -34,7 +34,7 @@ public class FormDataService {
     FileStorageService fileStorageService;
 
     @Transactional
-    public void bulkInsert(User user, Form form, ArrayList<Map<String,String>> records) {
+    public void bulkInsert(User user, Form form, ArrayList<Map<String,String>> records) throws Exception{
         records.forEach(record-> {
             insertIntoWithPendingEntries(user,form,record);
         });
@@ -133,6 +133,8 @@ public class FormDataService {
         values.remove("log_entry_id");
         if (values.get("endState").equalsIgnoreCase("true") && form.getType().equalsIgnoreCase("master")) {
             jdbcTemplate.execute(form.makeUpdateMasterStmt(values));
+        } else if(values.get("endState").equalsIgnoreCase("false") && form.getType()!=null && form.getType().equalsIgnoreCase("master")) {
+            jdbcTemplate.execute(form.makeDeleteMasterDataStmt(values));
         }
 
         if(files!=null)

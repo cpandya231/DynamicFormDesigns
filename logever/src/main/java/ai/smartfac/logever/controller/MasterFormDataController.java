@@ -8,6 +8,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -144,9 +147,19 @@ public class MasterFormDataController {
 //            }
             formDataService.bulkInsert(userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()).get(),form,vRecords);
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+            return new ResponseEntity<>(e.getCause().toString().split(";")[2],HttpStatus.EXPECTATION_FAILED);
+        }
+        catch (DataIntegrityViolationException e) {
+            e.printStackTrace();
+            String message = e.getCause().getMessage().startsWith("Data truncation") ? e.getCause().getMessage()
+                    :e.getCause().getMessage().split("for ")[0];
+            return new ResponseEntity<>(message,HttpStatus.EXPECTATION_FAILED);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.EXPECTATION_FAILED);
         }
     }
 

@@ -187,6 +187,15 @@ public class Table {
         return upsertStmt;
     }
 
+    public String buildDeleteMasterStatement(String columns, Map<String,String> values) {
+        String deleteStmt = "DELETE FROM "+this.getName()+" WHERE ";
+        String whereClause = Arrays.stream(columns.split(",")).filter(column->values.containsKey(column))
+                .map(column->column+" = '"+values.get(column).replaceAll("'","\\\\'")+"'").collect(Collectors.joining(" AND "));
+
+        deleteStmt = deleteStmt + whereClause;
+        System.out.println(deleteStmt);
+        return deleteStmt;
+    }
 
     public String makeUpdateMasterEntryStateStmt(String columns, Map<String,String> values) {
         String updateStmt = "UPDATE "+this.getName()+" SET ";

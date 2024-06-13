@@ -166,8 +166,8 @@ public class CustomService {
 
     public List<DataQuery> fetchSystemNamesWithID(String category) {
         String selectCols = "systems";
-        String selectStmt = "select case when system_category in ('Laboratory System','Manufacturing System') then concat(system_name,' - ',system_id) else system_name end systems from f_mstr_system_inventory_lgs" +
-                " WHERE system_category='"+category+"' order by systems";
+        String selectStmt = "select case when system_type in ('Laboratory System','Manufacturing System') then concat(system_name,' - ',system_id) else system_name end systems from f_mstr_inventory_master_lgs" +
+                " WHERE system_type='"+category+"' order by systems";
         System.out.println(selectStmt);
         List<DataQuery> result =  jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
