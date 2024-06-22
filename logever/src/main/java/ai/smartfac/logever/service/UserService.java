@@ -6,8 +6,10 @@ import ai.smartfac.logever.repository.RoleRepository;
 import ai.smartfac.logever.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,9 @@ import java.util.stream.Collectors;
 public class UserService implements ApplicationListener<AuthenticationSuccessEvent> {
 
     @Autowired
+    JdbcTemplate jdbcTemplate;
+
+    @Autowired
     UserRepository userRepository;
 
     @Autowired
@@ -33,12 +38,21 @@ public class UserService implements ApplicationListener<AuthenticationSuccessEve
 
     @Override
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
-        System.out.println(((UsernamePasswordAuthenticationToken)event.getSource()).getName());
+        System.out.println(event.getAuthentication().getName());
         String userName = event.getAuthentication().getName();
         User user = this.userRepository.findByUsername(userName).get();
         user.setLastLoginDt(new Timestamp(System.currentTimeMillis()));
         user.setUpdatedBy(user.getUsername());
-        this.saveUser(user);
+        String sqlStmt = "update user set last_login_dt='"+new Timestamp(System.currentTimeMillis()).toString()+"', updated_by='"+user.getUsername()+"'," +
+                " update_dt='"+new Timestamp(System.currentTimeMillis()).toString()+"' where id="+user.getId();
+        jdbcTemplate.execute(sqlStmt);
+//        this.saveUser(user);
+    }
+
+    public void logout(User user) {
+        String insertStmt = "INSERT INTO audit_trail(action,type,new_state,pk_value,username) VALUES('UPDATED','USER','" +
+               user.getUsername() + " logged Out','"+user.getId()+"','"+user.getUsername()+"')";
+        jdbcTemplate.execute(insertStmt);
     }
 
     public Iterable<User> getAllUsers() {
