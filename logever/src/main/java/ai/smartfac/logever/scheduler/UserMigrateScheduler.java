@@ -7,6 +7,7 @@ import ai.smartfac.logever.entity.User;
 import ai.smartfac.logever.repository.RoleRepository;
 import ai.smartfac.logever.service.DepartmentService;
 import ai.smartfac.logever.service.UserService;
+import org.apache.juli.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 public class UserMigrateScheduler {
@@ -206,56 +208,61 @@ public class UserMigrateScheduler {
             value.append(attr.get(i));
         }
 //                    LOGGER.info(attr.getID() + " = " + value);
+        List<String> columns = properties.keySet().stream().filter(key->properties.get(key).toString().equalsIgnoreCase(attr.getID()))
+                .map(key->key.toString()).collect(Collectors.toList());
+        if(columns.size() > 0) {
+//            LOGGER.info("Required property "+attr.getID());
+            for(String column:columns) {
+                switch (column) {
+                    case "username":
+                        user.setUsername(value.toString());
+                        break;
+                    case "email":
+                        user.setEmail(value.toString());
+                        break;
+                    case "first_name":
+                        user.setFirst_name(value.toString());
+                        break;
+                    case "last_name":
+                        user.setLast_name(value.toString());
+                        break;
+                    case "dateOfBirth":
+                        user.setDateOfBirth(Date.valueOf(value.toString()));
+                        break;
+                    case "employeeCode":
+                        user.setEmployee_code(value.toString());
+                        break;
+                    case "windows_id":
+                        user.setWindows_id(value.toString());
+                        break;
+                    case "reporting_manager":
+                        var reportingManagerDN = value.toString();
+                        String pattern = "CN=([^,]+)";
 
-        var mappedName = properties.get(attr.getID());
-        if (null != mappedName) {
-            switch (mappedName.toString()) {
-                case "username":
-                    user.setUsername(value.toString());
-                    break;
-                case "email":
-                    user.setEmail(value.toString());
-                    break;
-                case "first_name":
-                    user.setFirst_name(value.toString());
-                    break;
-                case "last_name":
-                    user.setLast_name(value.toString());
-                    break;
-                case "dateOfBirth":
-                    user.setDateOfBirth(Date.valueOf(value.toString()));
-                    break;
-                case "employeeCode":
-                    user.setEmployee_code(value.toString());
-                    break;
-                case "windows_id":
-                    user.setWindows_id(value.toString());
-                    break;
-                case "reporting_manager":
-                    var reportingManagerDN = value.toString();
-                    String pattern = "CN=([^,]+)";
+                        Pattern r = Pattern.compile(pattern);
+                        Matcher m = r.matcher(reportingManagerDN);
 
-                    Pattern r = Pattern.compile(pattern);
-                    Matcher m = r.matcher(reportingManagerDN);
+                        if (m.find()) {
+                            String result = m.group(1); // Extract the first capturing group
+                            user.setReporting_manager(result);
+                        } else {
+                            user.setReporting_manager(reportingManagerDN);
+                        }
 
-                    if (m.find()) {
-                        String result = m.group(1); // Extract the first capturing group
-                        user.setReporting_manager(result);
-                    } else {
-                        user.setReporting_manager(reportingManagerDN);
-                    }
-
-                    break;
-                case "designation":
-                    user.setDesignation(value.toString());
-                    break;
-                case "department":
-                    Optional<Department> departmentOptional = departmentService.getDepartmentByName(value.toString());
-                    departmentOptional.ifPresent(user::setDepartment);
-                    break;
-                default:
-                    break;
+                        break;
+                    case "designation":
+                        user.setDesignation(value.toString());
+                        break;
+                    case "department":
+                        Optional<Department> departmentOptional = departmentService.getDepartmentByName(value.toString());
+                        departmentOptional.ifPresent(user::setDepartment);
+                        break;
+                    default:
+                        break;
+                }
             }
+        } else {
+//            LOGGER.info("Property not required : "+attr.getID());
         }
     }
 
@@ -281,7 +288,18 @@ public class UserMigrateScheduler {
                 if (userSaveLimit == -1 || totalUsersSaved < userSaveLimit) {
                     var existingUser = userService.getUserByUsername(user.getUsername());
                     if (existingUser.isPresent()) {
-                        user = existingUser.get();
+                        var updatedUser = existingUser.get();
+                        updatedUser.setFirst_name(user.getFirst_name());
+                        updatedUser.setLast_name(user.getLast_name());
+                        updatedUser.setDesignation(user.getDesignation());
+                        updatedUser.setReporting_manager(user.getReporting_manager());
+                        updatedUser.setDateOfBirth(user.getDateOfBirth());
+                        updatedUser.setDepartment(user.getDepartment());
+                        updatedUser.setWindows_id(user.getWindows_id());
+                        updatedUser.setEmployee_code(user.getEmployee_code());
+                        updatedUser.setEmail(user.getEmail());
+                        updatedUser.setUpdatedBy(user.getUsername());
+                        user = updatedUser;
                     } else {
                         user.setPassword(bCryptPasswordEncoder.encode(generateRandomString(10)));
                         user.setIsActive(true);
