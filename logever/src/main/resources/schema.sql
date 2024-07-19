@@ -38,27 +38,67 @@ BEGIN
 	SET V_PREV_STATE = '';
 	SET V_NEW_STATE = '';
 	SET V_CHECK = 0;
-	IF NEW.first_name <> OLD.first_name THEN
+	IF coalesce(NEW.first_name,'') <> coalesce(OLD.first_name,'') THEN
 	SET V_PREV_STATE = concat(V_PREV_STATE,'FirstName: ',OLD.first_name,' ');
 	SET V_NEW_STATE = concat(V_NEW_STATE,'FirstName: ',NEW.first_name,' ');
 	SET V_CHECK = 1;
 	END IF;
-	IF NEW.last_name <> OLD.last_name THEN
+	IF coalesce(NEW.last_name,'') <> coalesce(OLD.last_name,'') THEN
 	SET V_PREV_STATE = concat(V_PREV_STATE,'LastName: ',OLD.last_name,' ');
 	SET V_NEW_STATE = concat(V_NEW_STATE,'LastName: ',NEW.last_name,' ');
 	SET V_CHECK = 1;
 	END IF;
-	IF NEW.department_id <> OLD.department_id THEN
+	IF coalesce(NEW.department_id,'') <> coalesce(OLD.department_id,'') THEN
 	SET V_PREV_STATE = concat(V_PREV_STATE,'Department: ',OLD.department_id,' ');
 	SET V_NEW_STATE = concat(V_NEW_STATE,'Department: ',NEW.department_id,' ');
 	SET V_CHECK = 1;
 	END IF;
-	IF NEW.password <> OLD.password THEN
+	IF coalesce(NEW.password,'') <> coalesce(OLD.password,'') THEN
 	SET V_PREV_STATE = concat(V_PREV_STATE,'Password: ','XXXXXXXXXXX',' ');
 	SET V_NEW_STATE = concat(V_NEW_STATE,'Password: ','XXXXXXXXXXX',' ');
 	SET V_CHECK = 1;
 	END IF;
-	IF NEW.is_active <> OLD.is_active THEN
+	IF coalesce(NEW.code,'') <> coalesce(OLD.code,'') THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'Code: ',OLD.code,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'Code: ',NEW.code,' ');
+	SET V_CHECK = 1;
+	END IF;
+	IF coalesce(NEW.date_of_birth,'') <> coalesce(OLD.date_of_birth,'') THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'DOB: ',OLD.date_of_birth,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'DOB: ',NEW.date_of_birth,' ');
+	SET V_CHECK = 1;
+	END IF;
+	IF coalesce(NEW.designation,'') <> coalesce(OLD.designation,'') THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'Designation: ',OLD.designation,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'Designation: ',NEW.designation,' ');
+	SET V_CHECK = 1;
+	END IF;
+	IF coalesce(NEW.email,'') <> coalesce(OLD.email,'') THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'Email: ',OLD.email,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'Email: ',NEW.email,' ');
+	SET V_CHECK = 1;
+	END IF;
+	IF coalesce(NEW.employee_code,'') <> coalesce(OLD.employee_code,'') THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'EmployeeCode: ',OLD.employee_code,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'EmployeeCode: ',NEW.employee_code,' ');
+	SET V_CHECK = 1;
+	END IF;
+	IF coalesce(NEW.hire_date,'') <> coalesce(OLD.hire_date,'') THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'HireDate: ',OLD.hire_date,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'HireDate: ',NEW.hire_date,' ');
+	SET V_CHECK = 1;
+	END IF;
+	IF coalesce(NEW.reporting_manager,'') <> coalesce(OLD.reporting_manager,'') THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'Reporting Manager: ',OLD.reporting_manager,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'Reporting Manager: ',NEW.reporting_manager,' ');
+	SET V_CHECK = 1;
+	END IF;
+	IF coalesce(NEW.windows_id,'') <> coalesce(OLD.windows_id,'') THEN
+	SET V_PREV_STATE = concat(V_PREV_STATE,'Windows ID: ',OLD.windows_id,' ');
+	SET V_NEW_STATE = concat(V_NEW_STATE,'Windows ID: ',NEW.windows_id,' ');
+	SET V_CHECK = 1;
+	END IF;
+	IF coalesce(NEW.is_active,'') <> coalesce(OLD.is_active,'') THEN
 	SET V_PREV_STATE = concat(V_PREV_STATE,'IsActive: ',OLD.is_active,' ');
 	SET V_NEW_STATE = concat(V_NEW_STATE,'IsActive: ',NEW.is_active,' ');
 	SET V_CHECK = 1;

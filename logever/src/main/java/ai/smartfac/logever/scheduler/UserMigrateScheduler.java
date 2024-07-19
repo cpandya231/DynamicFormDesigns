@@ -287,20 +287,58 @@ public class UserMigrateScheduler {
             if (saveLdapUsers) {
                 if (userSaveLimit == -1 || totalUsersSaved < userSaveLimit) {
                     var existingUser = userService.getUserByUsername(user.getUsername());
+                    boolean userUpdated = false;
                     if (existingUser.isPresent()) {
                         var updatedUser = existingUser.get();
-                        updatedUser.setFirst_name(user.getFirst_name());
-                        updatedUser.setLast_name(user.getLast_name());
-                        updatedUser.setDesignation(user.getDesignation());
-                        updatedUser.setReporting_manager(user.getReporting_manager());
-                        updatedUser.setDateOfBirth(user.getDateOfBirth());
-                        updatedUser.setDepartment(user.getDepartment());
-                        updatedUser.setWindows_id(user.getWindows_id());
-                        updatedUser.setEmployee_code(user.getEmployee_code());
-                        updatedUser.setEmail(user.getEmail());
-                        updatedUser.setUpdatedBy(user.getUsername());
+                        if(user.getFirst_name()!=null && !user.getFirst_name().equalsIgnoreCase(updatedUser.getFirst_name())) {
+                            updatedUser.setFirst_name(user.getFirst_name());
+                            userUpdated = true;
+                        }
+                        if(user.getLast_name()!=null && !user.getLast_name().equalsIgnoreCase(updatedUser.getLast_name())) {
+                            updatedUser.setLast_name(user.getLast_name());
+                            userUpdated = true;
+                        }
+                        if(user.getDesignation()!=null && !user.getDesignation().equalsIgnoreCase(updatedUser.getDesignation())) {
+                            updatedUser.setDesignation(user.getDesignation());
+                            userUpdated = true;
+                        }
+                        if(user.getReporting_manager()!=null && !user.getReporting_manager().equalsIgnoreCase(updatedUser.getReporting_manager())) {
+                            updatedUser.setReporting_manager(user.getReporting_manager());
+                            userUpdated = true;
+                        }
+                        if(user.getDateOfBirth()!=null && user.getDateOfBirth().getTime() != updatedUser.getDateOfBirth().getTime()) {
+                            updatedUser.setDateOfBirth(user.getDateOfBirth());
+                            userUpdated = true;
+                        }
+                        if(user.getDepartment()!=null) {
+                            if(updatedUser.getDepartment()==null) {
+                                updatedUser.setDepartment(user.getDepartment());
+                                userUpdated = true;
+                            } else {
+                                if(!user.getDepartment().getName().equalsIgnoreCase(updatedUser.getDepartment().getName())) {
+                                    updatedUser.setDepartment(user.getDepartment());
+                                    userUpdated = true;
+                                }
+                            }
+                        }
+                        if(user.getWindows_id()!=null && !user.getWindows_id().equalsIgnoreCase(updatedUser.getWindows_id())) {
+                            updatedUser.setWindows_id(user.getWindows_id());
+                            userUpdated = true;
+                        }
+                        if(user.getEmployee_code()!=null && !user.getEmployee_code().equalsIgnoreCase(updatedUser.getEmployee_code())) {
+                            updatedUser.setEmployee_code(user.getEmployee_code());
+                            userUpdated = true;
+                        }
+                        if(user.getEmail()!=null && !user.getEmail().equalsIgnoreCase(updatedUser.getEmail())) {
+                            updatedUser.setEmail(user.getEmail());
+                            userUpdated = true;
+                        }
+                        if(userUpdated) {
+                            updatedUser.setUpdatedBy(user.getUsername());
+                        }
                         user = updatedUser;
                     } else {
+                        userUpdated = true;
                         user.setPassword(bCryptPasswordEncoder.encode(generateRandomString(10)));
                         user.setIsActive(true);
                         user.setCreatedBy(user.getUsername());
@@ -313,16 +351,18 @@ public class UserMigrateScheduler {
                         }
                     }
 
-                    if (null != specificLdapUserName && !"".equals(specificLdapUserName)) {
+                    if (null != specificLdapUserName && !"".equals(specificLdapUserName) && userUpdated) {
                         if (specificLdapUserName.equalsIgnoreCase(user.getUsername())) {
                             LOGGER.info("Saving user {}", user.getUsername());
                             userService.saveUser(user);
                             totalUsersSaved++;
                         }
-                    } else {
+                    } else if(userUpdated){
                         LOGGER.info("Saving user {}", user.getUsername());
                         userService.saveUser(user);
                         totalUsersSaved++;
+                    } else {
+                        LOGGER.info("User "+user.getUsername()+" not updated");
                     }
 
                 } else {
