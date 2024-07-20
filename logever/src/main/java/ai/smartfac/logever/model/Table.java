@@ -205,4 +205,13 @@ public class Table {
         updateStmt = updateStmt + " WHERE id='"+Integer.parseInt(values.get("id"))+"'";
         return updateStmt;
     }
+
+    public String makeUpdateMasterEntryStateStmtWithId(String columns, Map<String,String> values, String idCol) {
+        String updateStmt = "UPDATE "+this.getName()+" SET ";
+        List<String> filledColumns = Arrays.stream((columns+","+getDefaultColumns()).split(",")).filter(values::containsKey)
+                .map(col->col + "="+"'"+values.get(col).replaceAll("'","\\\\'")+"'").collect(Collectors.toList());
+        updateStmt = updateStmt + String.join(",",filledColumns);
+        updateStmt = updateStmt + " WHERE "+idCol+"='"+values.get(idCol)+"'";
+        return updateStmt;
+    }
 }

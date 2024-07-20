@@ -87,8 +87,12 @@ public class FormController {
                 existingForm.get().setName(form.getName());
             if (form.getTemplate() != null && !form.getTemplate().equals(existingForm.get().getTemplate()))
                 existingForm.get().setTemplate(form.getTemplate());
-
-            updatedForm = formService.update(existingForm.get(), prevColumns);
+            if(prevColumns.equalsIgnoreCase(form.getColumns())) {
+                updatedForm = formService.update(existingForm.get(), false);
+            } else {
+                existingForm.get().setColumns(form.getColumns());
+                updatedForm = formService.update(existingForm.get(), true);
+            }
         } else {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Form does not exist!");
         }

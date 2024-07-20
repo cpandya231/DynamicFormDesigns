@@ -82,6 +82,25 @@ public class MasterFormDataService {
         jdbcTemplate.execute(masterForm.makeUpdateMasterEntryStateStmt(masterValues));
     }
 
+    public void updateEntryState(Form masterForm, String masterTableEntryIdColumn, String idColumnValue, String stateColumn, String stateValue) {
+        var result = getAllFor(masterForm, masterTableEntryIdColumn, idColumnValue, stateColumn);
+        if (result.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("No data found for Column %s value %s in master table %s", masterTableEntryIdColumn, idColumnValue, masterForm.getName()));
+        }
+        var entryInProgress =
+                result.stream().filter(dataQuery -> stateValue.equalsIgnoreCase(dataQuery.getData().get(stateColumn))).findFirst();
+
+        if (entryInProgress.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("Same value present for Master Data entry."));
+        }
+        Map<String, String> masterValues = new HashMap<>();
+        masterValues.put(masterTableEntryIdColumn, idColumnValue);
+        masterValues.put(stateColumn, stateValue);
+        jdbcTemplate.execute(masterForm.makeUpdateMasterEntryStateStmtWithId(masterValues, masterTableEntryIdColumn));
+    }
+
     public List<DataQuery> getReferenceData(Form form,String colName,String where) {
         Table table = new Table();
         table.setName(form.getMasterTableName());

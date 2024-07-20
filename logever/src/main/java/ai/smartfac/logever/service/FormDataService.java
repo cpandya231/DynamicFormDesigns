@@ -4,18 +4,17 @@ import ai.smartfac.logever.entity.*;
 import ai.smartfac.logever.model.*;
 import ai.smartfac.logever.util.ApplicationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -243,12 +242,14 @@ public class FormDataService {
                 table.setName(form.getMetadataTableName());
                 auditTable.setGridAuditTableName(form.getName()+" "+gridCtrl.get(0).getKey());
                 String columns = gridCtrl.get(0).getControls().stream().map(ctrl -> ctrl.getKey()).collect(Collectors.joining(","));
+                String lbls = gridCtrl.get(0).getControls().stream().map(ctrl -> ctrl.getLabel()).collect(Collectors.joining(","));
                 String select = "id,grid_entry_id,history_log_entry_id,log_create_dt," + columns;
+                String labels = "ID,Grid Entry ID,History Log Entry ID,Log Create Date," + lbls;
                 String gridSelectStmt = "SELECT " + select + " from " + auditTable.getName() + " where history_log_entry_id in (SELECT id from "+table.getName()+" where log_entry_id ='"+entryId+"')";
                 System.out.println(gridSelectStmt);
                 List<DataQuery> gridDataQuery = jdbcTemplate.query(gridSelectStmt,
                         (resultSet, rowNum) -> new DataQuery(resultSet, select.split(",")));
-                grids.add(new GridDataQuery(gridCtrl.get(0).getKey(), gridDataQuery, select));
+                grids.add(new GridDataQuery(gridCtrl.get(0).getKey(), gridCtrl.get(0).getLabel(), gridDataQuery, select, labels));
             });
         }
         return grids;
@@ -261,12 +262,13 @@ public class FormDataService {
             form.getGrids().stream().forEach(gridCtrl -> {
                 table.setGridTableName(form.getName()+" "+gridCtrl.get(0).getKey());
                 String columns = gridCtrl.get(0).getControls().stream().map(ctrl -> ctrl.getKey()).collect(Collectors.joining(","));
+                String labels = gridCtrl.get(0).getControls().stream().map(ctrl -> ctrl.getLabel()).collect(Collectors.joining(","));
                 String select = "id,log_entry_id," + columns;
                 String gridSelectStmt = "SELECT " + select + " from " + table.getName() + " where log_entry_id ='"+logEntryId+"'";
 
                 List<DataQuery> gridDataQuery = jdbcTemplate.query(gridSelectStmt,
                         (resultSet, rowNum) -> new DataQuery(resultSet, select.split(",")));
-                grids.add(new GridDataQuery(gridCtrl.get(0).getKey(), gridDataQuery, select));
+                grids.add(new GridDataQuery(gridCtrl.get(0).getKey(), gridCtrl.get(0).getLabel(), gridDataQuery, select, "ID,Log Entry ID,"+labels));
             });
         }
         return grids;
@@ -297,4 +299,24 @@ public class FormDataService {
         return jdbcTemplate.query(selectStmt,
                 (resultSet, rowNum) -> new DataQuery(resultSet, finalColumns.split(",")));
     }
+
+//    public void updateEntryState(Form masterForm, String masterTableEntryIdColumn, String idColumnValue, String stateColumn, String stateValue) {
+//        var result = getAllFor(masterForm, masterTableEntryIdColumn, idColumnValue, stateColumn);
+//        if (result.isEmpty()) {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+//                    String.format("No data found for Column %s value %s in master table %s", masterTableEntryIdColumn, idColumnValue, masterForm.getName()));
+//        }
+//        var entryInProgress =
+//                result.stream().filter(dataQuery -> stateValue.equalsIgnoreCase(dataQuery.getData().get(stateColumn))).findFirst();
+//
+//        if (entryInProgress.isPresent()) {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+//                    String.format("Same value present for Master Data entry."));
+//        }
+//        Map<String, String> masterValues = new HashMap<>();
+//        masterValues.put(masterTableEntryIdColumn, idColumnValue);
+//        masterValues.put(stateColumn, stateValue);
+//        jdbcTemplate.execute(masterForm.makeUpdateMasterEntryStateStmtWithId(masterValues, masterTableEntryIdColumn));
+//    }
+
 }

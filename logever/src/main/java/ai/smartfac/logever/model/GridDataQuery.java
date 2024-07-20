@@ -5,13 +5,25 @@ import java.util.List;
 
 public class GridDataQuery {
     public String grid;
+    public String gridLabel;
     public String columns;
+    public String labels;
     public List<DataQuery> data;
 
-    public GridDataQuery(String grid, List<DataQuery> data, String columns) {
+    public GridDataQuery(String grid, String gridLabel, List<DataQuery> data, String columns, String labels) {
         this.grid = grid;
+        this.gridLabel = gridLabel;
         this.data = data;
         this.columns = columns;
+        this.labels = labels;
+    }
+
+    public String getGridLabel() {
+        return gridLabel;
+    }
+
+    public void setGridLabel(String gridLabel) {
+        this.gridLabel = gridLabel;
     }
 
     public String getColumns() {
@@ -36,5 +48,13 @@ public class GridDataQuery {
 
     public void setData(List<DataQuery> data) {
         this.data = data;
+    }
+
+    public String getLabels() {
+        return labels;
+    }
+
+    public void setLabels(String labels) {
+        this.labels = labels;
     }
 }

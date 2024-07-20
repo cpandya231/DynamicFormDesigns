@@ -49,6 +49,22 @@ public class MasterFormDataController {
     MasterFormDataService masterFormDataService;
 
 
+    @PutMapping("/{formName}/entry_state")
+    public ResponseEntity<?> updateMasterEntryStateOnly(@PathVariable(name = "formName") String formName,
+                                                        @RequestParam(name = "idCol") String idCol,
+                                                        @RequestParam(name = "idVal") String idVal,
+                                                        @RequestParam(name = "value") String value) {
+        Optional<Form> existingForm = formService.getFormByName(formName);
+
+        if (existingForm.isEmpty()) {
+            throw new RuntimeException("No form found for " + formName);
+        }
+
+        masterFormDataService.updateEntryState(existingForm.get(), idCol, idVal, "entry_state", value);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @GetMapping("/{formName}")
     public ResponseEntity<?> getLogEntries(@PathVariable(name = "formName") String formName,
                                            @RequestParam(name = "column", required = false) String column,
@@ -104,8 +120,8 @@ public class MasterFormDataController {
         if(form.isPresent()) {
             String visibleColumns = form.get().getWorkflow().getStates().stream().filter(st->st.isFirstState()).findFirst().get().getVisibleColumns();
             List<String> data = Arrays.stream(visibleColumns.split(",")).map(col->
-                    form.get().getFormLabels().stream()
-                            .filter(lbl->lbl.toLowerCase().replaceAll(" ","_").equalsIgnoreCase(col)).findFirst().get()).collect(Collectors.toList());
+                    form.get().getFormKeys().stream()
+                            .filter(key->key.equalsIgnoreCase(col)).findFirst().get()).collect(Collectors.toList());
             csvPrinter.printRecord(data);
             csvPrinter.flush();
             InputStreamResource inputStreamResource = new InputStreamResource(new ByteArrayInputStream(out.toByteArray()));
@@ -128,14 +144,14 @@ public class MasterFormDataController {
             Iterable<CSVRecord> records = csvFormat.withHeader().parse(new BufferedReader(new InputStreamReader(file.getInputStream(),"UTF-8"))).getRecords();
             String visibleColumns = form.getWorkflow().getStates().stream().filter(st->st.isFirstState()).findFirst().get().getVisibleColumns();
             List<String> columns = Arrays.stream(visibleColumns.split(",")).map(col->
-                    form.getFormLabels().stream()
-                            .filter(lbl->lbl.toLowerCase().replaceAll(" ","_").equalsIgnoreCase(col)).findFirst().get()).collect(Collectors.toList());
+                    form.getFormKeys().stream()
+                            .filter(key->key.equalsIgnoreCase(col)).findFirst().get()).collect(Collectors.toList());
             ArrayList<Map<String,String>> vRecords = new ArrayList<>();
 
             for(CSVRecord record:records) {
                 Map<String,String> value = new HashMap<>();
                 for(String column:columns) {
-                    value.put(column.toLowerCase().replaceAll(" ","_"),record.get(column));
+                    value.put(column,record.get(column));
                 }
                 value.put("state", toState.getName());
                 value.put("created_by", SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
