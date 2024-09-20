@@ -60,96 +60,96 @@ public class FormDataController {
             Entry entry = formDataService.insertInto(existingForm.get(), values, files);
             formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entry);
             Form form = existingForm.get();
+
             State nextState = form.getWorkflow().getStates().stream().filter(st->st.getName().equals(logEntry.getState())).findFirst().get();
             List<PendingEntry> pendingEntries = new ArrayList<>();
-            if (nextState.getUserAccessField() == null || nextState.getUserAccessField().trim().length() == 0) {
-                if (!logEntry.isEndState() && !logEntry.getState().endsWith("-INPA")) {
-                    nextState.getRoles().forEach(r -> {
-                        if (!r.getRole().equalsIgnoreCase("Initiator")) {
-                            if (!r.getRole().equalsIgnoreCase("Initiator Manager")) {
-                                if (!r.getRole().equalsIgnoreCase("Initiator HOD")) {
-                                    nextState.getDepartments().forEach(d -> {
-                                        if (d.getName().equalsIgnoreCase("Initiator Department")) {
-                                            departmentService.getAllUnder(user.getDepartment()).forEach(aD -> {
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), null, r.getId(), aD.getId(),
-                                                        values.get("created_by"), aD.getHod()));
-                                            });
-                                        } else {
-                                            departmentService.getAllUnder(d).forEach(aD -> {
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), null, r.getId(), aD.getId(),
-                                                        values.get("created_by"), aD.getHod()));
-                                            });
-                                        }
-                                    });
-                                } else {
-                                    if (username.equalsIgnoreCase(user.getDepartment().getHod())) {
-                                        if (user.getDepartment().getParentId() > 0) {
-                                            Department parentDept = departmentService.getDepartmentById(user.getDepartment().getParentId()).get();
-                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), parentDept.getHod(), null, parentDept.getId()
-                                                    , values.get("created_by"), userService.getUserByUsername(parentDept.getHod()).get().getDepartment().getHod()));
-                                            if (parentDept.getDesignee1() != null && !parentDept.getDesignee1().isEmpty() && !parentDept.getDesignee1().equalsIgnoreCase(username))
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), parentDept.getDesignee1(), null, parentDept.getId(),
-                                                        values.get("created_by"), parentDept.getHod()));
-                                            if (parentDept.getDesignee2() != null && !parentDept.getDesignee2().isEmpty() && !parentDept.getDesignee2().equalsIgnoreCase(username))
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), parentDept.getDesignee2(), null, parentDept.getId()
-                                                        , values.get("created_by"), parentDept.getHod()));
-                                        } else {
-                                            if (user.getDepartment().getDesignee1() != null && !user.getDepartment().getDesignee1().isEmpty() && !user.getDepartment().getDesignee1().equalsIgnoreCase(username))
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getDesignee1(), null, user.getDepartment().getId(),
-                                                        values.get("created_by"), username));
-                                            if (user.getDepartment().getDesignee2() != null && !user.getDepartment().getDesignee2().isEmpty() && !user.getDepartment().getDesignee2().equalsIgnoreCase(username))
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getDesignee2(), null, user.getDepartment().getId()
-                                                        , values.get("created_by"), username));
-                                        }
+
+            if (logEntry.getState().endsWith("-INPA")) {
+                pendingEntries.add(new PendingEntry(existingForm.get().getId(), entry.getEntryId(), user.getUsername(), null, null
+                        , values.get("created_by"), user.getDepartment().getHod()));
+                pendingEntryService.saveAll(pendingEntries);
+            } else {
+                State nextState = form.getWorkflow().getStates().stream().filter(st->st.getName().equals(logEntry.getState())).findFirst().get();
+
+                if (nextState.getUserAccessField() == null || nextState.getUserAccessField().trim().length() == 0) {
+                    if (!logEntry.isEndState() && !logEntry.getState().endsWith("-INPA")) {
+                        nextState.getRoles().forEach(r -> {
+                            if (!r.getRole().equalsIgnoreCase("Initiator")) {
+                                if (!r.getRole().equalsIgnoreCase("Initiator Manager")) {
+                                    if (!r.getRole().equalsIgnoreCase("Initiator HOD")) {
+                                        nextState.getDepartments().forEach(d -> {
+                                            if (d.getName().equalsIgnoreCase("Initiator Department")) {
+                                                departmentService.getAllUnder(user.getDepartment()).forEach(aD -> {
+                                                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), null, r.getId(), aD.getId(),
+                                                            values.get("created_by"), aD.getHod()));
+                                                });
+                                            } else {
+                                                departmentService.getAllUnder(d).forEach(aD -> {
+                                                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), null, r.getId(), aD.getId(),
+                                                            values.get("created_by"), aD.getHod()));
+                                                });
+                                            }
+                                        });
                                     } else {
-                                        pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getHod(), null, user.getDepartment().getId()
-                                                , values.get("created_by"), userService.getUserByUsername(user.getDepartment().getHod()).get().getDepartment().getHod()));
-                                        if (user.getDepartment().getDesignee1() != null && !user.getDepartment().getDesignee1().isEmpty() && !user.getDepartment().getDesignee1().equalsIgnoreCase(username))
-                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getDesignee1(), null, user.getDepartment().getId(),
-                                                    values.get("created_by"), userService.getUserByUsername(user.getDepartment().getDesignee1()).get().getDepartment().getHod()));
-                                        if (user.getDepartment().getDesignee2() != null && !user.getDepartment().getDesignee2().isEmpty() && !user.getDepartment().getDesignee2().equalsIgnoreCase(username))
-                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getDesignee2(), null, user.getDepartment().getId()
-                                                    , values.get("created_by"), userService.getUserByUsername(user.getDepartment().getDesignee2()).get().getDepartment().getHod()));
+                                        if (username.equalsIgnoreCase(user.getDepartment().getHod())) {
+                                            if (user.getDepartment().getParentId() > 0) {
+                                                Department parentDept = departmentService.getDepartmentById(user.getDepartment().getParentId()).get();
+                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), parentDept.getHod(), null, null
+                                                        , values.get("created_by"), userService.getUserByUsername(parentDept.getHod()).get().getDepartment().getHod()));
+                                            } else {
+                                                if (user.getDepartment().getDesignee1() != null && !user.getDepartment().getDesignee1().isEmpty())
+                                                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getDesignee1(), null, null,
+                                                            values.get("created_by"), userService.getUserByUsername(user.getDepartment().getHod()).get().getDepartment().getHod()));
+                                                if (user.getDepartment().getDesignee2() != null && !user.getDepartment().getDesignee2().isEmpty())
+                                                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getDesignee2(), null, null
+                                                            , values.get("created_by"), userService.getUserByUsername(user.getDepartment().getHod()).get().getDepartment().getHod()));
+                                            }
+                                        } else
+                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getHod(), null, null
+                                                    , values.get("created_by"), userService.getUserByUsername(user.getDepartment().getHod()).get().getDepartment().getHod()));
+                                        if (user.getDepartment().getDesignee1() != null && !user.getDepartment().getDesignee1().isEmpty())
+                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getDesignee1(), null, null,
+                                                    values.get("created_by"), userService.getUserByUsername(user.getDepartment().getHod()).get().getDepartment().getHod()));
+                                        if (user.getDepartment().getDesignee2() != null && !user.getDepartment().getDesignee2().isEmpty())
+                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getDepartment().getDesignee2(), null, null
+                                                    , values.get("created_by"), userService.getUserByUsername(user.getDepartment().getHod()).get().getDepartment().getHod()));
                                     }
+                                } else {
+                                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getReporting_manager(), null, null
+                                            , values.get("created_by"), userService.getUserByUsername(user.getReporting_manager()).get().getDepartment().getHod()));
                                 }
                             } else {
-                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getReporting_manager(), null, null
-                                        , values.get("created_by"), userService.getUserByUsername(user.getReporting_manager()).get().getDepartment().getHod()));
+                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getUsername(), null, null
+                                        , values.get("created_by"), user.getDepartment().getHod()));
                             }
-                        } else {
-                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), user.getUsername(), null, null
-                                    , values.get("created_by"), user.getDepartment().getHod()));
-                        }
-                    });
-                    pendingEntryService.saveAll(pendingEntries);
-                } else if (logEntry.getState().endsWith("-INPA")) {
-                    pendingEntries.add(new PendingEntry(existingForm.get().getId(), entry.getEntryId(), user.getUsername(), null, null
-                            , values.get("created_by"), user.getDepartment().getHod()));
+                        });
+                        pendingEntryService.saveAll(pendingEntries);
+                    }
+                } else if (!logEntry.isEndState()) {
+                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), values.get(nextState.getUserAccessField()), null, null
+                            , values.get("created_by"), userService.getUserByUsername(values.get(nextState.getUserAccessField())).get().getDepartment().getHod()));
                     pendingEntryService.saveAll(pendingEntries);
                 }
-            } else if (!logEntry.isEndState()){
-                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), values.get(nextState.getUserAccessField()), null, null
-                        , values.get("created_by"), userService.getUserByUsername(values.get(nextState.getUserAccessField())).get().getDepartment().getHod()));
-                pendingEntryService.saveAll(pendingEntries);
+
+                EmailDetails details = new EmailDetails();
+                details.setSubject("DigitEdgy | Flux-Intelligent : " + existingForm.get().getName() + " : New Request Created");
+                details.setRecipient(user.getEmail());
+                details.setMsgBody("Hello " + user.getFirst_name() + ",\n\nYour request has been submitted!\n\nThanks & Regards,\nTeam Digitedgy.");
+                emailService.sendSimpleMail(details);
+
+                if(nextState.isSendNotification()){
+                    pendingEntries.forEach(pendingEntry -> {
+                        if(pendingEntry.getAssignedUser() != null && !pendingEntry.getAssignedUser().equalsIgnoreCase("")) {
+                            details.setSubject("DigitEdgy | Flux-Intelligent : " + existingForm.get().getName() + " : Request for action");
+                            User emailUser = userService.getUserByUsername(pendingEntry.getAssignedUser()).get();
+                            details.setRecipient(emailUser.getEmail());
+                            details.setMsgBody("Hello " + emailUser.getFirst_name() + ",\n\nThere is a pending request for you to act upon!\n\nThanks & Regards,\nTeam Digitedgy.");
+                            emailService.sendSimpleMail(details);
+                        }
+                    });
+                }
             }
 
-            EmailDetails details = new EmailDetails();
-            details.setSubject("DigitEdgy | Flux-Intelligent : " + existingForm.get().getName() + " : New Request Created");
-            details.setRecipient(user.getEmail());
-            details.setMsgBody("Hello " + user.getFirst_name() + ",\n\nYour request has been submitted!\n\nThanks & Regards,\nTeam Digitedgy.");
-            emailService.sendSimpleMail(details);
-
-            if(nextState.isSendNotification()){
-                pendingEntries.forEach(pendingEntry -> {
-                    if(pendingEntry.getAssignedUser() != null && !pendingEntry.getAssignedUser().equalsIgnoreCase("")) {
-                        details.setSubject("DigitEdgy | Flux-Intelligent : " + existingForm.get().getName() + " : Request for action");
-                        User emailUser = userService.getUserByUsername(pendingEntry.getAssignedUser()).get();
-                        details.setRecipient(emailUser.getEmail());
-                        details.setMsgBody("Hello " + emailUser.getFirst_name() + ",\n\nThere is a pending request for you to act upon!\n\nThanks & Regards,\nTeam Digitedgy.");
-                        emailService.sendSimpleMail(details);
-                    }
-                });
-            }
             return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -176,84 +176,80 @@ public class FormDataController {
             formDataService.update(existingForm.get(), logEntry.getGridData(), entry);
             pendingEntryService.removeAllFor(existingForm.get().getId(), logEntry.getId());
             Form form = existingForm.get();
-            State nextState = form.getWorkflow().getStates().stream().filter(st -> st.getName().equals(logEntry.getState())).findFirst().get();
+
             List<PendingEntry> pendingEntries = new ArrayList<>();
 
-            if (nextState.getUserAccessField() == null || nextState.getUserAccessField().trim().length() == 0) {
-                if (!logEntry.isEndState() && !logEntry.getState().endsWith("-INPA")) {
-                    nextState.getRoles().forEach(r -> {
-                        if (!r.getRole().equalsIgnoreCase("Initiator")) {
-                            if (!r.getRole().equalsIgnoreCase("Initiator Manager")) {
-                                if (!r.getRole().equalsIgnoreCase("Initiator HOD")) {
-                                    nextState.getDepartments().forEach(d -> {
-                                        departmentService.getAllUnder(d).forEach(aD -> {
-                                            pendingEntries.add(new PendingEntry(form.getId(), logEntry.getId(), null, r.getId(), aD.getId()
-                                                    , initiator.getUsername(), aD.getHod()));
+            if (logEntry.getState().endsWith("-INPA")) {
+                pendingEntries.add(new PendingEntry(existingForm.get().getId(), entry.getEntryId(), user, null, null
+                        , initiator.getUsername(), userService.getUserByUsername(user).get().getDepartment().getHod()));
+                pendingEntryService.saveAll(pendingEntries);
+            } else {
+                State nextState = form.getWorkflow().getStates().stream().filter(st -> st.getName().equals(logEntry.getState())).findFirst().get();
+                if (nextState.getUserAccessField() == null || nextState.getUserAccessField().trim().length() == 0) {
+                    if (!logEntry.isEndState() && !logEntry.getState().endsWith("-INPA")) {
+                        nextState.getRoles().forEach(r -> {
+                            if (!r.getRole().equalsIgnoreCase("Initiator")) {
+                                if (!r.getRole().equalsIgnoreCase("Initiator Manager")) {
+                                    if (!r.getRole().equalsIgnoreCase("Initiator HOD")) {
+                                        nextState.getDepartments().forEach(d -> {
+                                            departmentService.getAllUnder(d).forEach(aD -> {
+                                                pendingEntries.add(new PendingEntry(form.getId(), logEntry.getId(), null, r.getId(), aD.getId()
+                                                        , initiator.getUsername(), aD.getHod()));
+                                            });
                                         });
-                                    });
-                                } else {
-                                    if (initiator.getUsername().equalsIgnoreCase(initiator.getDepartment().getHod())) {
-                                        if (initiator.getDepartment().getParentId() > 0) {
-                                            Department parentDept = departmentService.getDepartmentById(initiator.getDepartment().getParentId()).get();
-                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), parentDept.getHod(), null, parentDept.getId()
-                                                    , initiator.getUsername(), userService.getUserByUsername(parentDept.getHod()).get().getDepartment().getHod()));
-                                            if (parentDept.getDesignee1() != null && !parentDept.getDesignee1().isEmpty() && !parentDept.getDesignee1().equalsIgnoreCase(initiator.getUsername()))
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), parentDept.getDesignee1(), null, parentDept.getId(),
-                                                        initiator.getUsername(), parentDept.getHod()));
-                                            if (parentDept.getDesignee2() != null && !parentDept.getDesignee2().isEmpty() && !parentDept.getDesignee2().equalsIgnoreCase(initiator.getUsername()))
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), parentDept.getDesignee2(), null, parentDept.getId()
-                                                        , values.get("created_by"), parentDept.getHod()));
-                                        } else {
-                                            if (initiator.getDepartment().getDesignee1() != null && !initiator.getDepartment().getDesignee1().isEmpty() && !initiator.getDepartment().getDesignee1().equalsIgnoreCase(initiator.getUsername()))
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getDesignee1(), null, initiator.getDepartment().getId()
-                                                        , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee1()).get().getDepartment().getHod()));
-                                            if (initiator.getDepartment().getDesignee2() != null && !initiator.getDepartment().getDesignee2().isEmpty() && !initiator.getDepartment().getDesignee2().equalsIgnoreCase(initiator.getUsername()))
-                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getDesignee2(), null, initiator.getDepartment().getId()
-                                                        , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee2()).get().getDepartment().getHod()));
-                                        }
                                     } else {
-                                        pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getHod(), null, initiator.getDepartment().getId()
-                                                , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getHod()).get().getDepartment().getHod()));
-                                        if (initiator.getDepartment().getDesignee1() != null && !initiator.getDepartment().getDesignee1().isEmpty() && !initiator.getDepartment().getDesignee1().equalsIgnoreCase(initiator.getUsername()))
-                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getDesignee1(), null, initiator.getDepartment().getId()
+                                        if (initiator.getUsername().equalsIgnoreCase(initiator.getDepartment().getHod())) {
+                                            if (initiator.getDepartment().getParentId() > 0) {
+                                                Department parentDept = departmentService.getDepartmentById(initiator.getDepartment().getParentId()).get();
+                                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), parentDept.getHod(), null, null
+                                                        , initiator.getUsername(), userService.getUserByUsername(parentDept.getHod()).get().getDepartment().getHod()));
+                                            } else {
+                                                if (initiator.getDepartment().getDesignee1() != null && !initiator.getDepartment().getDesignee1().isEmpty())
+                                                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getDesignee1(), null, null
+                                                            , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee1()).get().getDepartment().getHod()));
+                                                if (initiator.getDepartment().getDesignee2() != null && !initiator.getDepartment().getDesignee2().isEmpty())
+                                                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getDesignee2(), null, null
+                                                            , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee2()).get().getDepartment().getHod()));
+                                            }
+                                        } else
+                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getHod(), null, null
+                                                    , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getHod()).get().getDepartment().getHod()));
+                                        if (initiator.getDepartment().getDesignee1() != null && !initiator.getDepartment().getDesignee1().isEmpty())
+                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getDesignee1(), null, null
                                                     , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee1()).get().getDepartment().getHod()));
-                                        if (initiator.getDepartment().getDesignee2() != null && !initiator.getDepartment().getDesignee2().isEmpty() && !initiator.getDepartment().getDesignee2().equalsIgnoreCase(initiator.getUsername()))
-                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getDesignee2(), null, initiator.getDepartment().getId()
+                                        if (initiator.getDepartment().getDesignee2() != null && !initiator.getDepartment().getDesignee2().isEmpty())
+                                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getDepartment().getDesignee2(), null, null
                                                     , initiator.getUsername(), userService.getUserByUsername(initiator.getDepartment().getDesignee2()).get().getDepartment().getHod()));
                                     }
+                                } else {
+                                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getReporting_manager(), null, null
+                                            , initiator.getUsername(), userService.getUserByUsername(initiator.getReporting_manager()).get().getDepartment().getHod()));
                                 }
                             } else {
-                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getReporting_manager(), null, null
-                                        , initiator.getUsername(), userService.getUserByUsername(initiator.getReporting_manager()).get().getDepartment().getHod()));
+                                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getUsername(), null, null
+                                        , initiator.getUsername(), initiator.getDepartment().getHod()));
                             }
-                        } else {
-                            pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), initiator.getUsername(), null, null
-                                    , initiator.getUsername(), initiator.getDepartment().getHod()));
-                        }
-                    });
-                    pendingEntryService.saveAll(pendingEntries);
-                } else if (logEntry.getState().endsWith("-INPA")) {
-                    pendingEntries.add(new PendingEntry(existingForm.get().getId(), entry.getEntryId(), user, null, null
-                            , initiator.getUsername(), userService.getUserByUsername(user).get().getDepartment().getHod()));
+                        });
+                        pendingEntryService.saveAll(pendingEntries);
+                    }
+                } else if (!logEntry.isEndState()) {
+                    pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), values.get(nextState.getUserAccessField()), null, null
+                            , initiator.getUsername(), userService.getUserByUsername(values.get(nextState.getUserAccessField())).get().getDepartment().getHod()));
                     pendingEntryService.saveAll(pendingEntries);
                 }
-            } else if (!logEntry.isEndState()){
-                pendingEntries.add(new PendingEntry(form.getId(), entry.getEntryId(), values.get(nextState.getUserAccessField()), null, null
-                        , initiator.getUsername(), userService.getUserByUsername(values.get(nextState.getUserAccessField())).get().getDepartment().getHod()));
-                pendingEntryService.saveAll(pendingEntries);
-            }
 
-            if(nextState.isSendNotification()){
-                EmailDetails details = new EmailDetails();
-                pendingEntries.forEach(pendingEntry -> {
-                    if(pendingEntry.getAssignedUser() != null && !pendingEntry.getAssignedUser().equalsIgnoreCase("")) {
-                        details.setSubject("DigitEdgy | Flux-Intelligent : " + existingForm.get().getName() + " : Request for action");
-                        User emailUser = userService.getUserByUsername(pendingEntry.getAssignedUser()).get();
-                        details.setRecipient(emailUser.getEmail());
-                        details.setMsgBody("Hello " + emailUser.getFirst_name() + ",\n\nThere is a pending request for you to act upon!\n\nThanks & Regards,\nTeam Digitedgy.");
-                        emailService.sendSimpleMail(details);
-                    }
-                });
+                if(nextState.isSendNotification()){
+                    EmailDetails details = new EmailDetails();
+                    pendingEntries.forEach(pendingEntry -> {
+                        if(pendingEntry.getAssignedUser() != null && !pendingEntry.getAssignedUser().equalsIgnoreCase("")) {
+                            details.setSubject("DigitEdgy | Flux-Intelligent : " + existingForm.get().getName() + " : Request for action");
+                            User emailUser = userService.getUserByUsername(pendingEntry.getAssignedUser()).get();
+                            details.setRecipient(emailUser.getEmail());
+                            details.setMsgBody("Hello " + emailUser.getFirst_name() + ",\n\nThere is a pending request for you to act upon!\n\nThanks & Regards,\nTeam Digitedgy.");
+                            emailService.sendSimpleMail(details);
+                        }
+                    });
+                }
             }
 
             return new ResponseEntity<>(HttpStatus.CREATED);
