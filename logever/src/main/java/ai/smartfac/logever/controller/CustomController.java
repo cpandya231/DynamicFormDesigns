@@ -112,4 +112,11 @@ public class CustomController {
         return new ResponseEntity<>(customService.getComputerIDs(userAccountType), HttpStatus.OK);
     }
 
+    @PutMapping("/material/update_avl_qty/{batchNo}")
+    public ResponseEntity<?> updateMaterialAvailableQty(@PathVariable(name = "batchNo") String batchNo,
+                                                        @RequestParam(name = "avlQty") Integer avlQty) {
+        customService.updateAvlQuantity(batchNo, avlQty);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }

@@ -41,6 +41,8 @@ public class State {
     private boolean sendNotification;
     private String userAccessField;
 
+    private String stConf;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "workflow_id")
@@ -200,5 +202,13 @@ public class State {
 
     public void setUserAccessField(String userAccessField) {
         this.userAccessField = userAccessField;
+    }
+
+    public String getStConf() {
+        return stConf;
+    }
+
+    public void setStConf(String stConf) {
+        this.stConf = stConf;
     }
 }

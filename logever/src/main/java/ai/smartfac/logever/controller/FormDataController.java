@@ -61,7 +61,7 @@ public class FormDataController {
             formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entry);
             Form form = existingForm.get();
 
-            State nextState = form.getWorkflow().getStates().stream().filter(st->st.getName().equals(logEntry.getState())).findFirst().get();
+//            State nextState = form.getWorkflow().getStates().stream().filter(st->st.getName().equals(logEntry.getState())).findFirst().get();
             List<PendingEntry> pendingEntries = new ArrayList<>();
 
             if (logEntry.getState().endsWith("-INPA")) {

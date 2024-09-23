@@ -173,4 +173,9 @@ public class CustomService {
                 (resultSet, rowNum) -> new DataQuery(resultSet,  Arrays.stream(selectCols.split(",")).collect(Collectors.joining(",")).split(",")));
         return  result;
     }
+
+    public void updateAvlQuantity(String batchNo, Integer quantity) {
+        String updateDoFetchQuery = "UPDATE f_mstr_material_received_lgs SET available_quantity = '"+quantity+"' where batch_no = '"+batchNo+"'";
+        jdbcTemplate.update(updateDoFetchQuery);
+    }
 }
