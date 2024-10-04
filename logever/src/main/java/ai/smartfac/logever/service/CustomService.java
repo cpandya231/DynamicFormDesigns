@@ -175,7 +175,7 @@ public class CustomService {
     }
 
     public void updateAvlQuantity(String batchNo, Integer quantity) {
-        String updateDoFetchQuery = "UPDATE f_mstr_material_received_lgs SET available_quantity = '"+quantity+"' where batch_no = '"+batchNo+"'";
+        String updateDoFetchQuery = "UPDATE f_mstr_material_received_lgs SET available_quantity = '"+quantity+"', entry_state = 'Issued' where batch_no = '"+batchNo+"'";
         jdbcTemplate.update(updateDoFetchQuery);
     }
 }

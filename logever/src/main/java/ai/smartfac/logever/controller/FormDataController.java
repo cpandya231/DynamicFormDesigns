@@ -280,7 +280,7 @@ public class FormDataController {
                                            @RequestParam(name = "filterByDepartment", required = false, defaultValue = "false") boolean filterByDepartment) {
         Optional<Form> existingForm = formService.getFormById(formId);
         User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()).get();
-        if(StreamSupport.stream(formService.getLastStateAccessibleForms(user).spliterator(),false).filter(f->f.getName().equalsIgnoreCase(existingForm.get().getName())).count() > 0){
+        if(StreamSupport.stream(formService.getLastStateAccessibleForms(user).spliterator(),false).filter(f->f.getName().equalsIgnoreCase(existingForm.get().getName())).count() > 0) {
             List<DataQuery> dataQueried;
             dataQueried = formDataService.getAllFor(existingForm.get(), entryId, false, filterByDepartment);
             return new ResponseEntity<>(dataQueried, HttpStatus.OK);
