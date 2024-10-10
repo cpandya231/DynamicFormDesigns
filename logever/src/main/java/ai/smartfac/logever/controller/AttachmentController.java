@@ -32,12 +32,12 @@ public class AttachmentController {
         List<Path> folders = fileStorageService.loadAll(formId+"")
                 .sorted(Comparator.comparing(p -> p.toString(), Comparator.reverseOrder()))
                 .filter(path-> {
-            return path.toString().startsWith(formId + "/" + logEntryId + "_");
+            return path.toString().startsWith(formId + "\\" + logEntryId + "_");
         }).collect(Collectors.toList());
 
         for(Path folder: folders) {
             Optional<Path> file = fileStorageService.loadAll(folder.toString()).filter(path-> {
-                return path.toString().endsWith("/"+fileName);
+                return path.toString().endsWith("\\"+fileName);
             }).findFirst();
             try {
                 if(file.isPresent()) {
@@ -74,7 +74,7 @@ public class AttachmentController {
 
         for(Path folder: folders) {
             Optional<Path> file = fileStorageService.loadAll(folder.toString()).filter(path-> {
-                return path.toString().endsWith("/"+fileName);
+                return path.toString().endsWith("\\"+fileName);
             }).findFirst();
             try {
                 if(file.isPresent()) {
