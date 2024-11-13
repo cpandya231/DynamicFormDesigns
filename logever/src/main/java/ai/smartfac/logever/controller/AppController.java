@@ -20,8 +20,4 @@ public class AppController {
         return new ResponseEntity<>(appService.getAll(), HttpStatus.OK);
     }
 
-    @PostMapping("/")
-    public ResponseEntity<?> saveApp(@RequestBody App app) {
-        return new ResponseEntity<>(appService.save(app),HttpStatus.OK);
-    }
 }

@@ -17,19 +17,6 @@ public class WorkflowService {
     @Autowired
     WorkflowRepository workflowRepository;
 
-    @Autowired
-    StateRepository stateRepository;
-
-    @Autowired
-    TransitionRepository transitionRepository;
-
-    public Workflow saveWorkflow(Workflow workflow) {
-        if(workflow.getStates()!=null) {
-            //workflow.getStates().forEach(state -> state.setWorkflow(workflow));
-        }
-        return workflowRepository.save(workflow);
-    }
-
     public Optional<Workflow> getWorkflowById(Integer id) {
         return workflowRepository.findById(id);
     }

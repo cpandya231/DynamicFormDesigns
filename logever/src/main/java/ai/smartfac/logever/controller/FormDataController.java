@@ -58,7 +58,6 @@ public class FormDataController {
             values.put("created_by", username);
             values.put("endState", logEntry.isEndState() ? "true" : "false");
             Entry entry = formDataService.insertInto(existingForm.get(), values, files);
-            formDataService.insertInto(existingForm.get(), logEntry.getGridData(), entry);
             Form form = existingForm.get();
             State nextState = form.getWorkflow().getStates().stream().filter(st->st.getName().equals(logEntry.getState())).findFirst().get();
             List<PendingEntry> pendingEntries = new ArrayList<>();
@@ -173,7 +172,6 @@ public class FormDataController {
             values.put("endState", logEntry.isEndState() ? "true" : "false");
             values.remove("log_update_dt");
             Entry entry = formDataService.update(existingForm.get(), values, files);
-            formDataService.update(existingForm.get(), logEntry.getGridData(), entry);
             pendingEntryService.removeAllFor(existingForm.get().getId(), logEntry.getId());
             Form form = existingForm.get();
             State nextState = form.getWorkflow().getStates().stream().filter(st -> st.getName().equals(logEntry.getState())).findFirst().get();
@@ -321,16 +319,6 @@ public class FormDataController {
         return new ResponseEntity<>(dataQueried, HttpStatus.OK);
     }
 
-    @GetMapping("/grid/metadata/{formId}/{entryId}")
-    public ResponseEntity<?> getLogEntryGridMetadata(@PathVariable(name = "formId") int formId,
-                                                 @PathVariable(name = "entryId") int entryId) {
-        Optional<Form> existingForm = formService.getFormById(formId);
-
-        var dataQueried = formDataService.getLogEntryGridMetadata(existingForm.get(), entryId);
-
-        return new ResponseEntity<>(dataQueried, HttpStatus.OK);
-    }
-
     @PostMapping("/metadata/{formId}/{entryId}")
     public ResponseEntity<?> saveLogEntryMetadata(@PathVariable(name = "formId") int formId,
                                                   @PathVariable(name = "entryId") int entryId,
@@ -388,10 +376,4 @@ public class FormDataController {
         }
     }
 
-    @GetMapping("/grid/{formId}/{logEntryId}")
-    private ResponseEntity<?> getGridDataFor(@PathVariable(name = "formId") int formId,
-                                               @PathVariable(name = "logEntryId") int logEntryId) {
-        Optional<Form> existingForm = formService.getFormById(formId);
-        return new ResponseEntity<>(formDataService.getGridsFor(existingForm.get(),logEntryId), HttpStatus.OK);
-    }
 }

@@ -3,7 +3,6 @@ package ai.smartfac.logever.service;
 import ai.smartfac.logever.entity.*;
 import ai.smartfac.logever.repository.FormRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -15,9 +14,6 @@ public class FormService {
 
     @Autowired
     FormRepository formRepository;
-
-    @Autowired
-    JdbcTemplate jdbcTemplate;
 
     @Autowired
     DepartmentService departmentService;
@@ -84,45 +80,8 @@ public class FormService {
         return formRepository.findByName(name);
     }
 
-    public Form save(Form form) {
-        if (form.getVersion() == 1 && form.getId() == null) {
-            jdbcTemplate.execute(form.makeCreateTableStmt());
-            jdbcTemplate.execute(form.makeCreateMetaDataTableStmt());
-            form.makeCreateGridTableStmt().forEach(stmt-> {
-                jdbcTemplate.execute(stmt);
-            });
-            form.makeCreateGridHistoryTableStmt().forEach(stmt-> {
-                jdbcTemplate.execute(stmt);
-            });
-            if(form.getType().equalsIgnoreCase("master"))
-                jdbcTemplate.execute(form.makeCreateMasterTableStmt());
-            form.setColumns(form.getColumns());
-            return formRepository.save(form);
-        }
-        return form;
-    }
-
     public Iterable<Form> getFormsByApp(Integer appId) {
         return formRepository.findAllByAppId(appId);
     }
 
-    public Form update(Form form, String prevColumns) {
-        String alterStmt = form.makeAlterTableStmt(prevColumns);
-        String alterTableMetaDataStmt = form.makeAlterTableMetaDataStmt(prevColumns);
-        if (alterStmt.length() > 0) {
-            if(form.getType().equalsIgnoreCase("master")){
-                String alterMasterTableStmt = form.makeAlterMasterTableStmt(prevColumns);
-                jdbcTemplate.execute(alterMasterTableStmt);
-            }
-            jdbcTemplate.execute(alterStmt);
-            jdbcTemplate.execute(alterTableMetaDataStmt);
-
-        }
-
-        return formRepository.save(form);
-    }
-
-    public Optional<Form> getFormByWorkflowId(Integer workflowId) {
-        return formRepository.findByWorkflowId(workflowId);
-    }
 }

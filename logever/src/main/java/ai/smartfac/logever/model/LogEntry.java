@@ -10,7 +10,6 @@ public class LogEntry {
     private boolean endState;
     private String initiator;
     private Map<String,String> data;
-    private ArrayList<GridLogEntry> gridData;
 
     public int getId() {
         return id;
@@ -42,14 +41,6 @@ public class LogEntry {
 
     public void setEndState(boolean endState) {
         this.endState = endState;
-    }
-
-    public ArrayList<GridLogEntry> getGridData() {
-        return gridData;
-    }
-
-    public void setGridData(ArrayList<GridLogEntry> gridData) {
-        this.gridData = gridData;
     }
 
     public String getInitiator() {
