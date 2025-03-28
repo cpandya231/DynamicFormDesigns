@@ -1,0 +1,41 @@
+package com.swiftiq.logever.service;
+
+import com.swiftiq.logever.kraftos.entity.Settings;
+import com.swiftiq.logever.kraftos.SettingsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class SettingsService {
+
+    @Autowired
+    SettingsRepository settingsRepository;
+
+    public Optional<Settings> findByKey(String key) {
+        return settingsRepository.findByKey(key);
+    }
+
+    public Iterable<Settings> findAllSettingsByType(String type) {
+        return settingsRepository.findAllSettingsByType(type);
+    }
+
+    public Iterable<Settings> findAllSettings() {
+        return settingsRepository.findAll();
+    }
+
+    public Optional<Settings> update(Settings settings) {
+        Optional<Settings> foundSetting = settingsRepository.findByKey(settings.getKey());
+        if(foundSetting.isPresent()) {
+            foundSetting.get().setValue(settings.getValue());
+            settingsRepository.save(foundSetting.get());
+        }
+        return foundSetting;
+    }
+
+    public void updateAll(List<Settings> settings) {
+        settings.forEach(setting->update(setting));
+    }
+}

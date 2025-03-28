@@ -1,1 +1,1 @@
-org.springframework.boot.env.EnvironmentPostProcessor=ai.smartfac.logever.config.DBPropertyLoader
+org.springframework.boot.env.EnvironmentPostProcessor=com.swiftiq.logever.config.DBPropertyLoader
