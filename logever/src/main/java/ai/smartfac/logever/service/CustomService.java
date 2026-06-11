@@ -49,7 +49,7 @@ public class CustomService {
         Table metaTable = new Table();
         String selectCols = "id,required_roles,application_request_type,state";
         String selectStmt = "SELECT id, required_roles, application_request_type, state from " + table.getName() + " l where l.application_name = '"+application+
-                "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') order by log_update_dt is null desc, log_update_dt desc, log_create_dt desc limit 1";
+                "' and (l.employee_id = '"+employeeID+"' or l.other_employee_id = '"+employeeID+"' or l.service_engineer_id = '"+employeeID+"') and state != 'Withdraw Request' order by log_update_dt is null desc, log_update_dt desc, log_create_dt desc limit 1";
         System.out.println(selectStmt);
         User user;
         Boolean userDisabled = false;

@@ -215,7 +215,7 @@ BEGIN
 	declare V_PREV_STATE TEXT;
 	declare V_USERNAME VARCHAR(255);
 	declare V_NEW_STATE TEXT;
-	SET V_ACTION = 'DELETED';
+	SET V_ACTION = 'DISABLED';
 	SET V_PK_VALUE = concat(OLD.role_id,"-",OLD.permission_id);
 	SET V_TYPE = 'ROLE_PERMISSION';
 	SET V_NEW_STATE = null;
@@ -271,7 +271,7 @@ BEGIN
 	declare V_PREV_STATE TEXT;
 	declare V_USERNAME VARCHAR(255);
 	declare V_NEW_STATE TEXT;
-	SET V_ACTION = 'DELETED';
+	SET V_ACTION = 'DISABLED';
 	SET V_PK_VALUE = concat(OLD.user_id,"-",OLD.role_id);
 	SET V_TYPE = 'USER_ROLE';
 	SET V_NEW_STATE = null;
